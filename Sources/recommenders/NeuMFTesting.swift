@@ -9,9 +9,6 @@ func testNeuMF(size: [Int], regs: [Float], numLatentFeatures: Int, matrixRegular
     let numUsers = dataset.numUsers
     let numItems = dataset.numItems
 
-//    let size: [Int] = [16, 32, 16, 8]
-//    let regs: [Float] = [0.0, 0.0, 0.0, 0.0]
-
     var model = NeuMF(numUsers: numUsers, numItems: numItems, numLatentFeatures: numLatentFeatures, matrixRegularization: matrixRegularization, mlpLayerSizes: size, mlpRegularizations: regs)
     let optimizer = Adam(for: model, learningRate: learningRate)
     var itemCount = Dictionary(
