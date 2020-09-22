@@ -7,15 +7,15 @@
 //        nTrainEpochs: 20
 //)
 
-//testDLRM(
-//        nDense: 2,
-//        mSpa: 2,
-//        lnEmb: [10],
-//        lnBot: [2, 2],
-//        lnTop: [2, 2],
-//        nTrainEpochs: 10,
-//        learningRate: 0.001
-//)
+testDLRM(
+        nDense: 2,
+        mSpa: 2,
+        lnEmb: [10, 10],
+        lnBot: [2, 2],
+        lnTop: [2, 2],
+        nTrainEpochs: 100,
+        learningRate: 0.001
+)
 
-let dataset = SimpleDataset(trainPath: "train.txt", testPath: "test.txt")
-print(dataset.training)
+//let dataset = SimpleDataset(trainPath: "train.txt", testPath: "test.txt")
+//print(dataset.training)

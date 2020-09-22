@@ -4,10 +4,36 @@ import Foundation
 import RecommendationModels
 import TensorFlow
 
-func testDLRM(nDense: Int, mSpa: Int, lnEmb: [Int], lnBot: [Int], lnTop: [Int], nTrainEpochs: Int, learningRate: Float, interaction: InteractionType = .concatenate){
+func get_tensor_column<Element>(height: Int, column: Int, tensor: Tensor<Element>) -> Tensor<Element>{
+    var result: [Tensor<Element>] = []
+    for rowIndex in 0...height - 1 {
+        result.append(tensor[rowIndex][column])
+    }
+    return Tensor<Element>(result)
+}
+
+func testDLRM(nDense: Int, mSpa: Int, lnEmb: [Int], lnBot: [Int], lnTop: [Int], nTrainEpochs: Int,
+              learningRate: Float, interaction: InteractionType = .concatenate, trainBatchSize: Int = 2, nTestSamples: Int = 3){
     var model = DLRM(nDense: nDense, mSpa: mSpa, lnEmb: lnEmb, lnBot: lnBot, lnTop: lnTop, interaction: interaction)
     let optimizer = Adam(for: model, learningRate: learningRate)
-    let dataset = MovieLens(trainBatchSize: 2)
+    let dataset = SimpleDataset(trainBatchSize: trainBatchSize, trainPath: "train.txt", testPath: "test.txt")
+    var itemCount = Dictionary(
+            uniqueKeysWithValues: zip(
+                    dataset.testUsers, Array(repeating: 0.0, count: dataset.testUsers.count)
+            )
+    )
+
+    var testNegSampling = Tensor<Float>(zeros: [dataset.testUsers.count, dataset.testItems.count])
+
+    for element in dataset.testData {
+        let rating = element[2]
+        if rating > 0 && dataset.item2id[element[1]] != nil {
+            let uIndex = dataset.user2id[element[0]]!
+            let iIndex = dataset.item2id[element[1]]!
+            testNegSampling[uIndex][iIndex] = Tensor(1.0)
+            itemCount[element[0]] = itemCount[element[0]]! + 1.0
+        }
+    }
 //    let dataset = DLRMInput(
 //            dense: Tensor<Float>([0.1, 0.2]),
 //            sparse: [
@@ -24,48 +50,68 @@ func testDLRM(nDense: Int, mSpa: Int, lnEmb: [Int], lnBot: [Int], lnTop: [Int], 
         var avgLoss: Float = 0.0
         Context.local.learningPhase = .training
         for batch in epochBatches {
-            let userId = batch.first
-            let rating = batch.second
-            print(userId)
-//            let (loss, grad) = valueWithGradient(at: model) { model -> Tensor<Float> in
-//                let logits = model(userId)
-//                return sigmoidCrossEntropy(logits: logits, labels: rating)
+            let userAndItemIndices = batch.first
+            let ratings = batch.second
+//            print(userAndItemIndices)
+//            print(ratings)
+//            print("single pair: \(userAndItemIndices[0])")
+//            userAndItemIndices.map_fn {
+//                $0[0]
 //            }
+//            print(userAndItemIndices.shape[0])
+
+            let userIndices = get_tensor_column(height: trainBatchSize, column: 0, tensor: userAndItemIndices)
+            let itemIndices = get_tensor_column(height: trainBatchSize, column: 1, tensor: userAndItemIndices)
+
+//            print(userIndices)
+
+//            for {
+//                print("row: \(row)")
+//            }
+//            print(type(of: userAndItemIndices))
+//            let userIndices = userAndItemIndices.map {
+//                $0[0]
+//            }
+//            print(userIndices)
+//            print(userIndices)
+            let (loss, grad) = valueWithGradient(at: model) { model -> Tensor<Float> in
+                let logits = model(denseInput: Tensor<Float>(zeros: [trainBatchSize, 2]), sparseInput: [userIndices, itemIndices])
+                return sigmoidCrossEntropy(logits: logits, labels: ratings)
+            }
 //
-//            optimizer.update(&model, along: grad)
-//            avgLoss = avgLoss + loss.scalarized()
+            optimizer.update(&model, along: grad)
+            avgLoss = avgLoss + loss.scalarized()
         }
 
-//        Context.local.learningPhase = .inference
-//        var correct = 0.0
-//        var count = 0
-//        for user in dataset.testUsers[0...30] {
-//            var negativeItem: [Float] = []
-//            var output: [Float] = []
-//            let userIndex = dataset.user2id[user]!
-//            for item in dataset.items {
-//                let itemIndex = dataset.item2id[item]!
-//                if dataset.trainNegSampling[userIndex][itemIndex].scalarized() == 0 {
-//                    let input = Tensor<Int32>(
-//                            shape: [1, 2], scalars: [Int32(userIndex), Int32(itemIndex)])
-//                    output.append(model(input).scalarized())
-//                    negativeItem.append(item)
-//                }
-//            }
-//            let itemScore = Dictionary(uniqueKeysWithValues: zip(negativeItem, output))
-//            let sortedItemScore = itemScore.sorted { $0.1 > $1.1 }
-//            let topK = sortedItemScore.prefix(min(10, Int(itemCount[user]!)))
+        Context.local.learningPhase = .inference
+        var correct = 0.0
+        var count = 0
+        for user in dataset.testUsers[0...nTestSamples] {
+            var negativeItem: [Float] = []
+            var output: [Float] = []
+            let userIndex = dataset.user2id[user]!
+            for item in dataset.testItems {
+                let itemIndex = dataset.item2id[item]!
+                if dataset.trainNegSampling[userIndex][itemIndex].scalarized() == 0 {
+                    let input = Tensor<Int32>(
+                            shape: [1, 2], scalars: [Int32(userIndex), Int32(itemIndex)]
+                    )
+                    output.append(model(denseInput: Tensor<Float>(zeros: [1, 2]), sparseInput: [Tensor<Int32>([Int32(userIndex)]), Tensor<Int32>([Int32(itemIndex)])]).scalarized())
+                    negativeItem.append(item)
+                }
+            }
+            let itemScore = Dictionary(uniqueKeysWithValues: zip(negativeItem, output))
+            let sortedItemScore = itemScore.sorted { $0.1 > $1.1 }
+            let topK = sortedItemScore.prefix(min(10, Int(itemCount[user]!)))
 //
-//            for (key, _) in topK {
-//                if testNegSampling[userIndex][dataset.item2id[key]!] == Tensor(1.0) {
-//                    correct = correct + 1.0
-//                }
-//                count = count + 1
-//            }
-//        }
-//        print(
-//                "Epoch: \(epoch)", "Current loss: \(avgLoss/1024.0)", "Validation Accuracy:",
-//                correct / Double(count))
+            for (key, _) in topK {
+                if testNegSampling[userIndex][dataset.item2id[key]!] == Tensor(1.0) {
+                    correct = correct + 1.0
+                }
+                count = count + 1
+            }
+        }
+        print("Epoch: \(epoch)", "Current loss: \(avgLoss/Float(trainBatchSize))", "Validation Accuracy:", correct / Double(count))
     }
 
 

@@ -32,19 +32,19 @@ enum simpleDatasetError: Error {
 
 public struct SimpleDataset<Entropy: RandomNumberGenerator> {
     private let trainData: [[Float]]
-    private let testData: [[Float]]
+    public let testData: [[Float]]
     public var train: [TensorPair<Int32, Float>]
 //    public let trainUsers: [Float]
-//    public let testUsers: [Float]
+    public let testUsers: [Float]
 //    public let testData: [[Float]]
-//    public let items: [Float]
+    public let testItems: [Float]
 //    public let numUsers: Int
 //    public let numItems: Int
-//    public let user2id: [Float: Int]
+    public let user2id: [Float: Int]
 //    public let id2user: [Int: Float]
-//    public let item2id: [Float: Int]
+    public let item2id: [Float: Int]
 //    public let id2item: [Int: Float]
-//    public let trainNegSampling: Tensor<Float>
+    public let trainNegSampling: Tensor<Float>
 //
     public typealias Samples = [TensorPair<Int32, Float>]
     public typealias Batches = Slices<Sampling<Samples, ArraySlice<Int>>>
@@ -78,30 +78,31 @@ public struct SimpleDataset<Entropy: RandomNumberGenerator> {
         testData = try! SimpleDataset.readData(path: trainPath)
 
         let trainUsers = trainData[column: 0].unique()
-        let testUsers = testData[column: 0].unique()
+        let testUsers_ = testData[column: 0].unique()
 
         let trainItems = trainData[column: 1].unique()
+        let testItems_ = testData[column: 1].unique()
 
         let userIndices = 0...trainUsers.count - 1
-        let user2id = Dictionary(uniqueKeysWithValues: zip(trainUsers, userIndices))
+        let user2id_ = Dictionary(uniqueKeysWithValues: zip(trainUsers, userIndices))
         let id2user = Dictionary(uniqueKeysWithValues: zip(userIndices, trainUsers))
 
         let itemIndices = 0...trainItems.count - 1
-        let item2id = Dictionary(uniqueKeysWithValues: zip(trainItems, itemIndices))
+        let item2id_ = Dictionary(uniqueKeysWithValues: zip(trainItems, itemIndices))
         let id2item = Dictionary(uniqueKeysWithValues: zip(itemIndices, trainItems))
 
-        var trainNegSampling = Tensor<Float>(zeros: [trainUsers.count, trainItems.count])
+        var trainNegSampling_ = Tensor<Float>(zeros: [trainUsers.count, trainItems.count])
 
         var train_: [TensorPair<Int32, Float>] = []
 
         trainData.map{ row in
-            let userIndex = user2id[row[0]]!
-            let itemIndex = item2id[row[1]]!
+            let userIndex = user2id_[row[0]]!
+            let itemIndex = item2id_[row[1]]!
             let rating = row[2]
 
             // Set up matrix for negative sampling
             if rating > 0 {
-                trainNegSampling[userIndex][itemIndex] = Tensor(1.0)
+                trainNegSampling_[userIndex][itemIndex] = Tensor(1.0)
             }
 
             // Set up dataset
@@ -112,7 +113,7 @@ public struct SimpleDataset<Entropy: RandomNumberGenerator> {
             // Add negative samples
             for _ in 0...nNegativeSamples - 1 {
                 var itemIndex = Int.random(in: itemIndices)
-                while trainNegSampling[userIndex][itemIndex].scalarized() == 1.0 {
+                while trainNegSampling_[userIndex][itemIndex].scalarized() == 1.0 {
                     itemIndex = Int.random(in: itemIndices)
                 }
                 SimpleDataset.appendSample(dataset: &train_, userIndex: userIndex, itemIndex: itemIndex, isNegative: true)
@@ -125,13 +126,13 @@ public struct SimpleDataset<Entropy: RandomNumberGenerator> {
 //        self.numUsers = trainUsers.count
 //        self.numItems = items.count
 //        self.trainUsers = trainUsers
-//        self.testUsers = testUsers
-//        self.items = items
-//        self.user2id = user2id
+        testUsers = testUsers_
+        testItems = testItems_
+        user2id = user2id_
 //        self.id2user = id2user
-//        self.item2id = item2id
+        item2id = item2id_
 //        self.id2item = id2item
-//        self.trainNegSampling = trainNegSampling
+        trainNegSampling = trainNegSampling_
 //
 //        self.trainMatrix = dataset
         training = TrainingEpochs(
