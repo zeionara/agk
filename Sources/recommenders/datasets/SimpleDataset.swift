@@ -74,13 +74,15 @@ public struct SimpleDataset<Entropy: RandomNumberGenerator> {
     }
 
     public init(trainBatchSize: Int = 1024, entropy: Entropy, trainPath: String, testPath: String, nNegativeSamples: Int = 3) {
-        trainData = try! SimpleDataset.readData(path: trainPath)
+        let trainData_ = try! SimpleDataset.readData(path: trainPath)
         testData = try! SimpleDataset.readData(path: trainPath)
 
-        let trainUsers = trainData[column: 0].unique()
+        print("Data is read")
+
+        let trainUsers = trainData_[column: 0].unique()
         let testUsers_ = testData[column: 0].unique()
 
-        let trainItems = trainData[column: 1].unique()
+        let trainItems = trainData_[column: 1].unique()
         let testItems_ = testData[column: 1].unique()
 
         let userIndices = 0...trainUsers.count - 1
@@ -94,8 +96,13 @@ public struct SimpleDataset<Entropy: RandomNumberGenerator> {
         var trainNegSampling_ = Tensor<Float>(zeros: [trainUsers.count, trainItems.count])
 
         var train_: [TensorPair<Int32, Float>] = []
+        var rowCounter = 0
+        var nRows = trainData_.count
 
-        trainData.map{ row in
+        let maxNegSamplingAttempts = 100
+        trainData_.map{ row in
+//            print("Handling \(rowCounter) row out of \(nRows)")
+            rowCounter += 1
             let userIndex = user2id_[row[0]]!
             let itemIndex = item2id_[row[1]]!
             let rating = row[2]
@@ -112,13 +119,18 @@ public struct SimpleDataset<Entropy: RandomNumberGenerator> {
 
             // Add negative samples
             for _ in 0...nNegativeSamples - 1 {
+                var nNegSamplingAttempts = 0
                 var itemIndex = Int.random(in: itemIndices)
-                while trainNegSampling_[userIndex][itemIndex].scalarized() == 1.0 {
+                while ((trainNegSampling_[userIndex][itemIndex].scalarized() > 2.0) && (nNegSamplingAttempts < maxNegSamplingAttempts)){
                     itemIndex = Int.random(in: itemIndices)
+                    nNegSamplingAttempts += 1
                 }
                 SimpleDataset.appendSample(dataset: &train_, userIndex: userIndex, itemIndex: itemIndex, isNegative: true)
             }
+
         }
+
+        print("Data is mapped")
 
         train = train_
 //
@@ -133,6 +145,7 @@ public struct SimpleDataset<Entropy: RandomNumberGenerator> {
         item2id = item2id_
 //        self.id2item = id2item
         trainNegSampling = trainNegSampling_
+        trainData = trainData_
 //
 //        self.trainMatrix = dataset
         training = TrainingEpochs(

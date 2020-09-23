@@ -14,7 +14,8 @@ testDLRM(
         lnBot: [2, 2],
         lnTop: [2, 2],
         nTrainEpochs: 100,
-        learningRate: 0.001
+        learningRate: 0.001,
+        trainBatchSize: 1024
 )
 
 //let dataset = SimpleDataset(trainPath: "train.txt", testPath: "test.txt")

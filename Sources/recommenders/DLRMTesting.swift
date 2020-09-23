@@ -16,7 +16,7 @@ func testDLRM(nDense: Int, mSpa: Int, lnEmb: [Int], lnBot: [Int], lnTop: [Int], 
               learningRate: Float, interaction: InteractionType = .concatenate, trainBatchSize: Int = 2, nTestSamples: Int = 3){
     var model = DLRM(nDense: nDense, mSpa: mSpa, lnEmb: lnEmb, lnBot: lnBot, lnTop: lnTop, interaction: interaction)
     let optimizer = Adam(for: model, learningRate: learningRate)
-    let dataset = SimpleDataset(trainBatchSize: trainBatchSize, trainPath: "train.txt", testPath: "test.txt")
+    let dataset = SimpleDataset(trainBatchSize: trainBatchSize, trainPath: "train-medium.txt", testPath: "test-medium.txt")
     var itemCount = Dictionary(
             uniqueKeysWithValues: zip(
                     dataset.testUsers, Array(repeating: 0.0, count: dataset.testUsers.count)
@@ -92,7 +92,7 @@ func testDLRM(nDense: Int, mSpa: Int, lnEmb: [Int], lnBot: [Int], lnTop: [Int], 
             let userIndex = dataset.user2id[user]!
             for item in dataset.testItems {
                 let itemIndex = dataset.item2id[item]!
-                if dataset.trainNegSampling[userIndex][itemIndex].scalarized() == 0 {
+                if dataset.trainNegSampling[userIndex][itemIndex].scalarized() < 2.0 {
                     let input = Tensor<Int32>(
                             shape: [1, 2], scalars: [Int32(userIndex), Int32(itemIndex)]
                     )
@@ -103,15 +103,17 @@ func testDLRM(nDense: Int, mSpa: Int, lnEmb: [Int], lnBot: [Int], lnTop: [Int], 
             let itemScore = Dictionary(uniqueKeysWithValues: zip(negativeItem, output))
             let sortedItemScore = itemScore.sorted { $0.1 > $1.1 }
             let topK = sortedItemScore.prefix(min(10, Int(itemCount[user]!)))
+
+            print(topK)
 //
             for (key, _) in topK {
-                if testNegSampling[userIndex][dataset.item2id[key]!] == Tensor(1.0) {
+                if testNegSampling[userIndex][dataset.item2id[key]!].scalar! > 2.0 {
                     correct = correct + 1.0
                 }
                 count = count + 1
             }
         }
-        print("Epoch: \(epoch)", "Current loss: \(avgLoss/Float(trainBatchSize))", "Validation Accuracy:", correct / Double(count))
+        print("Epoch: \(epoch)", "Current loss: \(avgLoss/Float(trainBatchSize))", "Validation Accuracy:", correct / Double(count), "(\(correct) \\ \(count))")
     }
 
 
