@@ -10,11 +10,11 @@
 testDLRM(
         nDense: 2,
         mSpa: 2,
-        lnEmb: [10, 10],
+        lnEmb: [100, 100],
         lnBot: [2, 2],
         lnTop: [2, 2],
         nTrainEpochs: 100,
-        learningRate: 0.001,
+        learningRate: 0.02,
         trainBatchSize: 1024
 )
 

@@ -68,9 +68,9 @@ public struct SimpleDataset<Entropy: RandomNumberGenerator> {
         return data
     }
 
-    static func appendSample(dataset: inout [TensorPair<Int32, Float>], userIndex: Int, itemIndex: Int, isNegative: Bool = false) {
+    static func appendSample(dataset: inout [TensorPair<Int32, Float>], userIndex: Int, itemIndex: Int, isNegative: Bool = false, rating: Float) {
         let userAndItem = Tensor<Int32>([Int32(userIndex), Int32(itemIndex)])
-        dataset.append(TensorPair<Int32, Float>(first: userAndItem, second: [isNegative ? 0 : 1]))
+        dataset.append(TensorPair<Int32, Float>(first: userAndItem, second: Tensor<Float>([rating / 10.0])))
     }
 
     public init(trainBatchSize: Int = 1024, entropy: Entropy, trainPath: String, testPath: String, nNegativeSamples: Int = 3) {
@@ -115,18 +115,18 @@ public struct SimpleDataset<Entropy: RandomNumberGenerator> {
             // Set up dataset
 
             // Add positive samples
-            SimpleDataset.appendSample(dataset: &train_, userIndex: userIndex, itemIndex: itemIndex)
+            SimpleDataset.appendSample(dataset: &train_, userIndex: userIndex, itemIndex: itemIndex, rating: rating)
 
             // Add negative samples
-            for _ in 0...nNegativeSamples - 1 {
-                var nNegSamplingAttempts = 0
-                var itemIndex = Int.random(in: itemIndices)
-                while ((trainNegSampling_[userIndex][itemIndex].scalarized() > 2.0) && (nNegSamplingAttempts < maxNegSamplingAttempts)){
-                    itemIndex = Int.random(in: itemIndices)
-                    nNegSamplingAttempts += 1
-                }
-                SimpleDataset.appendSample(dataset: &train_, userIndex: userIndex, itemIndex: itemIndex, isNegative: true)
-            }
+//            for _ in 0...nNegativeSamples - 1 {
+//                var nNegSamplingAttempts = 0
+//                var itemIndex = Int.random(in: itemIndices)
+//                while ((trainNegSampling_[userIndex][itemIndex].scalarized() > 2.0) && (nNegSamplingAttempts < maxNegSamplingAttempts)){
+//                    itemIndex = Int.random(in: itemIndices)
+//                    nNegSamplingAttempts += 1
+//                }
+//                SimpleDataset.appendSample(dataset: &train_, userIndex: userIndex, itemIndex: itemIndex, isNegative: true)
+//            }
 
         }
 

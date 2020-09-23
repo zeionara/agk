@@ -1,10 +1,9 @@
-
 import Datasets
 import Foundation
 import RecommendationModels
 import TensorFlow
 
-func get_tensor_column<Element>(height: Int, column: Int, tensor: Tensor<Element>) -> Tensor<Element>{
+func get_tensor_column<Element>(height: Int, column: Int, tensor: Tensor<Element>) -> Tensor<Element> {
     var result: [Tensor<Element>] = []
     for rowIndex in 0...height - 1 {
         result.append(tensor[rowIndex][column])
@@ -13,7 +12,7 @@ func get_tensor_column<Element>(height: Int, column: Int, tensor: Tensor<Element
 }
 
 func testDLRM(nDense: Int, mSpa: Int, lnEmb: [Int], lnBot: [Int], lnTop: [Int], nTrainEpochs: Int,
-              learningRate: Float, interaction: InteractionType = .concatenate, trainBatchSize: Int = 2, nTestSamples: Int = 3){
+              learningRate: Float, interaction: InteractionType = .concatenate, trainBatchSize: Int = 2, nTestSamples: Int = 3) {
     var model = DLRM(nDense: nDense, mSpa: mSpa, lnEmb: lnEmb, lnBot: lnBot, lnTop: lnTop, interaction: interaction)
     let optimizer = Adam(for: model, learningRate: learningRate)
     let dataset = SimpleDataset(trainBatchSize: trainBatchSize, trainPath: "train-medium.txt", testPath: "test-medium.txt")
@@ -23,14 +22,14 @@ func testDLRM(nDense: Int, mSpa: Int, lnEmb: [Int], lnBot: [Int], lnTop: [Int], 
             )
     )
 
-    var testNegSampling = Tensor<Float>(zeros: [dataset.testUsers.count, dataset.testItems.count])
+    var testSampling = Tensor<Float>(zeros: [dataset.testUsers.count, dataset.testItems.count])
 
     for element in dataset.testData {
         let rating = element[2]
         if rating > 0 && dataset.item2id[element[1]] != nil {
             let uIndex = dataset.user2id[element[0]]!
             let iIndex = dataset.item2id[element[1]]!
-            testNegSampling[uIndex][iIndex] = Tensor(1.0)
+            testSampling[uIndex][iIndex] = Tensor<Float>(rating / 10.0)
             itemCount[element[0]] = itemCount[element[0]]! + 1.0
         }
     }
@@ -76,7 +75,7 @@ func testDLRM(nDense: Int, mSpa: Int, lnEmb: [Int], lnBot: [Int], lnTop: [Int], 
 //            print(userIndices)
             let (loss, grad) = valueWithGradient(at: model) { model -> Tensor<Float> in
                 let logits = model(denseInput: Tensor<Float>(zeros: [trainBatchSize, 2]), sparseInput: [userIndices, itemIndices])
-                return sigmoidCrossEntropy(logits: logits, labels: ratings)
+                return meanSquaredError(predicted: logits, expected: ratings)
             }
 //
             optimizer.update(&model, along: grad)
@@ -87,33 +86,31 @@ func testDLRM(nDense: Int, mSpa: Int, lnEmb: [Int], lnBot: [Int], lnTop: [Int], 
         var correct = 0.0
         var count = 0
         for user in dataset.testUsers[0...nTestSamples] {
-            var negativeItem: [Float] = []
+            var items: [Float] = []
             var output: [Float] = []
             let userIndex = dataset.user2id[user]!
             for item in dataset.testItems {
                 let itemIndex = dataset.item2id[item]!
-                if dataset.trainNegSampling[userIndex][itemIndex].scalarized() < 2.0 {
-                    let input = Tensor<Int32>(
-                            shape: [1, 2], scalars: [Int32(userIndex), Int32(itemIndex)]
-                    )
-                    output.append(model(denseInput: Tensor<Float>(zeros: [1, 2]), sparseInput: [Tensor<Int32>([Int32(userIndex)]), Tensor<Int32>([Int32(itemIndex)])]).scalarized())
-                    negativeItem.append(item)
-                }
+                output.append(model(denseInput: Tensor<Float>(zeros: [1, 2]), sparseInput: [Tensor<Int32>([Int32(userIndex)]), Tensor<Int32>([Int32(itemIndex)])]).scalarized())
+                items.append(item)
             }
-            let itemScore = Dictionary(uniqueKeysWithValues: zip(negativeItem, output))
-            let sortedItemScore = itemScore.sorted { $0.1 > $1.1 }
+            let itemScore = Dictionary(uniqueKeysWithValues: zip(items, output))
+            let sortedItemScore = itemScore.sorted {
+                $0.1 > $1.1
+            }
             let topK = sortedItemScore.prefix(min(10, Int(itemCount[user]!)))
 
             print(topK)
 //
-            for (key, _) in topK {
-                if testNegSampling[userIndex][dataset.item2id[key]!].scalar! > 2.0 {
+            for (key, value) in topK {
+                let absoluteDifference = abs(testSampling[userIndex][dataset.item2id[key]!].scalar! - value)
+                if absoluteDifference < 0.1 {
                     correct = correct + 1.0
                 }
                 count = count + 1
             }
         }
-        print("Epoch: \(epoch)", "Current loss: \(avgLoss/Float(trainBatchSize))", "Validation Accuracy:", correct / Double(count), "(\(correct) \\ \(count))")
+        print("Epoch: \(epoch)", "Current loss: \(avgLoss / Float(trainBatchSize))", "Validation Accuracy:", correct / Double(count), "(\(correct) \\ \(count))")
     }
 
 
