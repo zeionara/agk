@@ -7,17 +7,27 @@
 //        nTrainEpochs: 20
 //)
 
-testDLRM(
-        nDense: 2,
-        mSpa: 2,
-        lnEmb: [100000, 100000],
-        lnBot: [200, 200],
-        lnTop: [200, 200],
-        nTrainEpochs: 1000,
-        learningRate: 0.07,
-        trainBatchSize: 1024,
-        nTestSamples: 4
-)
+//testDLRM(
+//        nDense: 2,
+//        mSpa: 2,
+//        lnEmb: [100000, 100000],
+//        lnBot: [200, 200],
+//        lnTop: [200, 200],
+//        nTrainEpochs: 1000,
+//        learningRate: 0.07,
+//        trainBatchSize: 1024,
+//        nTestSamples: 4
+//)
 
 //let dataset = SimpleDataset(trainPath: "train.txt", testPath: "test.txt")
 //print(dataset.training)
+
+let dataset = KnowledgeGraphDataset(path: "train-ke-small.txt")
+let model = TransE(
+        nodeEmbeddingDimensionality: 100,
+        relationshipEmbeddingDimensionality: 100,
+        dataset: dataset
+)
+let score = model(Triple(head: 1, relationship: 0, tail: 1))
+print(score)
+//print(dataset.headsUnique)
