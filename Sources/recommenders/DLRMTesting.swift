@@ -15,7 +15,7 @@ func testDLRM(nDense: Int, mSpa: Int, lnEmb: [Int], lnBot: [Int], lnTop: [Int], 
               learningRate: Float, interaction: InteractionType = .concatenate, trainBatchSize: Int = 2, nTestSamples: Int = 3) {
     var model = DLRM(nDense: nDense, mSpa: mSpa, lnEmb: lnEmb, lnBot: lnBot, lnTop: lnTop, interaction: interaction)
     let optimizer = Adam(for: model, learningRate: learningRate)
-    let dataset = SimpleDataset(trainBatchSize: trainBatchSize, trainPath: "train-medium.txt", testPath: "test-medium.txt")
+    let dataset = SimpleDataset(trainBatchSize: trainBatchSize, trainPath: "train.txt", testPath: "test.txt")
     var itemCount = Dictionary(
             uniqueKeysWithValues: zip(
                     dataset.testUsers, Array(repeating: 0.0, count: dataset.testUsers.count)
@@ -23,24 +23,17 @@ func testDLRM(nDense: Int, mSpa: Int, lnEmb: [Int], lnBot: [Int], lnTop: [Int], 
     )
 
     var testSampling = Tensor<Float>(zeros: [dataset.testUsers.count, dataset.testItems.count])
-
+    let maxRating = getMax(items: dataset.testData[column: 2])
     for element in dataset.testData {
         let rating = element[2]
         if rating > 0 && dataset.item2id[element[1]] != nil {
             let uIndex = dataset.user2id[element[0]]!
             let iIndex = dataset.item2id[element[1]]!
-            testSampling[uIndex][iIndex] = Tensor<Float>(rating / 10.0)
+            testSampling[uIndex][iIndex] = Tensor<Float>(rating >= 3.0 ? 1.0 : 0.0)
             itemCount[element[0]] = itemCount[element[0]]! + 1.0
         }
     }
-//    let dataset = DLRMInput(
-//            dense: Tensor<Float>([0.1, 0.2]),
-//            sparse: [
-//                Tensor<Int32>(
-//                        [0, 1]
-//                )
-//            ]
-//    )
+
     print("Dataset acquired")
 
     print("Starting training...")
@@ -75,7 +68,7 @@ func testDLRM(nDense: Int, mSpa: Int, lnEmb: [Int], lnBot: [Int], lnTop: [Int], 
 //            print(userIndices)
             let (loss, grad) = valueWithGradient(at: model) { model -> Tensor<Float> in
                 let logits = model(denseInput: Tensor<Float>(zeros: [trainBatchSize, 2]), sparseInput: [userIndices, itemIndices])
-                return meanSquaredError(predicted: logits, expected: ratings)
+                return sigmoidCrossEntropy(logits: logits, labels: ratings)
             }
 //
             optimizer.update(&model, along: grad)
@@ -95,16 +88,17 @@ func testDLRM(nDense: Int, mSpa: Int, lnEmb: [Int], lnBot: [Int], lnTop: [Int], 
                 items.append(item)
             }
             let itemScore = Dictionary(uniqueKeysWithValues: zip(items, output))
-            let sortedItemScore = itemScore.sorted {
-                $0.1 > $1.1
-            }
-            let topK = sortedItemScore.prefix(min(10, Int(itemCount[user]!)))
+//            let sortedItemScore = itemScore.sorted {
+//                $0.1 > $1.1
+//            }
+//            let topK = sortedItemScore.prefix(min(10, Int(itemCount[user]!)))
 
-            print(topK)
+//            print(topK)
 //
-            for (key, value) in topK {
+            for (key, value) in itemScore {
                 let absoluteDifference = abs(testSampling[userIndex][dataset.item2id[key]!].scalar! - value)
-                if absoluteDifference < 0.1 {
+                print("actual: \(testSampling[userIndex][dataset.item2id[key]!].scalar!); predicted: \(value)")
+                if absoluteDifference < 0.2 {
                     correct = correct + 1.0
                 }
                 count = count + 1

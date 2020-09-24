@@ -10,12 +10,13 @@
 testDLRM(
         nDense: 2,
         mSpa: 2,
-        lnEmb: [100, 100],
-        lnBot: [2, 2],
-        lnTop: [2, 2],
-        nTrainEpochs: 100,
-        learningRate: 0.02,
-        trainBatchSize: 1024
+        lnEmb: [100000, 100000],
+        lnBot: [200, 200],
+        lnTop: [200, 200],
+        nTrainEpochs: 1000,
+        learningRate: 0.07,
+        trainBatchSize: 1024,
+        nTestSamples: 4
 )
 
 //let dataset = SimpleDataset(trainPath: "train.txt", testPath: "test.txt")
