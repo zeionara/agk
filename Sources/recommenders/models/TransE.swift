@@ -23,20 +23,20 @@ private func initEmbeddings(dimensionality: Int, nItems: Int) -> Embedding<Float
 }
 
 private func computeScore(head: Tensor<Float>, tail: Tensor<Float>, relationship: Tensor<Float>) -> Tensor<Float> {
-//    let normalizedHead = head.batchNormalized(alongAxis: 0)
-//    let normalizedTail = tail.batchNormalized(alongAxis: 0)
-//    let normalizedRelationship = relationship.batchNormalized(alongAxis: 0)
-//
-//    let score = normalizedHead + (normalizedRelationship - normalizedTail)
-//    let norma = norm(data: score)
+    let normalizedHead = head.batchNormalized(alongAxis: 0)
+    let normalizedTail = tail.batchNormalized(alongAxis: 0)
+    let normalizedRelationship = relationship.batchNormalized(alongAxis: 0)
 
-    return Tensor<Float>(0.0)
+    let score = normalizedHead + (normalizedRelationship - normalizedTail)
+    let norma = norm(data: score)
+
+    return norma
 }
 
 private func makeEmbeddings(allEmbeddings: Embedding<Float>, id2Index: [Int: Int], triples: Tensor<Float>, column: Int) -> Tensor<Float> {
     var embeddings: [Tensor<Float>] = []
     let items = Tensor<Int32>(triples.transposed()[column])
-    for i in 0...items.shape[0] - 1{
+    for i in 0...items.shape[0] - 1 {
         embeddings.append(
                 allEmbeddings(
                         Tensor(
@@ -51,43 +51,20 @@ private func makeEmbeddings(allEmbeddings: Embedding<Float>, id2Index: [Int: Int
 }
 
 struct TransE: Module {
-    public var headEmbeddings: Embedding<Float>
-    public var tailEmbeddings: Embedding<Float>
+    public var entityEmbeddings: Embedding<Float>
     public var relationshipEmbeddings: Embedding<Float>
 
-    public let headId2EmbeddingIndex: [Int: Int]
-    public let tailId2EmbeddingIndex: [Int: Int]
-    public let relationshipId2EmbeddingIndex: [Int: Int]
-
-
-    public init(nodeEmbeddingDimensionality: Int = 100, relationshipEmbeddingDimensionality: Int = 100, dataset: KnowledgeGraphDataset) {
-        headEmbeddings = initEmbeddings(dimensionality: nodeEmbeddingDimensionality, nItems: dataset.headsUnique.count)
-        tailEmbeddings = initEmbeddings(dimensionality: nodeEmbeddingDimensionality, nItems: dataset.tailsUnique.count)
-        relationshipEmbeddings = initEmbeddings(dimensionality: relationshipEmbeddingDimensionality, nItems: dataset.relationshipsUnique.count)
-
-        headId2EmbeddingIndex = Dictionary(
-                uniqueKeysWithValues: zip(dataset.headsUnique.map {
-                    Int($0)
-                }, 0...dataset.headsUnique.count - 1)
-        )
-        tailId2EmbeddingIndex = Dictionary(
-                uniqueKeysWithValues: zip(dataset.tailsUnique.map {
-                    Int($0)
-                }, 0...dataset.tailsUnique.count - 1)
-        )
-        relationshipId2EmbeddingIndex = Dictionary(
-                uniqueKeysWithValues: zip(dataset.relationshipsUnique.map {
-                    Int($0)
-                }, 0...dataset.relationshipsUnique.count - 1)
-        )
+    public init(entityEmbeddingDimensionality: Int = 100, relationshipEmbeddingDimensionality: Int = 100, dataset: KnowledgeGraphDataset) {
+        entityEmbeddings = initEmbeddings(dimensionality: entityEmbeddingDimensionality, nItems: dataset.frame.entities.count)
+        relationshipEmbeddings = initEmbeddings(dimensionality: relationshipEmbeddingDimensionality, nItems: dataset.frame.relationships.count)
     }
 
     @differentiable
-    public func callAsFunction(_ triples: Tensor<Float>) -> Tensor<Float> {
-        let headEmbeddings_ = makeEmbeddings(allEmbeddings: headEmbeddings, id2Index: headId2EmbeddingIndex, triples: triples, column: 0)
-        let tailEmbeddings_ = makeEmbeddings(allEmbeddings: tailEmbeddings, id2Index: tailId2EmbeddingIndex, triples: triples, column: 1)
-        let relationshipEmbeddings_ = makeEmbeddings(allEmbeddings: relationshipEmbeddings, id2Index: relationshipId2EmbeddingIndex, triples: triples, column: 2)
-        let score = computeScore(head: headEmbeddings_, tail: tailEmbeddings_, relationship: relationshipEmbeddings_)
+    public func callAsFunction(_ triples: Tensor<Int32>) -> Tensor<Float> {
+        let headEmbeddings = entityEmbeddings(triples.transposed()[0])
+        let tailEmbeddings = entityEmbeddings(triples.transposed()[1])
+        let relationshipEmbeddings_ = relationshipEmbeddings(triples.transposed()[2])
+        let score = computeScore(head: headEmbeddings, tail: tailEmbeddings, relationship: relationshipEmbeddings_)
         return score
     }
 }

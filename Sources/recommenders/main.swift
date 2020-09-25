@@ -23,15 +23,16 @@ import TensorFlow
 
 //let dataset = SimpleDataset(trainPath: "train.txt", testPath: "test.txt")
 //print(dataset.training)
-print(Device.allDevices)
+//print(Device.allDevices)
 let dataset = KnowledgeGraphDataset(path: "train-ke-small.txt")
 let model = TransE(
-        nodeEmbeddingDimensionality: 100,
+        entityEmbeddingDimensionality: 100,
         relationshipEmbeddingDimensionality: 100,
         dataset: dataset
 )
-print(dataset.tensor.device)
+//print(dataset.tensor.device)
 //print(Device.allDevices)
-let score = model(dataset.tensor)
+let score = model(dataset.normalizedFrame.tensor)
+print(score)
 //print(score)
 //print(dataset.headsUnique)
