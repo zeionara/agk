@@ -1,3 +1,5 @@
+import TensorFlow
+
 //testNeuMF(
 //        size: [16, 32, 16, 8],
 //        regs: [0.0, 0.0, 0.0, 0.0],
@@ -21,13 +23,15 @@
 
 //let dataset = SimpleDataset(trainPath: "train.txt", testPath: "test.txt")
 //print(dataset.training)
-
+print(Device.allDevices)
 let dataset = KnowledgeGraphDataset(path: "train-ke-small.txt")
 let model = TransE(
         nodeEmbeddingDimensionality: 100,
         relationshipEmbeddingDimensionality: 100,
         dataset: dataset
 )
-let score = model(Triple(head: 1, relationship: 0, tail: 1))
-print(score)
+print(dataset.tensor.device)
+//print(Device.allDevices)
+let score = model(dataset.tensor)
+//print(score)
 //print(dataset.headsUnique)

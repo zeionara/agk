@@ -17,19 +17,37 @@ private func initEmbeddings(dimensionality: Int, nItems: Int) -> Embedding<Float
                     randomUniform: [nItems, dimensionality],
                     lowerBound: Tensor(Float(-1.0) / Float(dimensionality)),
                     upperBound: Tensor(Float(1.0) / Float(dimensionality))
+//                    on: Device.defaultXLA
             )
     )
 }
 
 private func computeScore(head: Tensor<Float>, tail: Tensor<Float>, relationship: Tensor<Float>) -> Tensor<Float> {
-    let normalizedHead = head.batchNormalized(alongAxis: 0)
-    let normalizedTail = tail.batchNormalized(alongAxis: 0)
-    let normalizedRelationship = relationship.batchNormalized(alongAxis: 0)
+//    let normalizedHead = head.batchNormalized(alongAxis: 0)
+//    let normalizedTail = tail.batchNormalized(alongAxis: 0)
+//    let normalizedRelationship = relationship.batchNormalized(alongAxis: 0)
+//
+//    let score = normalizedHead + (normalizedRelationship - normalizedTail)
+//    let norma = norm(data: score)
 
-    let score = normalizedHead + (normalizedRelationship - normalizedTail)
-    let norma = norm(data: score)
+    return Tensor<Float>(0.0)
+}
 
-    return norma
+private func makeEmbeddings(allEmbeddings: Embedding<Float>, id2Index: [Int: Int], triples: Tensor<Float>, column: Int) -> Tensor<Float> {
+    var embeddings: [Tensor<Float>] = []
+    let items = Tensor<Int32>(triples.transposed()[column])
+    for i in 0...items.shape[0] - 1{
+        embeddings.append(
+                allEmbeddings(
+                        Tensor(
+                                Int32(
+                                        id2Index[Int(items[i].scalar!)]!
+                                )
+                        )
+                )
+        )
+    }
+    return Tensor(embeddings)
 }
 
 struct TransE: Module {
@@ -45,7 +63,7 @@ struct TransE: Module {
     public init(nodeEmbeddingDimensionality: Int = 100, relationshipEmbeddingDimensionality: Int = 100, dataset: KnowledgeGraphDataset) {
         headEmbeddings = initEmbeddings(dimensionality: nodeEmbeddingDimensionality, nItems: dataset.headsUnique.count)
         tailEmbeddings = initEmbeddings(dimensionality: nodeEmbeddingDimensionality, nItems: dataset.tailsUnique.count)
-        relationshipEmbeddings = initEmbeddings(dimensionality: relationshipEmbeddingDimensionality, nItems: 1)
+        relationshipEmbeddings = initEmbeddings(dimensionality: relationshipEmbeddingDimensionality, nItems: dataset.relationshipsUnique.count)
 
         headId2EmbeddingIndex = Dictionary(
                 uniqueKeysWithValues: zip(dataset.headsUnique.map {
@@ -58,16 +76,18 @@ struct TransE: Module {
                 }, 0...dataset.tailsUnique.count - 1)
         )
         relationshipId2EmbeddingIndex = Dictionary(
-                uniqueKeysWithValues: zip([0], [0])
+                uniqueKeysWithValues: zip(dataset.relationshipsUnique.map {
+                    Int($0)
+                }, 0...dataset.relationshipsUnique.count - 1)
         )
     }
 
     @differentiable
-    public func callAsFunction(_ triple: Triple) -> Tensor<Float> {
-        let headEmbedding = headEmbeddings(Tensor(Int32(headId2EmbeddingIndex[triple.head]!)))
-        let tailEmbedding = headEmbeddings(Tensor(Int32(tailId2EmbeddingIndex[triple.tail]!)))
-        let relationshipEmbedding = relationshipEmbeddings(Tensor(Int32(relationshipId2EmbeddingIndex[triple.relationship]!)))
-        let score = computeScore(head: headEmbedding, tail: tailEmbedding, relationship: relationshipEmbedding)
+    public func callAsFunction(_ triples: Tensor<Float>) -> Tensor<Float> {
+        let headEmbeddings_ = makeEmbeddings(allEmbeddings: headEmbeddings, id2Index: headId2EmbeddingIndex, triples: triples, column: 0)
+        let tailEmbeddings_ = makeEmbeddings(allEmbeddings: tailEmbeddings, id2Index: tailId2EmbeddingIndex, triples: triples, column: 1)
+        let relationshipEmbeddings_ = makeEmbeddings(allEmbeddings: relationshipEmbeddings, id2Index: relationshipId2EmbeddingIndex, triples: triples, column: 2)
+        let score = computeScore(head: headEmbeddings_, tail: tailEmbeddings_, relationship: relationshipEmbeddings_)
         return score
     }
 }

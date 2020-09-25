@@ -31,4 +31,21 @@ public struct KnowledgeGraphDataset {
     public var tailsUnique: [Int32] {
         data[column: 1].unique()
     }
+
+    public var relationshipsUnique: [Int32] {
+        data[column: 2].unique()
+    }
+
+    public var tensor: Tensor<Float> {
+        Tensor(
+                data.map {
+                    Tensor(
+                            $0.map {
+                                Float($0)
+                            }
+//                            on: Device.defaultXLA
+                    )
+                }
+        )
+    }
 }
