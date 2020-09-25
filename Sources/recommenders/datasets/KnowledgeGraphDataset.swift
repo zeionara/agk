@@ -3,6 +3,7 @@ import TensorFlow
 
 public struct TripleFrame {
     let data: [[Int32]]
+    let device: Device
 
     public var entities: [Int32] {
         (data[column: 0] + data[column: 1]).unique()
@@ -18,8 +19,7 @@ public struct TripleFrame {
                     Tensor(
                             $0.map {
                                 Int32($0)
-                            }
-//                            on: Device.defaultXLA
+                            }, on: device
                     )
                 }
         )
@@ -52,6 +52,7 @@ public struct KnowledgeGraphDataset {
     public let entityIndex2Id: [Int32: Int32]
     public let relationshipId2Index: [Int32: Int32]
     public let relationshipIndex2Id: [Int32: Int32]
+    public let device: Device
 
     static func readData(path: String) throws -> [[Int32]] {
         let dir = URL(fileURLWithPath: #file.replacingOccurrences(of: "Sources/recommenders/datasets/KnowledgeGraphDataset.swift", with: ""))
@@ -67,8 +68,8 @@ public struct KnowledgeGraphDataset {
         return data
     }
 
-    public init(path: String) {
-        let frame_ = TripleFrame(data: try! KnowledgeGraphDataset.readData(path: path))
+    public init(path: String, device: Device = Device.default) {
+        let frame_ = TripleFrame(data: try! KnowledgeGraphDataset.readData(path: path), device: device)
 
         let entityNormalizationMappings = makeNormalizationMappings(source: frame_.entities, destination: Array(0...frame_.entities.count - 1).map {
             Int32($0)
@@ -77,6 +78,7 @@ public struct KnowledgeGraphDataset {
             Int32($0)
         })
 
+        self.device = device
         frame = frame_
         normalizedFrame = TripleFrame(
                 data: frame_.data.map {
@@ -85,7 +87,8 @@ public struct KnowledgeGraphDataset {
                         entityNormalizationMappings.forward[$0[1]]!,
                         relationshipNormalizationMappings.forward[$0[2]]!
                     ]
-                }
+                },
+                device: device
         )
 
         entityId2Index = entityNormalizationMappings.forward

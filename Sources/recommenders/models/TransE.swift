@@ -11,13 +11,13 @@ public func norm(data: Tensor<Float>) -> Tensor<Float> {
     sqrt((data.flattened() * data.flattened()).sum())
 }
 
-private func initEmbeddings(dimensionality: Int, nItems: Int) -> Embedding<Float> {
+private func initEmbeddings(dimensionality: Int, nItems: Int, device device_: Device) -> Embedding<Float> {
     Embedding(
             embeddings: Tensor<Float>(
                     randomUniform: [nItems, dimensionality],
-                    lowerBound: Tensor(Float(-1.0) / Float(dimensionality)),
-                    upperBound: Tensor(Float(1.0) / Float(dimensionality))
-//                    on: Device.defaultXLA
+                    lowerBound: Tensor(Float(-1.0) / Float(dimensionality), on: device_),
+                    upperBound: Tensor(Float(1.0) / Float(dimensionality), on: device_),
+                    on: device_
             )
     )
 }
@@ -33,31 +33,20 @@ private func computeScore(head: Tensor<Float>, tail: Tensor<Float>, relationship
     return norma
 }
 
-private func makeEmbeddings(allEmbeddings: Embedding<Float>, id2Index: [Int: Int], triples: Tensor<Float>, column: Int) -> Tensor<Float> {
-    var embeddings: [Tensor<Float>] = []
-    let items = Tensor<Int32>(triples.transposed()[column])
-    for i in 0...items.shape[0] - 1 {
-        embeddings.append(
-                allEmbeddings(
-                        Tensor(
-                                Int32(
-                                        id2Index[Int(items[i].scalar!)]!
-                                )
-                        )
-                )
-        )
-    }
-    return Tensor(embeddings)
-}
 
 struct TransE: Module {
     public var entityEmbeddings: Embedding<Float>
     public var relationshipEmbeddings: Embedding<Float>
+    @noDerivative
+    public let device: Device
 
-    public init(entityEmbeddingDimensionality: Int = 100, relationshipEmbeddingDimensionality: Int = 100, dataset: KnowledgeGraphDataset) {
-        entityEmbeddings = initEmbeddings(dimensionality: entityEmbeddingDimensionality, nItems: dataset.frame.entities.count)
-        relationshipEmbeddings = initEmbeddings(dimensionality: relationshipEmbeddingDimensionality, nItems: dataset.frame.relationships.count)
+
+    public init(entityEmbeddingDimensionality: Int = 100, relationshipEmbeddingDimensionality: Int = 100, dataset: KnowledgeGraphDataset, device device_: Device = Device.default) {
+        entityEmbeddings = initEmbeddings(dimensionality: entityEmbeddingDimensionality, nItems: dataset.frame.entities.count, device: device_)
+        relationshipEmbeddings = initEmbeddings(dimensionality: relationshipEmbeddingDimensionality, nItems: dataset.frame.relationships.count, device: device_)
+        device = device_
     }
+
 
     @differentiable
     public func callAsFunction(_ triples: Tensor<Int32>) -> Tensor<Float> {
