@@ -4,13 +4,37 @@ import TensorFlow
 public struct TripleFrame {
     let data: [[Int32]]
     let device: Device
+    var entities_: [Int32]? = Optional.none
+    var relationships_: [Int32]? = Optional.none
+
+    public func batched(size: Int, shouldShuffle: Bool = true) -> [TripleFrame] {
+        var batches: [TripleFrame] = []
+        var batchSamples: [[Int32]] = []
+        var i = 0
+        for sample in shouldShuffle ? data.shuffled() : data {
+            if (i % size == 0 && i > 0) {
+                batches.append(TripleFrame(data: batchSamples, device: device, entities_: entities, relationships_: relationships))
+                i = 0
+                batchSamples = []
+            }
+            batchSamples.append(sample)
+            i += 1
+        }
+        return batches
+    }
 
     public var entities: [Int32] {
-        (data[column: 0] + data[column: 1]).unique()
+        if let entities__ = entities_ {
+            return entities__
+        }
+        return (data[column: 0] + data[column: 1]).unique()
     }
 
     public var relationships: [Int32] {
-        data[column: 2].unique()
+        if let relationships__ = relationships_ {
+            return relationships__
+        }
+        return data[column: 2].unique()
     }
 
     public var tensor: Tensor<Int32> {
@@ -45,9 +69,26 @@ public func makeNormalizationMappings<KeyType, ValueType>(source: [KeyType], des
     )
 }
 
+public func makeNegativeFrame(frame: TripleFrame) -> TripleFrame {
+    var negativeSamples: [[Int32]] = []
+    for head in frame.entities {
+        for tail in frame.entities {
+            for relationship in frame.relationships {
+                let sample = [head, tail, relationship]
+                if !frame.data.contains(sample) {
+                    negativeSamples.append(sample)
+                }
+            }
+        }
+    }
+    return TripleFrame(data: negativeSamples, device: frame.device, entities_: frame.entities, relationships_: frame.relationships)
+}
+
 public struct KnowledgeGraphDataset {
     public let frame: TripleFrame
     public let normalizedFrame: TripleFrame
+    public let negativeFrame: TripleFrame
+    public let normalizedNegativeFrame: TripleFrame
     public let entityId2Index: [Int32: Int32]
     public let entityIndex2Id: [Int32: Int32]
     public let relationshipId2Index: [Int32: Int32]
@@ -70,6 +111,7 @@ public struct KnowledgeGraphDataset {
 
     public init(path: String, device: Device = Device.default) {
         let frame_ = TripleFrame(data: try! KnowledgeGraphDataset.readData(path: path), device: device)
+        let negativeFrame_ = makeNegativeFrame(frame: frame_)
 
         let entityNormalizationMappings = makeNormalizationMappings(source: frame_.entities, destination: Array(0...frame_.entities.count - 1).map {
             Int32($0)
@@ -80,7 +122,18 @@ public struct KnowledgeGraphDataset {
 
         self.device = device
         frame = frame_
+        negativeFrame = negativeFrame_
         normalizedFrame = TripleFrame(
+                data: frame_.data.map {
+                    [
+                        entityNormalizationMappings.forward[$0[0]]!,
+                        entityNormalizationMappings.forward[$0[1]]!,
+                        relationshipNormalizationMappings.forward[$0[2]]!
+                    ]
+                },
+                device: device
+        )
+        normalizedNegativeFrame = TripleFrame(
                 data: frame_.data.map {
                     [
                         entityNormalizationMappings.forward[$0[0]]!,

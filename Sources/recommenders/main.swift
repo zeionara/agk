@@ -26,15 +26,19 @@ import TensorFlow
 //print(Device.allDevices)
 let device = Device.defaultXLA
 let dataset = KnowledgeGraphDataset(path: "train-ke-small.txt", device: device)
-let model = TransE(
-        entityEmbeddingDimensionality: 100,
-        relationshipEmbeddingDimensionality: 100,
-        dataset: dataset,
-        device: device
-)
-print(dataset.frame.tensor.device)
-print(Device.allDevices)
-let score = model(dataset.normalizedFrame.tensor)
-print(score)
+print(dataset.negativeFrame)
+let batches = dataset.negativeFrame.batched(size: 3)
+print(batches)
+//print(batches[2])
+//let model = TransE(
+//        entityEmbeddingDimensionality: 100,
+//        relationshipEmbeddingDimensionality: 100,
+//        dataset: dataset,
+//        device: device
+//)
+//print(dataset.frame.tensor.device)
+//print(Device.allDevices)
+//let score = model(dataset.normalizedFrame.tensor)
+//print(score)
 //print(score)
 //print(dataset.headsUnique)
