@@ -8,7 +8,7 @@ public struct Triple {
 }
 
 public func norm(data: Tensor<Float>) -> Tensor<Float> {
-    sqrt((data.flattened() * data.flattened()).sum())
+    sqrt((data * data).sum(squeezingAxes: [1]))
 }
 
 private func initEmbeddings(dimensionality: Int, nItems: Int, device device_: Device) -> Embedding<Float> {
@@ -23,9 +23,9 @@ private func initEmbeddings(dimensionality: Int, nItems: Int, device device_: De
 }
 
 private func computeScore(head: Tensor<Float>, tail: Tensor<Float>, relationship: Tensor<Float>) -> Tensor<Float> {
-    let normalizedHead = head.batchNormalized(alongAxis: 0)
-    let normalizedTail = tail.batchNormalized(alongAxis: 0)
-    let normalizedRelationship = relationship.batchNormalized(alongAxis: 0)
+    let normalizedHead = head.batchNormalized(alongAxis: 1)
+    let normalizedTail = tail.batchNormalized(alongAxis: 1)
+    let normalizedRelationship = relationship.batchNormalized(alongAxis: 1)
 
     let score = normalizedHead + (normalizedRelationship - normalizedTail)
     let norma = norm(data: score)
@@ -34,7 +34,7 @@ private func computeScore(head: Tensor<Float>, tail: Tensor<Float>, relationship
 }
 
 
-struct TransE: Module {
+public struct TransE: GraphModel {
     public var entityEmbeddings: Embedding<Float>
     public var relationshipEmbeddings: Embedding<Float>
     @noDerivative

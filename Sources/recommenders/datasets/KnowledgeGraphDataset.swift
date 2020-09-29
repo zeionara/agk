@@ -8,17 +8,23 @@ public struct TripleFrame {
     var relationships_: [Int32]? = Optional.none
 
     public func batched(size: Int, shouldShuffle: Bool = true) -> [TripleFrame] {
+        func addBatch() {
+            batches.append(TripleFrame(data: batchSamples, device: device, entities_: entities, relationships_: relationships))
+            i = 0
+            batchSamples = []
+        }
         var batches: [TripleFrame] = []
         var batchSamples: [[Int32]] = []
         var i = 0
         for sample in shouldShuffle ? data.shuffled() : data {
             if (i % size == 0 && i > 0) {
-                batches.append(TripleFrame(data: batchSamples, device: device, entities_: entities, relationships_: relationships))
-                i = 0
-                batchSamples = []
+                addBatch()
             }
             batchSamples.append(sample)
             i += 1
+        }
+        if !batchSamples.isEmpty {
+            addBatch()
         }
         return batches
     }
@@ -134,7 +140,7 @@ public struct KnowledgeGraphDataset {
                 device: device
         )
         normalizedNegativeFrame = TripleFrame(
-                data: frame_.data.map {
+                data: negativeFrame_.data.map {
                     [
                         entityNormalizationMappings.forward[$0[0]]!,
                         entityNormalizationMappings.forward[$0[1]]!,
