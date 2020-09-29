@@ -30,7 +30,7 @@ let dataset = KnowledgeGraphDataset(path: "train-ke-small.txt", device: device)
 //let batches = dataset.frame.batched(size: 3)
 //print(batches)
 //print(batches[2])
-var model = TransH(
+var model = TransD(
         entityEmbeddingDimensionality: 100,
         relationshipEmbeddingDimensionality: 100,
         dataset: dataset,
