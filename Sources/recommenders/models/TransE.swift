@@ -22,10 +22,14 @@ public func initEmbeddings(dimensionality: Int, nItems: Int, device device_: Dev
     )
 }
 
+public func normalize(tensor: Tensor<Float>) -> Tensor<Float> {
+    tensor / sqrt((tensor * tensor).sum(alongAxes: [1]))
+}
+
 private func computeScore(head: Tensor<Float>, tail: Tensor<Float>, relationship: Tensor<Float>) -> Tensor<Float> {
-    let normalizedHead = head.batchNormalized(alongAxis: 1)
-    let normalizedTail = tail.batchNormalized(alongAxis: 1)
-    let normalizedRelationship = relationship.batchNormalized(alongAxis: 1)
+    let normalizedHead = normalize(tensor: head)
+    let normalizedTail = normalize(tensor: tail)
+    let normalizedRelationship = normalize(tensor: relationship)
 
     let score = normalizedHead + (normalizedRelationship - normalizedTail)
     let norma = norm(data: score)
@@ -40,10 +44,16 @@ public struct TransE: GraphModel {
     public let device: Device
 
 
-    public init(entityEmbeddingDimensionality: Int = 100, relationshipEmbeddingDimensionality: Int = 100, dataset: KnowledgeGraphDataset, device device_: Device = Device.default) {
-        entityEmbeddings = initEmbeddings(dimensionality: entityEmbeddingDimensionality, nItems: dataset.frame.entities.count, device: device_)
-        relationshipEmbeddings = initEmbeddings(dimensionality: relationshipEmbeddingDimensionality, nItems: dataset.frame.relationships.count, device: device_)
+    public init(embeddingDimensionality: Int = 100, dataset: KnowledgeGraphDataset, device device_: Device = Device.default) {
+        entityEmbeddings = initEmbeddings(dimensionality: embeddingDimensionality, nItems: dataset.frame.entities.count, device: device_)
+        relationshipEmbeddings = initEmbeddings(dimensionality: embeddingDimensionality, nItems: dataset.frame.relationships.count, device: device_)
         device = device_
+    }
+
+    public func normalizeEmbeddings() {
+//        entityEmbeddings.embeddings.
+//        entityEmbeddings = Embedding(embeddings: normalize(tensor: entityEmbeddings.embeddings))
+//        relationshipEmbeddings = Embedding(embeddings: normalize(tensor: relationshipEmbeddings.embeddings))
     }
 
     @differentiable

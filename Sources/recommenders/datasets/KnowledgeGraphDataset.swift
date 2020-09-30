@@ -13,6 +13,7 @@ public struct TripleFrame {
             i = 0
             batchSamples = []
         }
+
         var batches: [TripleFrame] = []
         var batchSamples: [[Int32]] = []
         var i = 0
@@ -54,6 +55,18 @@ public struct TripleFrame {
                 }
         )
     }
+
+    public func sampleNegativeFrame(negativeFrame: TripleFrame) -> TripleFrame {
+        var negativeSamples = data.map { positiveSample in
+            negativeFrame.data.filter { negativeSample in
+                negativeSample[2] == positiveSample[2] && (
+                        (negativeSample[0] == positiveSample[0] && negativeSample[1] != positiveSample[1]) ||
+                                (negativeSample[0] != positiveSample[0] && negativeSample[1] == positiveSample[1])
+                )
+            }.randomElement()!
+        }
+        return TripleFrame(data: negativeSamples, device: device, entities_: entities, relationships_: relationships)
+    }
 }
 
 public func makeNormalizationMappings<KeyType, ValueType>(source: [KeyType], destination: [ValueType]) -> (forward: Dictionary<KeyType, ValueType>, backward: Dictionary<ValueType, KeyType>) where KeyType: BinaryInteger, ValueType: BinaryInteger {
@@ -90,11 +103,28 @@ public func makeNegativeFrame(frame: TripleFrame) -> TripleFrame {
     return TripleFrame(data: negativeSamples, device: frame.device, entities_: frame.entities, relationships_: frame.relationships)
 }
 
+
+
+private func normalize(_ frame: TripleFrame, _ entityNormalizationMapping: [Int32: Int32], _ relationshipNormalizationMapping: [Int32: Int32]) -> TripleFrame {
+    TripleFrame(
+            data: frame.data.map {
+                [
+                    entityNormalizationMapping[$0[0]]!,
+                    entityNormalizationMapping[$0[1]]!,
+                    relationshipNormalizationMapping[$0[2]]!
+                ]
+            },
+            device: frame.device
+    )
+}
+
 public struct KnowledgeGraphDataset {
     public let frame: TripleFrame
     public let normalizedFrame: TripleFrame
     public let negativeFrame: TripleFrame
+//    public let sampledNegativeFrame: TripleFrame
     public let normalizedNegativeFrame: TripleFrame
+//    public let normalizedSampledNegativeFrame: TripleFrame
     public let entityId2Index: [Int32: Int32]
     public let entityIndex2Id: [Int32: Int32]
     public let relationshipId2Index: [Int32: Int32]
@@ -115,9 +145,11 @@ public struct KnowledgeGraphDataset {
         return data
     }
 
+
     public init(path: String, device: Device = Device.default) {
         let frame_ = TripleFrame(data: try! KnowledgeGraphDataset.readData(path: path), device: device)
         let negativeFrame_ = makeNegativeFrame(frame: frame_)
+//        let sampledNegativeFrame_ = makeSampledNegativeFrame(frame: frame_, negativeFrame: negativeFrame_)
 
         let entityNormalizationMappings = makeNormalizationMappings(source: frame_.entities, destination: Array(0...frame_.entities.count - 1).map {
             Int32($0)
@@ -127,28 +159,13 @@ public struct KnowledgeGraphDataset {
         })
 
         self.device = device
+
         frame = frame_
         negativeFrame = negativeFrame_
-        normalizedFrame = TripleFrame(
-                data: frame_.data.map {
-                    [
-                        entityNormalizationMappings.forward[$0[0]]!,
-                        entityNormalizationMappings.forward[$0[1]]!,
-                        relationshipNormalizationMappings.forward[$0[2]]!
-                    ]
-                },
-                device: device
-        )
-        normalizedNegativeFrame = TripleFrame(
-                data: negativeFrame_.data.map {
-                    [
-                        entityNormalizationMappings.forward[$0[0]]!,
-                        entityNormalizationMappings.forward[$0[1]]!,
-                        relationshipNormalizationMappings.forward[$0[2]]!
-                    ]
-                },
-                device: device
-        )
+//        sampledNegativeFrame = sampledNegativeFrame_
+        normalizedFrame = normalize(frame_, entityNormalizationMappings.forward, relationshipNormalizationMappings.forward)
+        normalizedNegativeFrame = normalize(negativeFrame_, entityNormalizationMappings.forward, relationshipNormalizationMappings.forward)
+//        normalizedSampledNegativeFrame = normalize(sampledNegativeFrame_, entityNormalizationMappings.forward, relationshipNormalizationMappings.forward)
 
         entityId2Index = entityNormalizationMappings.forward
         entityIndex2Id = entityNormalizationMappings.backward

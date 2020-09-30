@@ -30,15 +30,15 @@ let dataset = KnowledgeGraphDataset(path: "train-ke-small.txt", device: device)
 //let batches = dataset.frame.batched(size: 3)
 //print(batches)
 //print(batches[2])
-var model = TransD(
-        entityEmbeddingDimensionality: 100,
-        relationshipEmbeddingDimensionality: 100,
+var model = TransE(
+        embeddingDimensionality: 100,
         dataset: dataset,
         device: device
 )
 let optimizer = Adam(for: model, learningRate: 0.001)
 let trainer = Trainer(nEpochs: 20, batchSize: 3)
-let tester = Tester(batchSize: 3)
+//let tens = Tensor<Float>([[0.1, 0.2], [1.0, 2.0], [3.0, 4.0]])
+//let tester = Tester(batchSize: 3)
 trainer.train(dataset: dataset, model: &model, optimizer: optimizer)
 //tester.test(dataset: dataset, model: model)
 //print(dataset.frame.tensor.device)

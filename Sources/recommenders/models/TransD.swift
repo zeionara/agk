@@ -37,6 +37,11 @@ public struct TransD: GraphModel {
         device = device_
     }
 
+    public func normalizeEmbeddings() {
+//        entityEmbeddings = Embedding(embeddings: normalize(tensor: entityEmbeddings.embeddings))
+//        relationshipEmbeddings = Embedding(embeddings: normalize(tensor: relationshipEmbeddings.embeddings))
+    }
+
     @differentiable
     public func callAsFunction(_ triples: Tensor<Int32>) -> Tensor<Float> {
         let transferRelationship_ = transferRelationship(triples.transposed()[2])

@@ -16,9 +16,10 @@ public struct Trainer {
             var losses: [Float] = []
             for batch in dataset.normalizedFrame.batched(size: batchSize) {
                 let (loss, grad) = valueWithGradient(at: model) { model -> Tensor<Float> in
-                    return model(batch.tensor).sum()
+                    max(0, 10.0 + model(batch.tensor).sum() - model(batch.sampleNegativeFrame(negativeFrame: dataset.normalizedNegativeFrame).tensor).sum())
                 }
                 optimizer.update(&model, along: grad)
+                model.normalizeEmbeddings()
                 losses.append(loss.scalarized())
             }
             print("\(i) / \(nEpochs) Epoch. Loss: \(losses.reduce(0, +) / Float(losses.count))")
