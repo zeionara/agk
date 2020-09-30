@@ -11,12 +11,12 @@ public struct Trainer {
         self.batchSize = batchSize
     }
 
-    public func train<Model>(dataset: KnowledgeGraphDataset, model: inout Model, optimizer: Adam<Model>) where Model: GraphModel {
+    public func train<Model>(dataset: KnowledgeGraphDataset, model: inout Model, optimizer: Adam<Model>, margin: Float = 2.0) where Model: GraphModel {
         for i in 1...nEpochs{
             var losses: [Float] = []
             for batch in dataset.normalizedFrame.batched(size: batchSize) {
                 let (loss, grad) = valueWithGradient(at: model) { model -> Tensor<Float> in
-                    max(0, 10.0 + model(batch.tensor).sum() - model(batch.sampleNegativeFrame(negativeFrame: dataset.normalizedNegativeFrame).tensor).sum())
+                    max(0, margin + model(batch.tensor).sum() - model(batch.sampleNegativeFrame(negativeFrame: dataset.normalizedNegativeFrame).tensor).sum())
                 }
                 optimizer.update(&model, along: grad)
                 model = model.normalizeEmbeddings() as! Model

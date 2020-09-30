@@ -35,8 +35,8 @@ var model = TransE(
         dataset: dataset,
         device: device
 )
-let optimizer = Adam(for: model, learningRate: 0.001)
-let trainer = Trainer(nEpochs: 20, batchSize: 3)
+let optimizer = Adam(for: model, learningRate: 0.01)
+let trainer = Trainer(nEpochs: 100, batchSize: 3)
 //let tens = Tensor<Float>([[0.1, 0.2], [1.0, 2.0], [3.0, 4.0]])
 //let tester = Tester(batchSize: 3)
 trainer.train(dataset: dataset, model: &model, optimizer: optimizer)

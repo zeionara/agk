@@ -1,38 +1,20 @@
 import Foundation
 import TensorFlow
 
-public struct Triple {
-    public let head: Int
-    public let relationship: Int
-    public let tail: Int
+public func computeL2Norm(data: Tensor<Float>) -> Tensor<Float> {
+    sqrt((data * data).sum(alongAxes: [1]))
 }
 
-private func norm(data: Tensor<Float>) -> Tensor<Float> {
-    sqrt((data * data).sum(squeezingAxes: [1]))
-}
-
-public func initEmbeddings(dimensionality: Int, nItems: Int, device device_: Device) -> Embedding<Float> {
-    Embedding(
-            embeddings: Tensor<Float>(
-                    randomUniform: [nItems, dimensionality],
-                    lowerBound: Tensor(Float(-1.0) / Float(dimensionality), on: device_),
-                    upperBound: Tensor(Float(1.0) / Float(dimensionality), on: device_),
-                    on: device_
-            )
-    )
-}
-
-public func normalize(tensor: Tensor<Float>) -> Tensor<Float> {
-    tensor / sqrt((tensor * tensor).sum(alongAxes: [1]))
+public func normalizeWithL2(tensor: Tensor<Float>) -> Tensor<Float> {
+    tensor / computeL2Norm(data: tensor)
 }
 
 private func computeScore(head: Tensor<Float>, tail: Tensor<Float>, relationship: Tensor<Float>) -> Tensor<Float> {
-    let normalizedHead = normalize(tensor: head)
-    let normalizedTail = normalize(tensor: tail)
-    let normalizedRelationship = normalize(tensor: relationship)
-
-    let score = normalizedHead + (normalizedRelationship - normalizedTail)
-    let norma = norm(data: score)
+//    let normalizedHead = normalizeWithL2(tensor: head)
+//    let normalizedTail = normalizeWithL2(tensor: tail)
+//    let normalizedRelationship = normalizeWithL2(tensor: relationship)
+    let score = head + (relationship - tail)
+    let norma = computeL2Norm(data: score)
 
     return norma
 }
@@ -59,13 +41,13 @@ public struct TransE: GraphModel {
         device = device_
     }
 
-    public func normalizeEmbeddings() -> TransE{
+    public func normalizeEmbeddings() -> TransE {
         TransE(
                 embeddingDimensionality: 100,
                 dataset: dataset,
                 device: device,
-                entityEmbeddings: Embedding(embeddings: normalize(tensor: entityEmbeddings.embeddings)),
-                relationshipEmbeddings: Embedding(embeddings: normalize(tensor: relationshipEmbeddings.embeddings))
+                entityEmbeddings: Embedding(embeddings: normalizeWithL2(tensor: entityEmbeddings.embeddings)),
+                relationshipEmbeddings: relationshipEmbeddings // Embedding(embeddings: normalize(tensor: relationshipEmbeddings.embeddings))
         )
     }
 
