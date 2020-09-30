@@ -59,14 +59,14 @@ public struct TransE: GraphModel {
         device = device_
     }
 
-    public func normalizeEmbeddings<T: GraphModel>() -> T{
+    public func normalizeEmbeddings() -> TransE{
         TransE(
                 embeddingDimensionality: 100,
                 dataset: dataset,
                 device: device,
                 entityEmbeddings: Embedding(embeddings: normalize(tensor: entityEmbeddings.embeddings)),
                 relationshipEmbeddings: Embedding(embeddings: normalize(tensor: relationshipEmbeddings.embeddings))
-        ) as! T
+        )
     }
 
     @differentiable

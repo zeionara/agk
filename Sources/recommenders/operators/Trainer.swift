@@ -19,7 +19,7 @@ public struct Trainer {
                     max(0, 10.0 + model(batch.tensor).sum() - model(batch.sampleNegativeFrame(negativeFrame: dataset.normalizedNegativeFrame).tensor).sum())
                 }
                 optimizer.update(&model, along: grad)
-                model.normalizeEmbeddings<TeansE>()
+                model = model.normalizeEmbeddings() as! Model
                 losses.append(loss.scalarized())
             }
             print("\(i) / \(nEpochs) Epoch. Loss: \(losses.reduce(0, +) / Float(losses.count))")
