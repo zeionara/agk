@@ -15,7 +15,11 @@ extension TripleFrame {
     public var adjacencyTensor: Tensor<Int8> {
         let pairs = makePairs(entities: entities, relationships: relationships)
         let nPairs = pairs.count
-        let zeroQuarter = Tensor<Int8>(zeros: [nPairs, nPairs])
+        let identityQuarter = Tensor<Int8>((0...nPairs - 1).map { i in
+            Tensor<Int8>((0...nPairs - 1).map { j in
+                Tensor<Int8>(i == j ? 1 : 0, on: device)
+            })
+        })
         let quarter = Tensor<Int8>(
                 pairs.map { outcomingPair in
                     Tensor<Int8>(
@@ -31,14 +35,18 @@ extension TripleFrame {
         return Tensor(
                 stacking: [
                     Tensor(
-                            stacking: [zeroQuarter, quarter],
+                            stacking: [identityQuarter, quarter],
                             alongAxis: 1
                     ),
                     Tensor(
-                            stacking: [quarter.transposed(), zeroQuarter],
+                            stacking: [quarter.transposed(), identityQuarter],
                             alongAxis: 1
                     )
                 ]
         ).reshaped(to: [nPairs * 2, -1])
+    }
+
+    public var degreeTensor: Tensor<Int32> {
+        Tensor<Int32>(adjacencyTensor).sum(alongAxes: 0).diagonal().reshaped(to: adjacencyTensor.shape)
     }
 }
