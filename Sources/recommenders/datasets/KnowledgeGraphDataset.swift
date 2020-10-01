@@ -4,8 +4,15 @@ import TensorFlow
 public struct TripleFrame {
     let data: [[Int32]]
     let device: Device
-    var entities_: [Int32]? = Optional.none
-    var relationships_: [Int32]? = Optional.none
+    var entities_: [Int32]?
+    var relationships_: [Int32]?
+
+    public init(data: [[Int32]], device: Device, entities_: [Int32]? = Optional.none, relationships_: [Int32]? = Optional.none) {
+        self.data = data
+        self.device = device
+        self.entities_ = entities_
+        self.relationships_ = relationships_
+    }
 
     public func batched(size: Int, shouldShuffle: Bool = true) -> [TripleFrame] {
         func addBatch() {
@@ -69,19 +76,19 @@ public struct TripleFrame {
     }
 }
 
-public func makeNormalizationMappings<KeyType, ValueType>(source: [KeyType], destination: [ValueType]) -> (forward: Dictionary<KeyType, ValueType>, backward: Dictionary<ValueType, KeyType>) where KeyType: BinaryInteger, ValueType: BinaryInteger {
-    return (
+public func makeNormalizationMappings<KeyType, ValueType>(source: [KeyType], destination: [ValueType]) -> (forward: Dictionary<KeyType, ValueType>, backward: Dictionary<ValueType, KeyType>) {
+    (
             Dictionary(
                     uniqueKeysWithValues: zip(
                             source.map {
-                                KeyType($0)
+                                $0
                             }, destination
                     )
             ),
             Dictionary(
                     uniqueKeysWithValues: zip(
                             destination.map {
-                                ValueType($0)
+                                $0
                             }, source
                     )
             )

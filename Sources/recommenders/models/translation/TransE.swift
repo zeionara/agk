@@ -26,17 +26,17 @@ public struct TransE: GraphModel {
     public let device: Device
 
 
-    public init(embeddingDimensionality: Int = 100, dataset: KnowledgeGraphDataset, device device_: Device = Device.default,
+    public init(embeddingDimensionality: Int = 100, dataset: KnowledgeGraphDataset? = Optional.none, device device_: Device = Device.default,
                 entityEmbeddings: Embedding<Float>? = Optional.none, relationshipEmbeddings: Embedding<Float>? = Optional.none) {
         if let entityEmbeddings_ = entityEmbeddings {
             self.entityEmbeddings = entityEmbeddings_
         } else {
-            self.entityEmbeddings = initEmbeddings(dimensionality: embeddingDimensionality, nItems: dataset.frame.entities.count, device: device_)
+            self.entityEmbeddings = initEmbeddings(dimensionality: embeddingDimensionality, nItems: dataset!.frame.entities.count, device: device_)
         }
         if let relationshipEmbeddings_ = relationshipEmbeddings {
             self.relationshipEmbeddings = relationshipEmbeddings_
         } else {
-            self.relationshipEmbeddings = initEmbeddings(dimensionality: embeddingDimensionality, nItems: dataset.frame.relationships.count, device: device_)
+            self.relationshipEmbeddings = initEmbeddings(dimensionality: embeddingDimensionality, nItems: dataset!.frame.relationships.count, device: device_)
         }
         device = device_
     }
@@ -44,7 +44,6 @@ public struct TransE: GraphModel {
     public func normalizeEmbeddings() -> TransE {
         TransE(
                 embeddingDimensionality: 100,
-                dataset: dataset,
                 device: device,
                 entityEmbeddings: Embedding(embeddings: normalizeWithL2(tensor: entityEmbeddings.embeddings)),
                 relationshipEmbeddings: relationshipEmbeddings // Embedding(embeddings: normalize(tensor: relationshipEmbeddings.embeddings))
