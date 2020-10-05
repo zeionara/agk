@@ -1,6 +1,38 @@
 import Foundation
 import TensorFlow
 
+public struct LabelFrame {
+    let data: [[Int32]]
+    let device: Device
+
+    public init(data: [[Int32]], device: Device) {
+        self.data = data
+        self.device = device
+    }
+
+    public var indices: Tensor<Int32> {
+        Tensor(
+                data.map {
+                    Tensor(
+                            Int32($0.first!),
+                            on: device
+                    )
+                }
+        )
+    }
+
+    public var labels: Tensor<Float> {
+        Tensor(
+                data.map {
+                    Tensor(
+                            Float($0.last!),
+                            on: device
+                    )
+                }
+        )
+    }
+}
+
 public struct TripleFrame {
     let data: [[Int32]]
     let device: Device
@@ -111,7 +143,6 @@ public func makeNegativeFrame(frame: TripleFrame) -> TripleFrame {
 }
 
 
-
 private func normalize(_ frame: TripleFrame, _ entityNormalizationMapping: [Int32: Int32], _ relationshipNormalizationMapping: [Int32: Int32]) -> TripleFrame {
     TripleFrame(
             data: frame.data.map {
@@ -127,6 +158,7 @@ private func normalize(_ frame: TripleFrame, _ entityNormalizationMapping: [Int3
 
 public struct KnowledgeGraphDataset {
     public let frame: TripleFrame
+    public let labelFrame: LabelFrame?
     public let normalizedFrame: TripleFrame
     public let negativeFrame: TripleFrame
 //    public let sampledNegativeFrame: TripleFrame
@@ -153,7 +185,7 @@ public struct KnowledgeGraphDataset {
     }
 
 
-    public init(path: String, device: Device = Device.default) {
+    public init(path: String, classes: String? = Optional.none, device: Device = Device.default) {
         let frame_ = TripleFrame(data: try! KnowledgeGraphDataset.readData(path: path), device: device)
         let negativeFrame_ = makeNegativeFrame(frame: frame_)
 //        let sampledNegativeFrame_ = makeSampledNegativeFrame(frame: frame_, negativeFrame: negativeFrame_)
@@ -164,6 +196,19 @@ public struct KnowledgeGraphDataset {
         let relationshipNormalizationMappings = makeNormalizationMappings(source: frame_.relationships, destination: Array(0...frame_.entities.count - 1).map {
             Int32($0)
         })
+
+        if let classes_ = classes {
+            labelFrame = LabelFrame(
+                    data: (try! KnowledgeGraphDataset.readData(path: classes_)).map { row in
+                        [entityNormalizationMappings.forward[row.first!]!, row.last!]
+                    }.sorted {
+                        $0.first! < $1.first!
+                    },
+                    device: device
+            )
+        } else {
+            labelFrame = Optional.none
+        }
 
         self.device = device
 
