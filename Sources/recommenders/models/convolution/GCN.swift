@@ -56,10 +56,10 @@ public struct GCN: GraphModel {
 //        var exp = matrix
 //        let i = exp.shape[0] - 1
 //        let j = exp.shape[1] - 1
-//        print(sqrt(Tensor<Float>(matrix.degree)).inverse)
+//        print()
 //        print(matrix.getMinor(withoutRow: 0, withoutColumn: 0))
-        let tunedDegreeMatrix = 1 / sqrt(Tensor<Float>(matrix.degree.diagonalPart()))
-        let tunedMatrix = tunedDegreeMatrix * Tensor<Float>(matrix) * tunedDegreeMatrix
+        let tunedDegreeMatrix = sqrt(Tensor<Float>(matrix.degree)).inverse
+        let tunedMatrix = matmul(matmul(tunedDegreeMatrix, Tensor<Float>(matrix)), tunedDegreeMatrix)
         let output = matmul(tunedMatrix, entityEmbeddings.embeddings)
         return softmax(matmul(output, outputLayer).flattened())
     }
