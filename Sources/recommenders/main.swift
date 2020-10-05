@@ -26,7 +26,9 @@ import TensorFlow
 //print(Device.allDevices)
 let device = Device.default
 let dataset = KnowledgeGraphDataset(path: "train-ke-small.txt", device: device)
-print(dataset.frame.adjacencyTensor)
+let model = GCN(dataset: dataset)
+print(model(Tensor<Int32>(dataset.frame.adjacencyTensor)))
+//print(dataset.frame.adjacencyTensor)
 //let dataset = FlattenedKnowledgeGraphDataset(path: "train-ke-small.txt", device: device)
 //print(dataset.negativeFrame)
 //let batches = dataset.frame.batched(size: 3)

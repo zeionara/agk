@@ -21,17 +21,23 @@ private func computeScore(head: Tensor<Float>, tail: Tensor<Float>, relationship
 
 public struct GCN: GraphModel {
     public var entityEmbeddings: Embedding<Float>
+    public var outputLayer: Tensor<Float>
     @noDerivative
     public let device: Device
 
 
-    public init(embeddingDimensionality: Int = 100, dataset: KnowledgeGraphDataset? = Optional.none, device device_: Device = Device.default,
-                entityEmbeddings: Embedding<Float>? = Optional.none) {
+    public init(embeddingDimensionality: Int = 100, dataset: KnowledgeGraphDataset? = Optional.none, device device_: Device = Device.default, entityEmbeddings: Embedding<Float>? = Optional.none) {
         if let entityEmbeddings_ = entityEmbeddings {
             self.entityEmbeddings = entityEmbeddings_
         } else {
-            self.entityEmbeddings = initEmbeddings(dimensionality: embeddingDimensionality, nItems: dataset!.frame.entities.count, device: device_)
+            self.entityEmbeddings = initEmbeddings(dimensionality: embeddingDimensionality, nItems: dataset!.frame.entities.count + dataset!.frame.relationships.count * 2, device: device_)
         }
+        outputLayer = Tensor<Float>(
+                randomUniform: [embeddingDimensionality, 1],
+                lowerBound: Tensor(Float(-1.0) / Float(embeddingDimensionality), on: device_),
+                upperBound: Tensor(Float(1.0) / Float(embeddingDimensionality), on: device_),
+                on: device_
+        )
         device = device_
     }
 
@@ -44,11 +50,10 @@ public struct GCN: GraphModel {
     }
 
     @differentiable
-    public func callAsFunction(_ triples: Tensor<Int32>) -> Tensor<Float> {
-//        let headEmbeddings = entityEmbeddings(triples.transposed()[0])
-//        let tailEmbeddings = entityEmbeddings(triples.transposed()[1])
-//        let relationshipEmbeddings_ = relationshipEmbeddings(triples.transposed()[2])
-//        let score = computeScore(head: headEmbeddings, tail: tailEmbeddings, relationship: relationshipEmbeddings_)
-        return Tensor<Float>(0.0)
+    public func callAsFunction(_ matrix: Tensor<Int32>) -> Tensor<Float> {
+        let tunedDegreeMatrix = 1 / sqrt(Tensor<Float>(matrix.degree.diagonalPart()))
+        let tunedMatrix = tunedDegreeMatrix * Tensor<Float>(matrix) * tunedDegreeMatrix
+        let output = matmul(tunedMatrix, entityEmbeddings.embeddings)
+        return softmax(matmul(output, outputLayer).flattened())
     }
 }
