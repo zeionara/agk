@@ -51,6 +51,7 @@ public struct GCN: GraphModel {
 
     @differentiable
     public func callAsFunction(_ matrix: Tensor<Int32>) -> Tensor<Float> {
+//        print(matrix)
         let tunedDegreeMatrix = 1 / sqrt(Tensor<Float>(matrix.degree.diagonalPart()))
         let tunedMatrix = tunedDegreeMatrix * Tensor<Float>(matrix) * tunedDegreeMatrix
         let output = matmul(tunedMatrix, entityEmbeddings.embeddings)

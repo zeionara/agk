@@ -26,8 +26,11 @@ import TensorFlow
 //print(Device.allDevices)
 let device = Device.default
 let dataset = KnowledgeGraphDataset(path: "train-ke-small.txt", device: device)
-let model = GCN(dataset: dataset)
-print(model(Tensor<Int32>(dataset.frame.adjacencyTensor)))
+var model = GCN(dataset: dataset)
+//print(model(Tensor<Int32>(dataset.frame.adjacencyTensor)))
+let optimizer = Adam(for: model, learningRate: 0.01)
+let trainer = GCNTrainer(nEpochs: 10, batchSize: 3)
+trainer.train(dataset: dataset, model: &model, optimizer: optimizer, labels: Tensor<Float>([0.0, 1.0, 1.0]))
 //print(dataset.frame.adjacencyTensor)
 //let dataset = FlattenedKnowledgeGraphDataset(path: "train-ke-small.txt", device: device)
 //print(dataset.negativeFrame)
