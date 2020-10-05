@@ -53,13 +53,11 @@ public struct GCN: GraphModel {
     public func callAsFunction(_ matrix: Tensor<Int32>) -> Tensor<Float> {
 //        print(matrix)
 //        let exp = sqrt(Tensor<Float>(matrix.degree))
-        var exp = matrix
-        let i = exp.shape[0] - 1
-        let j = exp.shape[1] - 1
-        let rows = Tensor(stacking: Array((i > 0 ? exp.unstacked()[0...i-1] : []) + (i < exp.shape[0] - 1 ? exp.unstacked()[i+1...exp.shape[0] - 1] : [])))
-        let cols = Tensor(stacking: Array((j > 0 ? rows.unstacked(alongAxis: 1)[0...j-1] : []) + (j < rows.shape[1] - 1 ? rows.unstacked(alongAxis: 1)[j+1...rows.shape[1] - 1] : []))).transposed()
-        print(rows)
-        print(cols)
+//        var exp = matrix
+//        let i = exp.shape[0] - 1
+//        let j = exp.shape[1] - 1
+//        print(sqrt(Tensor<Float>(matrix.degree)).inverse)
+//        print(matrix.getMinor(withoutRow: 0, withoutColumn: 0))
         let tunedDegreeMatrix = 1 / sqrt(Tensor<Float>(matrix.degree.diagonalPart()))
         let tunedMatrix = tunedDegreeMatrix * Tensor<Float>(matrix) * tunedDegreeMatrix
         let output = matmul(tunedMatrix, entityEmbeddings.embeddings)
