@@ -1,43 +1,36 @@
 import Foundation
 import TensorFlow
 
-//private func computeL2Norm(data: Tensor<Float>) -> Tensor<Float> {
-//    sqrt((data * data).sum(alongAxes: [1]))
-//}
-//
-//private func normalizeWithL2(tensor: Tensor<Float>) -> Tensor<Float> {
-//    tensor / computeL2Norm(data: tensor)
-//}
-
-private func computeScore(head: Tensor<Float>, tail: Tensor<Float>, relationship: Tensor<Float>) -> Tensor<Float> {
-//    let normalizedHead = normalizeWithL2(tensor: head)
-//    let normalizedTail = normalizeWithL2(tensor: tail)
-//    let normalizedRelationship = normalizeWithL2(tensor: relationship)
-    let score = head + (relationship - tail)
-    let norma = computeL2Norm(data: score)
-
-    return norma
-}
 
 public struct GCN: GraphModel {
     public var entityEmbeddings: Embedding<Float>
     public var outputLayer: Tensor<Float>
+    private var inputLayer: Dense<Float>
+    private var hiddenLayers: Sequential3<Dense<Float>, Dense<Float>, Dense<Float>>
     @noDerivative
     public let device: Device
 
 
-    public init(embeddingDimensionality: Int = 100, dataset: KnowledgeGraphDataset? = Optional.none, device device_: Device = Device.default, entityEmbeddings: Embedding<Float>? = Optional.none) {
+    public init(embeddingDimensionality: Int = 100, dataset: KnowledgeGraphDataset? = Optional.none, device device_: Device = Device.default, entityEmbeddings: Embedding<Float>? = Optional.none,
+                hiddenLayerSize: Int = 10, activation: @escaping Dense<Float>.Activation = relu) {
+        let nEntities = dataset!.frame.entities.count + dataset!.frame.relationships.count * 2
         if let entityEmbeddings_ = entityEmbeddings {
             self.entityEmbeddings = entityEmbeddings_
         } else {
-            self.entityEmbeddings = initEmbeddings(dimensionality: embeddingDimensionality, nItems: dataset!.frame.entities.count + dataset!.frame.relationships.count * 2, device: device_)
+            self.entityEmbeddings = initEmbeddings(dimensionality: embeddingDimensionality, nItems: nEntities, device: device_)
         }
         outputLayer = Tensor<Float>(
-                randomUniform: [embeddingDimensionality, 1],
-                lowerBound: Tensor(Float(-1.0) / Float(embeddingDimensionality), on: device_),
-                upperBound: Tensor(Float(1.0) / Float(embeddingDimensionality), on: device_),
+                randomUniform: [hiddenLayerSize, 1],
+                lowerBound: Tensor(Float(-1.0) / Float(hiddenLayerSize), on: device_),
+                upperBound: Tensor(Float(1.0) / Float(hiddenLayerSize), on: device_),
                 on: device_
         )
+        inputLayer = Dense(inputSize: embeddingDimensionality, outputSize: hiddenLayerSize, activation: activation)
+        hiddenLayers = Sequential {
+            Dense<Float>(inputSize: hiddenLayerSize, outputSize: hiddenLayerSize, activation: activation)
+            Dense<Float>(inputSize: hiddenLayerSize, outputSize: hiddenLayerSize, activation: activation)
+            Dense<Float>(inputSize: hiddenLayerSize, outputSize: hiddenLayerSize, activation: activation)
+        }
         device = device_
     }
 
@@ -60,7 +53,20 @@ public struct GCN: GraphModel {
 //        print(matrix.getMinor(withoutRow: 0, withoutColumn: 0))
         let tunedDegreeMatrix = sqrt(Tensor<Float>(matrix.degree)).inverse
         let tunedMatrix = matmul(matmul(tunedDegreeMatrix, Tensor<Float>(matrix)), tunedDegreeMatrix)
-        let output = matmul(tunedMatrix, entityEmbeddings.embeddings)
+//        let unstackedWeights = weights.unstacked(alongAxis: 2)
+//        print(unstackedWeights[0].shape)
+//        print(matmul(matmul(tunedMatrix, entityEmbeddings.embeddings), weights).unstacked(alongAxis: 2)[0].transposed())
+//        var output: Tensor<Float> = matmul(matmul(tunedMatrix, entityEmbeddings.embeddings), weights).unstacked(alongAxis: 2)[0].transposed()
+        var output: Tensor<Float> = inputLayer(matmul(tunedMatrix, entityEmbeddings.embeddings))
+//        for hiddenLayer in hiddenLayers {
+        output = hiddenLayers(matmul(tunedMatrix, output))
+//        }
+//        for hiddenLayerWeights in unstackedWeights {
+//        output = matmul(matmul(tunedMatrix, output), unstackedWeights[1])
+//        output = unstackedWeights.reduce(output) { result, item in matmul(matmul(tunedMatrix, result), item) }
+//        output = matmul(matmul(tunedMatrix, output), unstackedWeights[1])
+//        }
+//        print(output.shape)
         return softmax(matmul(output, outputLayer).flattened())
     }
 }
