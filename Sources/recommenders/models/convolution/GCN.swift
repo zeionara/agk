@@ -25,6 +25,10 @@ public struct GCN: ConvolutionGraphModel {
         device = device_
     }
 
+    public func normalizeEmbeddings() -> GCN {
+        self
+    }
+
     @differentiable
     private func passThroughHiddenLayer(tensor: Tensor<Float>, tunedMatrix: Tensor<Float>, layerIndex: Int) -> Tensor<Float> {
         matmul(tunedMatrix, hiddenLayers[layerIndex](tensor))
