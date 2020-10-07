@@ -8,3 +8,8 @@ public struct TransBasicLoss: TransLoss {
         scores.sum()
     }
 }
+//
+//@differentiable(wrt: scores)
+//public func compute<Scalar>(positiveScores: Tensor<Scalar>, negativeScores: Tensor<Scalar>) -> Tensor<Scalar> where Scalar: TensorFlowFloatingPoint {
+//    max(0, margin + positiveScores.sum() - negativeScores.sum())
+//}
