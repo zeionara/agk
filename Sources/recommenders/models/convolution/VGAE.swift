@@ -30,12 +30,12 @@ public struct VGAE: ConvolutionGraphModel {
         if let inputLayer_ = inputLayer {
             self.inputLayer = inputLayer_
         } else {
-            self.inputLayer = Dense(inputSize: embeddingDimensionality, outputSize: hiddenLayerSize, activation: activation)
+            self.inputLayer = Dense<Float>(copying: Dense<Float>(inputSize: embeddingDimensionality, outputSize: hiddenLayerSize, activation: activation), to: device_)
         }
         if let hiddenLayer_ = hiddenLayer {
             self.hiddenLayer = hiddenLayer_
         } else {
-            self.hiddenLayer = Dense<Float>(inputSize: hiddenLayerSize, outputSize: hiddenLayerSize, activation: activation)
+            self.hiddenLayer = Dense<Float>(copying: Dense<Float>(inputSize: hiddenLayerSize, outputSize: hiddenLayerSize, activation: activation), to: device_)
         }
         if let outputLayer_ = outputLayer {
             self.outputLayer = outputLayer_

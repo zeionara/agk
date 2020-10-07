@@ -42,7 +42,7 @@ extension TripleFrame {
                 }
         )
         let t1 = Tensor(
-                stacking: Tensor<Int8>(ones: [entities.count]).diagonal().unstacked() +
+                stacking: Tensor<Int8>(ones: [entities.count], on: device).diagonal().unstacked() +
                         outcomingRelationships.unstacked(alongAxis: 1) +
                         incomingRelationships.unstacked(alongAxis: 1)
         )
@@ -50,7 +50,7 @@ extension TripleFrame {
                 stacking: Tensor(
                         stacking: outcomingRelationships.unstacked(alongAxis: 1) +
                                 incomingRelationships.unstacked(alongAxis: 1)
-                ).unstacked(alongAxis: 1) + Tensor(ones: [relationships.count * 2]).diagonal().unstacked()
+                ).unstacked(alongAxis: 1) + Tensor(ones: [relationships.count * 2], on: device).diagonal().unstacked()
         )
         return Tensor(stacking: t1.unstacked(alongAxis: 1) + t2.unstacked(alongAxis: 1)).transposed()
     }

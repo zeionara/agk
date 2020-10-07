@@ -35,11 +35,11 @@ extension Tensor where Scalar: Numeric {
             return flattened[0] * flattened[3] - flattened[1] * flattened[2]
         } else {
             let i = 0
-            let zero = Tensor<Float>(0.0)
+            let zero = Tensor<Float>(0.0, on: device)
             let coefficients = Tensor<Float>(self).unstacked()[i].unstacked()
             return coefficients.enumerated().map { (j: Int, item: Tensor<Float>) -> Tensor<Float> in
-                Tensor<Float>(Float(raise(-1, Int(i + j)))) * item * (item != zero ? self.getMinor(withoutRow: i, withoutColumn: j).determinant : zero)
-            }.reduce(Tensor<Float>(0.0), +)
+                Tensor<Float>(Float(raise(-1, Int(i + j))), on: device) * item * (item != zero ? self.getMinor(withoutRow: i, withoutColumn: j).determinant : zero)
+            }.reduce(Tensor<Float>(0.0, on: device), +)
         }
     }
 
@@ -48,7 +48,7 @@ extension Tensor where Scalar: Numeric {
                 (0...self.shape[0] - 1).map { i in
                     Tensor<Float>(
                             (0...self.shape[1] - 1).map { j -> Tensor<Float> in
-                                Tensor<Float>(Float(raise(-1, Int(i + j)))) * self.getMinor(withoutRow: i, withoutColumn: j).determinant
+                                Tensor<Float>(Float(raise(-1, Int(i + j))), on: device) * self.getMinor(withoutRow: i, withoutColumn: j).determinant
                             }
                     )
                 }
