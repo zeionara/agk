@@ -2,7 +2,7 @@ import Foundation
 import TensorFlow
 
 
-public struct Trainer {
+public struct LinearTrainer {
     public let nEpochs: Int
     public let batchSize: Int
 
@@ -11,7 +11,7 @@ public struct Trainer {
         self.batchSize = batchSize
     }
 
-    public func train<Model>(dataset: KnowledgeGraphDataset, model: inout Model, optimizer: Adam<Model>, margin: Float = 2.0) where Model: GraphModel {
+    public func train<Model>(dataset: KnowledgeGraphDataset, model: inout Model, optimizer: Adam<Model>, margin: Float = 2.0) where Model: LinearGraphModel {
         for i in 1...nEpochs{
             var losses: [Float] = []
             for batch in dataset.normalizedFrame.batched(size: batchSize) {

@@ -2,7 +2,7 @@ import Foundation
 import TensorFlow
 
 
-public struct GCNTrainer {
+public struct ConvolutionTrainer {
     public let nEpochs: Int
     public let batchSize: Int
 
@@ -11,7 +11,7 @@ public struct GCNTrainer {
         self.batchSize = batchSize
     }
 
-    public func train<Model>(dataset: KnowledgeGraphDataset, model: inout Model, optimizer: Adam<Model>) where Model: GraphModel {
+    public func train<Model>(dataset: KnowledgeGraphDataset, model: inout Model, optimizer: Adam<Model>) where Model: ConvolutionGraphModel {
         for i in 1...nEpochs{
             var losses: [Float] = []
             for batch in dataset.frame.batched(size: batchSize) {
