@@ -46,7 +46,7 @@ public struct TransH: LinearGraphModel {
 
     public func normalizeEmbeddings() -> TransH {
         TransH(
-                embeddingDimensionality: 100,
+                embeddingDimensionality: relationshipEmbeddings.embeddings.shape.last!,
                 device: device,
                 entityEmbeddings: Embedding(embeddings: normalizeWithL2(tensor: entityEmbeddings.embeddings)),
                 relationshipEmbeddings: relationshipEmbeddings, // Embedding(embeddings: normalize(tensor: relationshipEmbeddings.embeddings))
