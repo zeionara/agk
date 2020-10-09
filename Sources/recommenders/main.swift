@@ -36,18 +36,25 @@ let dataset = KnowledgeGraphDataset(path: "train-ke-small-with-duplicates.txt", 
 //print(Tensor<Float>([[1, 2, 3], [4, 5, 6], [7, 8, 19]]).inverse)
 //let optimizer = Adam(for: model, learningRate: 0.01)
 //let trainer = ConvolutionAdjacencyTrainer(nEpochs: 10, batchSize: 3)
-let trainer = LinearTrainer(nEpochs: 10, batchSize: 3)
+//let trainer = LinearTrainer(nEpochs: 10, batchSize: 3)
 //trainer.train(dataset: dataset, model: &model, optimizer: optimizer, loss: computeSigmoidLoss)
 // CV pipeline
-var scores: [Float] = []
-let metric = RandomMetric(k: 2.2)
-for (trainFrame, testFrame) in dataset.normalizedFrame.cv(nFolds: 4) {
-    var model = RotatE(embeddingDimensionality: 100, dataset: dataset)
-    let optimizer = Adam(for: model, learningRate: 0.01)
-    trainer.train(frame: trainFrame, model: &model, optimizer: optimizer, loss: computeSigmoidLoss)
-    scores.append(metric.compute(model: model, trainFrame: trainFrame, testFrame: testFrame))
+let tester = LinearCVTester(nFolds: 4, nEpochs: 10, batchSize: 3).test(dataset: dataset, metric: RandomMetric(k: 4.3), loss: computeSigmoidLoss)
+{
+    RotatE(embeddingDimensionality: 100, dataset: dataset, device: Device.default)
 }
-print("\(metric.name): \(metric.aggregate(scores: scores))")
+makeOptimizer: { model in
+    Adam<RotatE>(for: model, learningRate: 0.01)
+}
+//var scores: [Float] = []
+//let metric = RandomMetric(k: 2.2)
+//for (trainFrame, testFrame) in dataset.normalizedFrame.cv(nFolds: 4) {
+//    var model = RotatE(embeddingDimensionality: 100, dataset: dataset)
+//    let optimizer = Adam(for: model, learningRate: 0.01)
+//    trainer.train(frame: trainFrame, model: &model, optimizer: optimizer, loss: computeSigmoidLoss)
+//    scores.append(metric.compute(model: model, trainFrame: trainFrame, testFrame: testFrame))
+//}
+//print("\(metric.name): \(metric.aggregate(scores: scores))")
 //let tensor = Tensor<Float>([0.1, 0.2, 0.3])
 //print(tensor.gathering(atIndices: Tensor<Int32>([0, 2])))
 //print(dataset.frame.adjacencyTensor)

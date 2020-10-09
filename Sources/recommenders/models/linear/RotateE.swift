@@ -29,7 +29,7 @@ private func asComplexRotations(embeddings: Tensor<Float>) -> ComplexNumber {
     (real: cos(embeddings), imaginary: sin(embeddings))
 }
 
-public struct RotatE: LinearGraphModel {
+public struct RotatE: SimpleLinearModel {
     public var entityEmbeddings: Embedding<Float>
     public var relationshipEmbeddings: Embedding<Float>
     @noDerivative

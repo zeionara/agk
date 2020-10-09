@@ -9,7 +9,7 @@ public struct RandomMetric: LinearMetric {
         "Random metric (k=\(k))"
     }
 
-    public func compute<Model>(model: Model, trainFrame: TripleFrame, testFrame: TripleFrame) -> Float where Model: LinearGraphModel {
+    public func compute<Model>(model: Model, trainFrame: TripleFrame, testFrame: TripleFrame) -> Float where Model: GraphModel {
         Float.random(in: 0..<1.0)
     }
 }

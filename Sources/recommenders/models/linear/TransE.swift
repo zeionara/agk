@@ -16,7 +16,7 @@ private func computeScore(head: Tensor<Float>, tail: Tensor<Float>, relationship
     return norma
 }
 
-public struct TransE: LinearGraphModel {
+public struct TransE: SimpleLinearModel {
     public var entityEmbeddings: Embedding<Float>
     public var relationshipEmbeddings: Embedding<Float>
     @noDerivative

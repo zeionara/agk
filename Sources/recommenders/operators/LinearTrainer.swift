@@ -11,17 +11,17 @@ public struct LinearTrainer {
         self.batchSize = batchSize
     }
 
-    public func train<Model>(frame: TripleFrame, model: inout Model, optimizer: Adam<Model>, margin: Float = 2.0,
-                             loss: @differentiable (Tensor<Float>, Tensor<Float>, Float) -> Tensor<Float> = computeSumLoss) where Model: LinearGraphModel {
+    public func train<Model, OptimizerType>(frame: TripleFrame, model: inout Model, optimizer: inout OptimizerType, margin: Float = 2.0,
+                                            loss: @differentiable (Tensor<Float>, Tensor<Float>, Float) -> Tensor<Float> = computeSumLoss) where Model: LinearGraphModel, OptimizerType: Optimizer, OptimizerType.Model == Model {
         for i in 1...nEpochs {
             var losses: [Float] = []
             for batch in frame.batched(size: batchSize) {
                 let negativeFrame = batch.sampleNegativeFrame(negativeFrame: frame.negative)
                 let (loss, grad) = valueWithGradient(at: model) { model -> Tensor<Float> in
-                    return loss(model(batch.tensor), model(negativeFrame.tensor), margin)
+                    loss(model(batch.tensor), model(negativeFrame.tensor), margin)
                 }
                 optimizer.update(&model, along: grad)
-                model = model.normalizeEmbeddings() as! Model
+                model = model.normalizeEmbeddings() as! OptimizerType.Model
                 losses.append(loss.scalarized())
             }
             print("\(i) / \(nEpochs) Epoch. Loss: \(losses.reduce(0, +) / Float(losses.count))")
