@@ -172,7 +172,7 @@ public struct TripleFrame {
         )
     }
 
-    public func sampleNegativeFrame(negativeFrame: TripleFrame, n: Int = 1) -> TripleFrame {
+    public func sampleNegativeFrame(negativeFrame: TripleFrame, n: Int = -1) -> TripleFrame {
         var negativeSamples: [[[Int32]]] = data.map { positiveSample in
             let corruptedTriples = negativeFrame.data.filter { negativeSample in
                 negativeSample[2] == positiveSample[2] && (
@@ -183,9 +183,9 @@ public struct TripleFrame {
 //            if (shouldTakeAll) {
 //                return corruptedTriples
 //            } else {
-            return getRandomNumbers(maxNumber: corruptedTriples.count - 1, listSize: n).map {
+            return n > 0 ? getRandomNumbers(maxNumber: corruptedTriples.count - 1, listSize: n).map {
                 corruptedTriples[$0]
-            } //.randomElement()!]
+            } : corruptedTriples //.randomElement()!]
 //            }
         }
         return TripleFrame(data: negativeSamples.reduce([], +), device: device, entities_: entities, relationships_: relationships)
