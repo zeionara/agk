@@ -2,7 +2,7 @@ import Foundation
 import TensorFlow
 
 
-public struct LinearTrainer {
+public struct LinearTrainer: Trainer {
     public let nEpochs: Int
     public let batchSize: Int
 

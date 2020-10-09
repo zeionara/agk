@@ -39,13 +39,12 @@ let dataset = KnowledgeGraphDataset(path: "train-ke-small-with-duplicates.txt", 
 //let trainer = LinearTrainer(nEpochs: 10, batchSize: 3)
 //trainer.train(dataset: dataset, model: &model, optimizer: optimizer, loss: computeSigmoidLoss)
 // CV pipeline
-let tester = LinearCVTester<RotatE, Adam<RotatE>>(nFolds: 4, nEpochs: 10, batchSize: 3).test(dataset: dataset, metric: RandomMetric(k: 4.3), loss: computeSigmoidLoss)
-{
-    let model = RotatE(embeddingDimensionality: 100, dataset: dataset, device: Device.default)
-    return (
-            model: model,
-            optimizer: Adam<RotatE>(for: model, learningRate: 0.01)
-    )
+let tester = CVTester<RotatE, Adam<RotatE>, LinearTrainer>(nFolds: 4, nEpochs: 10, batchSize: 3).test(dataset: dataset, metric: RandomMetric(k: 4.3))
+{ trainFrame, trainer in
+    var model = RotatE(embeddingDimensionality: 100, dataset: dataset, device: Device.default)
+    var optimizer = Adam<RotatE>(for: model, learningRate: 0.01)
+    trainer.train(frame: trainFrame, model: &model, optimizer: &optimizer, loss: computeSigmoidLoss)
+    return model
 }
 //var scores: [Float] = []
 //let metric = RandomMetric(k: 2.2)
