@@ -26,8 +26,6 @@ import TensorFlow
 //print(Device.allDevices)
 let device = Device.default
 let dataset = KnowledgeGraphDataset(path: "train-ke-small-with-duplicates.txt", classes: "ke-classes.txt", device: device)
-let splits = dataset.normalizedFrame.cv(nFolds: 4).map{(train: TripleFrame, test: TripleFrame) in (train.data.count, test.data.count)}
-print(splits)
 //let chunks = dataset.normalizedFrame.split(nChunks: 2)
 //let props = chunks[0].split(proportions: [0.3, 0.7])
 //print(props[1].data.count)
@@ -38,8 +36,18 @@ print(splits)
 //print(Tensor<Float>([[1, 2, 3], [4, 5, 6], [7, 8, 19]]).inverse)
 //let optimizer = Adam(for: model, learningRate: 0.01)
 //let trainer = ConvolutionAdjacencyTrainer(nEpochs: 10, batchSize: 3)
-//let trainer = LinearTrainer(nEpochs: 10, batchSize: 3)
+let trainer = LinearTrainer(nEpochs: 10, batchSize: 3)
 //trainer.train(dataset: dataset, model: &model, optimizer: optimizer, loss: computeSigmoidLoss)
+// CV pipeline
+var scores: [Float] = []
+let metric = RandomMetric(k: 2.2)
+for (trainFrame, testFrame) in dataset.normalizedFrame.cv(nFolds: 4) {
+    var model = RotatE(embeddingDimensionality: 100, dataset: dataset)
+    let optimizer = Adam(for: model, learningRate: 0.01)
+    trainer.train(frame: trainFrame, model: &model, optimizer: optimizer, loss: computeSigmoidLoss)
+    scores.append(metric.compute(model: model, trainFrame: trainFrame, testFrame: testFrame))
+}
+print("\(metric.name): \(metric.aggregate(scores: scores))")
 //let tensor = Tensor<Float>([0.1, 0.2, 0.3])
 //print(tensor.gathering(atIndices: Tensor<Int32>([0, 2])))
 //print(dataset.frame.adjacencyTensor)

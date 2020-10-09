@@ -175,6 +175,10 @@ public struct TripleFrame {
         return TripleFrame(data: negativeSamples, device: device, entities_: entities, relationships_: relationships)
     }
 
+    public var negative: TripleFrame {
+        makeNegativeFrame(frame: self)
+    }
+
 }
 
 public func makeNormalizationMappings<KeyType, ValueType>(source: [KeyType], destination: [ValueType]) -> (forward: Dictionary<KeyType, ValueType>, backward: Dictionary<ValueType, KeyType>) {

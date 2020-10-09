@@ -11,12 +11,12 @@ public struct LinearTrainer {
         self.batchSize = batchSize
     }
 
-    public func train<Model>(dataset: KnowledgeGraphDataset, model: inout Model, optimizer: Adam<Model>, margin: Float = 2.0,
+    public func train<Model>(frame: TripleFrame, model: inout Model, optimizer: Adam<Model>, margin: Float = 2.0,
                              loss: @differentiable (Tensor<Float>, Tensor<Float>, Float) -> Tensor<Float> = computeSumLoss) where Model: LinearGraphModel {
         for i in 1...nEpochs {
             var losses: [Float] = []
-            for batch in dataset.normalizedFrame.batched(size: batchSize) {
-                let negativeFrame = batch.sampleNegativeFrame(negativeFrame: dataset.normalizedNegativeFrame)
+            for batch in frame.batched(size: batchSize) {
+                let negativeFrame = batch.sampleNegativeFrame(negativeFrame: frame.negative)
                 let (loss, grad) = valueWithGradient(at: model) { model -> Tensor<Float> in
                     return loss(model(batch.tensor), model(negativeFrame.tensor), margin)
                 }
