@@ -48,10 +48,22 @@ public struct TripleFrame {
         self.relationships_ = relationships_
     }
 
-    public func cv(nFolds: Int, proportions: [Float]) -> [CVSplit] {
-        split(nChunks: nFolds).map { frame in
-            let split = frame.split(proportions: proportions)
-            return CVSplit(train: split[0], test: split[1])
+    public func cv(nFolds: Int) -> [CVSplit] {
+        let enumeratedSplits = split(nChunks: nFolds).enumerated()
+        return enumeratedSplits.map { (i: Int, testSplit: TripleFrame) in
+            CVSplit(
+                    train: TripleFrame(
+                            data: enumeratedSplits.filter { (j: Int, trainPartialSplit: TripleFrame) in
+                                j != i
+                            }.map { (j: Int, trainPartialSplit: TripleFrame) in
+                                trainPartialSplit.data
+                            }.reduce([], +),
+                            device: device,
+                            entities_: entities,
+                            relationships_: relationships
+                    ),
+                    test: testSplit
+            )
         }
     }
 
@@ -162,6 +174,7 @@ public struct TripleFrame {
         }
         return TripleFrame(data: negativeSamples, device: device, entities_: entities, relationships_: relationships)
     }
+
 }
 
 public func makeNormalizationMappings<KeyType, ValueType>(source: [KeyType], destination: [ValueType]) -> (forward: Dictionary<KeyType, ValueType>, backward: Dictionary<ValueType, KeyType>) {

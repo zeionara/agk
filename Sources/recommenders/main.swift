@@ -26,7 +26,7 @@ import TensorFlow
 //print(Device.allDevices)
 let device = Device.default
 let dataset = KnowledgeGraphDataset(path: "train-ke-small-with-duplicates.txt", classes: "ke-classes.txt", device: device)
-let splits = dataset.normalizedFrame.cv(nFolds: 2, proportions: [0.8, 0.2])
+let splits = dataset.normalizedFrame.cv(nFolds: 4).map{(train: TripleFrame, test: TripleFrame) in (train.data.count, test.data.count)}
 print(splits)
 //let chunks = dataset.normalizedFrame.split(nChunks: 2)
 //let props = chunks[0].split(proportions: [0.3, 0.7])
