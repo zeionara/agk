@@ -1,6 +1,8 @@
 import Foundation
 import TensorFlow
 
+public typealias CVSplit = (train: TripleFrame, test: TripleFrame)
+
 public struct LabelFrame {
     let data: [[Int32]]
     let device: Device
@@ -46,7 +48,46 @@ public struct TripleFrame {
         self.relationships_ = relationships_
     }
 
+    public func cv(nFolds: Int, proportions: [Float]) -> [CVSplit] {
+        split(nChunks: nFolds).map { frame in
+            let split = frame.split(proportions: proportions)
+            return CVSplit(train: split[0], test: split[1])
+        }
+    }
+
+    public func batched(sizes: [Int], shouldShuffle: Bool = true) -> [TripleFrame] {
+        func addBatch() {
+            batches.append(TripleFrame(data: batchSamples, device: device, entities_: entities, relationships_: relationships))
+            i = 0
+            batchSamples = []
+        }
+
+        var batches: [TripleFrame] = []
+        var batchSamples: [[Int32]] = []
+        var i = 0
+        var currentSizeId = 0
+        for sample in shouldShuffle ? data.shuffled() : data {
+            if ((i == 0 && sizes[currentSizeId] == 0) || (i > 0 && i % sizes[currentSizeId] == 0)) {
+                addBatch()
+                if currentSizeId < data.count - 1 {
+                    currentSizeId += 1
+                    i = 0
+                } else {
+                    break
+                }
+            }
+            batchSamples.append(sample)
+            i += 1
+        }
+        if !batchSamples.isEmpty {
+            addBatch()
+        }
+        return batches
+    }
+
     public func batched(size: Int, shouldShuffle: Bool = true) -> [TripleFrame] {
+        assert(size > 0)
+
         func addBatch() {
             batches.append(TripleFrame(data: batchSamples, device: device, entities_: entities, relationships_: relationships))
             i = 0
@@ -67,6 +108,21 @@ public struct TripleFrame {
             addBatch()
         }
         return batches
+    }
+
+    public func split(nChunks: Int, shouldShuffle: Bool = true) -> [TripleFrame] {
+        assert(nChunks > 0)
+        return batched(size: Int((Float(data.count) / Float(nChunks)).rounded(.up)), shouldShuffle: shouldShuffle)
+    }
+
+    public func split(proportions: [Float], shouldShuffle: Bool = true) -> [TripleFrame] {
+        assert(proportions.reduce(0.0, +) == 1.0)
+        return batched(
+                sizes: proportions.map { ratio in
+                    Int((ratio * Float(data.count)).rounded())
+                },
+                shouldShuffle: shouldShuffle
+        )
     }
 
     public var entities: [Int32] {
