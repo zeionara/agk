@@ -3,6 +3,15 @@ import TensorFlow
 
 public typealias CVSplit = (train: TripleFrame, test: TripleFrame)
 
+func getRandomNumbers(maxNumber: Int, listSize: Int) -> Set<Int> {
+    var randomNumbers = Set<Int>()
+    while randomNumbers.count < listSize && randomNumbers.count - 1 < maxNumber {
+        let randomNumber = Int.random(in: 0...maxNumber)
+        randomNumbers.insert(randomNumber)
+    }
+    return randomNumbers
+}
+
 public struct LabelFrame {
     let data: [[Int32]]
     let device: Device
@@ -36,7 +45,7 @@ public struct LabelFrame {
 }
 
 public struct TripleFrame {
-    let data: [[Int32]]
+    public let data: [[Int32]]
     let device: Device
     var entities_: [Int32]?
     var relationships_: [Int32]?
@@ -163,22 +172,34 @@ public struct TripleFrame {
         )
     }
 
-    public func sampleNegativeFrame(negativeFrame: TripleFrame) -> TripleFrame {
-        var negativeSamples = data.map { positiveSample in
-            negativeFrame.data.filter { negativeSample in
+    public func sampleNegativeFrame(negativeFrame: TripleFrame, n: Int = 1) -> TripleFrame {
+        var negativeSamples: [[[Int32]]] = data.map { positiveSample in
+            let corruptedTriples = negativeFrame.data.filter { negativeSample in
                 negativeSample[2] == positiveSample[2] && (
                         (negativeSample[0] == positiveSample[0] && negativeSample[1] != positiveSample[1]) ||
                                 (negativeSample[0] != positiveSample[0] && negativeSample[1] == positiveSample[1])
                 )
-            }.randomElement()!
+            }
+//            if (shouldTakeAll) {
+//                return corruptedTriples
+//            } else {
+            return getRandomNumbers(maxNumber: corruptedTriples.count - 1, listSize: n).map {
+                corruptedTriples[$0]
+            } //.randomElement()!]
+//            }
         }
-        return TripleFrame(data: negativeSamples, device: device, entities_: entities, relationships_: relationships)
+        return TripleFrame(data: negativeSamples.reduce([], +), device: device, entities_: entities, relationships_: relationships)
     }
 
     public var negative: TripleFrame {
         makeNegativeFrame(frame: self)
     }
 
+    public func sample(size: Int) -> TripleFrame {
+        TripleFrame(data: getRandomNumbers(maxNumber: data.count - 1, listSize: size).map {
+            data[$0]
+        }, device: device, entities_: entities, relationships_: relationships)
+    }
 }
 
 public func makeNormalizationMappings<KeyType, ValueType>(source: [KeyType], destination: [ValueType]) -> (forward: Dictionary<KeyType, ValueType>, backward: Dictionary<ValueType, KeyType>) {

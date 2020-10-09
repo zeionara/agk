@@ -17,7 +17,7 @@ public struct CVTester<Model, OptimizerType, TrainerType> where OptimizerType: O
         var scores: [Float] = []
         for (trainFrame, testFrame) in dataset.normalizedFrame.cv(nFolds: nFolds) {
             let model = train(trainFrame, trainer)
-            scores.append(metric.compute(model: model, trainFrame: trainFrame, testFrame: testFrame))
+            scores.append(metric.compute(model: model, trainFrame: trainFrame, testFrame: testFrame, dataset: dataset))
         }
         print("\(metric.name): \(metric.aggregate(scores: scores))")
     }
