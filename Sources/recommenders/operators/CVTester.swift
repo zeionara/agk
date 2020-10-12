@@ -13,13 +13,19 @@ public struct CVTester<Model, OptimizerType, TrainerType> where OptimizerType: O
         self.nFolds = nFolds
     }
 
-    public func test(dataset: KnowledgeGraphDataset, metric: LinearMetric, train: (_ trainFrame: TripleFrame, _ trainer: TrainerType) -> Model) {
-        var scores: [Float] = []
+    public func test(dataset: KnowledgeGraphDataset, metrics: [LinearMetric], train: (_ trainFrame: TripleFrame, _ trainer: TrainerType) -> Model) {
+        var scores: [String: [Float]] = metrics.toDict { (metric: LinearMetric) -> (key: String, value: [Float]) in
+            (metric.name, [Float]())
+        }
         for (trainFrame, testFrame) in dataset.normalizedFrame.cv(nFolds: nFolds) {
             let model = train(trainFrame, trainer)
-            scores.append(metric.compute(model: model, trainFrame: trainFrame, testFrame: testFrame, dataset: dataset))
+            for metric in metrics {
+                scores[metric.name]!.append(metric.compute(model: model, trainFrame: trainFrame, testFrame: testFrame, dataset: dataset))
+            }
         }
-        print("\(metric.name): \(metric.aggregate(scores: scores))")
+        for metric in metrics {
+            print("\(metric.name): \(metric.aggregate(scores: scores[metric.name]!))")
+        }
     }
 }
 

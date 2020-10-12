@@ -106,6 +106,12 @@ public struct TripleFrame {
         return batches
     }
 
+    public func getCombinations(k: Int) -> [TripleFrame] {
+        self.data.getCombinations(k: k).map { combination in
+            TripleFrame(data: combination, device: device, entities_: entities, relationships_: relationships)
+        }
+    }
+
     public func batched(size: Int, shouldShuffle: Bool = true) -> [TripleFrame] {
         assert(size > 0)
 
