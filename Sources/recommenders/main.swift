@@ -41,7 +41,7 @@ let dataset = KnowledgeGraphDataset(path: "train-ke-small-with-duplicates.txt", 
 // CV pipeline
 //let array = [0, 1, 2, 3]
 //print(array.getCombinations(k: 1))
-let tester = CVTester<RotatE, Adam<RotatE>, LinearTrainer>(nFolds: 4, nEpochs: 10, batchSize: 3).test(dataset: dataset, metrics: [Hits(n: 1), Hits(n: 2), Hits(n: 3), Hits(n: 4)])
+let tester = CVTester<RotatE, Adam<RotatE>, LinearTrainer>(nFolds: 4, nEpochs: 10, batchSize: 3).test(dataset: dataset, metrics: [Hits(n: 1), Hits(n: 2), Hits(n: 3), Hits(n: 4), MRR(n: 1), MRR(n: 2), MRR(n: 3), MRR(n: 4)])
 { trainFrame, trainer in
     var model = RotatE(embeddingDimensionality: 100, dataset: dataset, device: Device.default)
     var optimizer = Adam<RotatE>(for: model, learningRate: 0.01)

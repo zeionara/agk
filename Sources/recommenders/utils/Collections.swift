@@ -6,6 +6,12 @@ extension Array where Element: Equatable {
     }
 }
 
+extension Array where Element == Float {
+    public var mean: Float {
+        Float(self.reduce(Element(0), +)) / Float(self.count)
+    }
+}
+
 extension Array {
     func getCombinations(k: Int) -> [[Element]] {
         assert(k <= self.count)
