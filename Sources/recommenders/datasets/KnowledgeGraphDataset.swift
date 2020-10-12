@@ -3,6 +3,13 @@ import TensorFlow
 
 public typealias CVSplit = (train: TripleFrame, test: TripleFrame)
 
+public enum CorruptionDegree: Int {
+    case none = 3
+    case eitherHeadEitherTail = 2
+    case headAndTail = 1
+    case complete = 0
+}
+
 func getRandomNumbers(maxNumber: Int, listSize: Int) -> Set<Int> {
     var randomNumbers = Set<Int>()
     while randomNumbers.count < listSize && randomNumbers.count - 1 < maxNumber {
@@ -178,21 +185,28 @@ public struct TripleFrame {
         )
     }
 
-    public func sampleNegativeFrame(negativeFrame: TripleFrame, n: Int = -1) -> TripleFrame {
+    public func sampleNegativeFrame(negativeFrame: TripleFrame, n: Int = -1, corruptionDegree: CorruptionDegree = CorruptionDegree.eitherHeadEitherTail) -> TripleFrame {
         var negativeSamples: [[[Int32]]] = data.map { positiveSample in
             let corruptedTriples = negativeFrame.data.filter { negativeSample in
-                negativeSample[2] == positiveSample[2] && (
-                        (negativeSample[0] == positiveSample[0] && negativeSample[1] != positiveSample[1]) ||
-                                (negativeSample[0] != positiveSample[0] && negativeSample[1] == positiveSample[1])
+                (
+                        negativeSample[2] == positiveSample[2] && (
+                                (
+                                        (negativeSample[0] != positiveSample[0] && negativeSample[1] != positiveSample[1]) && corruptionDegree == CorruptionDegree.headAndTail
+                                ) || (
+                                        (
+                                                (negativeSample[0] == positiveSample[0] && negativeSample[1] != positiveSample[1]) ||
+                                                        (negativeSample[0] != positiveSample[0] && negativeSample[1] == positiveSample[1])
+                                        ) &&
+                                                corruptionDegree == CorruptionDegree.eitherHeadEitherTail
+                                )
+                        )
+                ) || (
+                        (negativeSample[0] != positiveSample[0] && negativeSample[1] != positiveSample[1] && negativeSample[2] != positiveSample[2]) && corruptionDegree == CorruptionDegree.complete
                 )
             }
-//            if (shouldTakeAll) {
-//                return corruptedTriples
-//            } else {
             return n > 0 ? getRandomNumbers(maxNumber: corruptedTriples.count - 1, listSize: n).map {
                 corruptedTriples[$0]
-            } : corruptedTriples //.randomElement()!]
-//            }
+            } : corruptedTriples
         }
         return TripleFrame(data: negativeSamples.reduce([], +), device: device, entities_: entities, relationships_: relationships)
     }

@@ -3,7 +3,7 @@ import TensorFlow
 public struct MRR: LinearMetric {
     let n: Int
 
-    public init(n: Int, threshold: Float = 0.2) {
+    public init(n: Int) {
         self.n = n
     }
 
@@ -12,6 +12,14 @@ public struct MRR: LinearMetric {
     }
 
     public func compute<Model>(model: Model, trainFrame: TripleFrame, testFrame: TripleFrame, dataset: KnowledgeGraphDataset) -> Float where Model: GraphModel {
+        func getSortedTriples(validFrame: TripleFrame, corruptedFrame: TripleFrame, scores: [Float]) -> [[Int32]] {
+            (validFrame.data + corruptedFrame.data).enumerated().sorted() { (lhs, rhs) in
+                scores[lhs.offset] < scores[rhs.offset]
+            }.map { (i: Int, triple: [Int32]) in
+                triple
+            }
+        }
+
         var finalScores: [Float] = []
         for validFrame in testFrame.getCombinations(k: min(testFrame.data.count, n)) {
             let corruptedFrame = validFrame.sampleNegativeFrame(negativeFrame: dataset.normalizedNegativeFrame)
@@ -19,25 +27,13 @@ public struct MRR: LinearMetric {
             let scores = model(totalTensor).unstacked().map {
                 $0.scalarized()
             }
-            let sortedTriples = (validFrame.data + corruptedFrame.data).enumerated().sorted() { (lhs, rhs) in
-                scores[lhs.offset] < scores[rhs.offset]
-            }
-            var intermediateScores: [Float] = []
-            for (i, triple) in sortedTriples[0..<min(sortedTriples.count, n)].enumerated() {
-                if validFrame.data.contains(triple.element) {
-                    intermediateScores.append(
-                            Float(
-                                    countMatchesWithDuplicates(
-                                            matchedTriples: Set(sortedTriples[0...i].map {
-                                                $0.element
-                                            }).intersection(Set(validFrame.data)),
-                                            validFrame: validFrame
-                                    )
-                            ) / Float(i + 1)
+            finalScores.append(
+                    Float(1.0) / Float(
+                            getSortedTriples(validFrame: validFrame, corruptedFrame: corruptedFrame, scores: scores).enumerated().filter { item in
+                                validFrame.data.contains(item.element)
+                            }.first!.offset + 1
                     )
-                }
-            }
-            finalScores.append(intermediateScores.count > 0 ? intermediateScores.mean : 0.0)
+            )
         }
         return aggregate(scores: finalScores)
     }
