@@ -1,12 +1,12 @@
 import TensorFlow
 
 public struct Hits: LinearMetric {
-    let threshold: Float
+//    let threshold: Float
     let n: Int
 
     public init(n: Int, threshold: Float = 0.2) {
         self.n = n
-        self.threshold = threshold
+//        self.threshold = threshold
     }
 
     public var name: String {
@@ -30,9 +30,9 @@ public struct Hits: LinearMetric {
             let sortedTriples = (validFrame.data + corruptedFrame.data).enumerated().sorted() { (lhs, rhs) in
                 scores[lhs.offset] < scores[rhs.offset]
             }
-            let filteredTriples = sortedTriples.filter {
-                scores[$0.offset] < threshold
-            }
+//            let filteredTriples = sortedTriples.filter {
+//                scores[$0.offset] < threshold
+//            }
             finalScores.append(
                     Float(
                             countMatchesWithDuplicates(
