@@ -14,9 +14,6 @@ public struct MRR: LinearMetric {
     public func compute<Model>(model: Model, trainFrame: TripleFrame, testFrame: TripleFrame, dataset: KnowledgeGraphDataset) -> Float where Model: GraphModel {
         var finalScores: [Float] = []
         for validFrame in testFrame.getCombinations(k: min(testFrame.data.count, n)) {
-            if (n == 4) {
-                print(validFrame.data)
-            }
             let corruptedFrame = validFrame.sampleNegativeFrame(negativeFrame: dataset.normalizedNegativeFrame)
             let totalTensor = Tensor(stacking: validFrame.tensor.unstacked() + corruptedFrame.tensor.unstacked())
             let scores = model(totalTensor).unstacked().map {
