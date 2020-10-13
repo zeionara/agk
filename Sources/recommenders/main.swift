@@ -30,8 +30,8 @@ let dataset = KnowledgeGraphDataset(path: "train-ke-small-with-duplicates.txt", 
 //let props = chunks[0].split(proportions: [0.3, 0.7])
 //print(props[1].data.count)
 //var model = GCN(dataset: dataset)
-//var model = RotatE(embeddingDimensionality: 100, dataset: dataset)
-//print(model(Tensor<Int32>(dataset.frame.adjacencyTensor)))
+var model = ConvE(embeddingDimensionality: 6, stackedEmbeddingsWidth: 2, stackedEmbeddingsHeight: 3, filterWidth: 2, filterHeight: 2, dataset: dataset)
+print(model(Tensor<Int32>(dataset.normalizedFrame.tensor)))
 //print(model(Tensor<Int32>(dataset.normalizedFrame.tensor)))
 //print(Tensor<Float>([[1, 2, 3], [4, 5, 6], [7, 8, 19]]).inverse)
 //let optimizer = Adam(for: model, learningRate: 0.01)
@@ -41,18 +41,18 @@ let dataset = KnowledgeGraphDataset(path: "train-ke-small-with-duplicates.txt", 
 // CV pipeline
 //let array = [0, 1, 2, 3]
 //print(array.getCombinations(k: 1))
-let tester = CVTester<RotatE, Adam<RotatE>, LinearTrainer>(nFolds: 4, nEpochs: 10, batchSize: 3).test(dataset: dataset, metrics: [
-    MRR(n: 1), MRR(n: 2), MRR(n: 3), MRR(n: 4),
-    Hits(n: 1), Hits(n: 2), Hits(n: 3), Hits(n: 4),
-    MAP(n: 1), MAP(n: 2), MAP(n: 3), MAP(n: 4),
-    NDCG(n: 1), NDCG(n: 2), NDCG(n: 3), NDCG(n: 4)
-])
-{ trainFrame, trainer in
-    var model = RotatE(embeddingDimensionality: 100, dataset: dataset, device: Device.default)
-    var optimizer = Adam<RotatE>(for: model, learningRate: 0.01)
-    trainer.train(frame: trainFrame, model: &model, optimizer: &optimizer, loss: computeSigmoidLoss)
-    return model
-}
+//let tester = CVTester<RotatE, Adam<RotatE>, LinearTrainer>(nFolds: 4, nEpochs: 10, batchSize: 3).test(dataset: dataset, metrics: [
+//    MRR(n: 1), MRR(n: 2), MRR(n: 3), MRR(n: 4),
+//    Hits(n: 1), Hits(n: 2), Hits(n: 3), Hits(n: 4),
+//    MAP(n: 1), MAP(n: 2), MAP(n: 3), MAP(n: 4),
+//    NDCG(n: 1), NDCG(n: 2), NDCG(n: 3), NDCG(n: 4)
+//])
+//{ trainFrame, trainer in
+//    var model = RotatE(embeddingDimensionality: 100, dataset: dataset, device: Device.default)
+//    var optimizer = Adam<RotatE>(for: model, learningRate: 0.01)
+//    trainer.train(frame: trainFrame, model: &model, optimizer: &optimizer, loss: computeSigmoidLoss)
+//    return model
+//}
 //var scores: [Float] = []
 //let metric = RandomMetric(k: 2.2)
 //for (trainFrame, testFrame) in dataset.normalizedFrame.cv(nFolds: 4) {
