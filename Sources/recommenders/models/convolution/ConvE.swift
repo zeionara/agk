@@ -102,13 +102,8 @@ public struct ConvE: ConvolutionGraphModel {
                     relationshipEmbeddings_.reshaped(to: [-1, convolutionFilters.filter.shape[2], convolutionFilters.filter.shape[3]])
                 ], alongAxis: 1
         ).reshaped(to: [headEmbeddings.shape[0], -1, stackedEmbeddingsWidth, 1])
-//        print(stackedEmbeddings.shape)
         let convolutionResult = convolutionFilters(stackedEmbeddings)
-//        print(convolutionResult.shape)
-//        print(convolutionResult.shape)
-//        print(convolutionResult.reshaped(to: [convolutionResult.shape[0], -1]).shape)
-//        print(denseLayer.weight.shape)
         let multiplicationResult = denseLayer(convolutionResult.reshaped(to: [convolutionResult.shape[0], -1]))
-        return matmul(multiplicationResult, tailEmbeddings.transposed())
+        return softmax(matmul(multiplicationResult, entityEmbeddings.embeddings.transposed()))
     }
 }

@@ -88,6 +88,18 @@ extension TripleFrame {
                 ]
         ).reshaped(to: [nPairs * 2, -1])
     }
+
+    public var adjacencySequence: Tensor<Float> {
+        Tensor(
+                data.map { triple in
+                    Tensor<Float>(
+                            entities.map { entity in
+                                entity == triple[1] ? 1.0 : 0.0
+                            }, on: device
+                    )
+                }
+        )
+    }
 }
 
 extension Tensor where Scalar: Numeric {
