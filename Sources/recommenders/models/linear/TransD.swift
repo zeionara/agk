@@ -16,7 +16,7 @@ private func project(embeddings: Tensor<Float>, entityProjectors: Tensor<Float>,
     embeddings - (embeddings * entityProjectors).sum(alongAxes: [-1]) * relationshipProjectors
 }
 
-public struct TransD: LinearGraphModel {
+public struct TransD<SourceElement, NormalizedElement>: LinearGraphModel where SourceElement: Hashable, NormalizedElement: Hashable, NormalizedElement: Comparable {
     public var entityEmbeddings: Embedding<Float>
     public var relationshipEmbeddings: Embedding<Float>
     public var relationshipProjectors: Embedding<Float>
@@ -24,7 +24,7 @@ public struct TransD: LinearGraphModel {
     @noDerivative
     public let device: Device
 
-    public init(embeddingDimensionality: Int = 100, dataset: KnowledgeGraphDataset? = Optional.none, device device_: Device = Device.default,
+    public init(embeddingDimensionality: Int = 100, dataset: KnowledgeGraphDataset<SourceElement, NormalizedElement>? = Optional.none, device device_: Device = Device.default,
                 entityEmbeddings: Embedding<Float>? = Optional.none, relationshipEmbeddings: Embedding<Float>? = Optional.none,
                 relationshipProjectors: Embedding<Float>? = Optional.none, entityProjectors: Embedding<Float>? = Optional.none) {
         if let entityEmbeddings_ = entityEmbeddings {

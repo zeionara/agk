@@ -1,8 +1,8 @@
 import Foundation
 import TensorFlow
 
-public func makePairs(entities: [Int32], relationships: [Int32]) -> [[Int32]] {
-    var pairs: [[Int32]] = []
+public func makePairs<Element>(entities: [Element], relationships: [Element]) -> [[Element]] {
+    var pairs: [[Element]] = []
     entities.map { entity in
         relationships.map { relationship in
             pairs.append([entity, relationship])

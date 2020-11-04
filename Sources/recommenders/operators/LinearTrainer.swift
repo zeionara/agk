@@ -11,8 +11,10 @@ public struct LinearTrainer: Trainer {
         self.batchSize = batchSize
     }
 
-    public func train<Model, OptimizerType>(frame: TripleFrame, model: inout Model, optimizer: inout OptimizerType, margin: Float = 2.0,
-                                            loss: @differentiable (Tensor<Float>, Tensor<Float>, Float) -> Tensor<Float> = computeSumLoss) where Model: LinearGraphModel, OptimizerType: Optimizer, OptimizerType.Model == Model {
+    public func train<Model, OptimizerType>(
+            frame: TripleFrame<Int32>, model: inout Model, optimizer: inout OptimizerType, margin: Float = 2.0,
+            loss: @differentiable (Tensor<Float>, Tensor<Float>, Float) -> Tensor<Float> = computeSumLoss
+    ) where Model: LinearGraphModel, OptimizerType: Optimizer, OptimizerType.Model == Model {
         for i in 1...nEpochs {
             var losses: [Float] = []
             for batch in frame.batched(size: batchSize) {

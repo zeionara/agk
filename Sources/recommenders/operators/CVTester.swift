@@ -2,7 +2,8 @@ import Foundation
 import TensorFlow
 
 
-public struct CVTester<Model, OptimizerType, TrainerType> where OptimizerType: Optimizer, Model: GraphModel, OptimizerType.Model == Model, TrainerType: Trainer {
+public struct CVTester<Model, OptimizerType, TrainerType, SourceElement>
+        where OptimizerType: Optimizer, Model: GraphModel, OptimizerType.Model == Model, TrainerType: Trainer, SourceElement: Hashable {
     public let trainer: TrainerType
     public let nFolds: Int
 
@@ -13,7 +14,9 @@ public struct CVTester<Model, OptimizerType, TrainerType> where OptimizerType: O
         self.nFolds = nFolds
     }
 
-    public func test(dataset: KnowledgeGraphDataset, metrics: [LinearMetric], train: (_ trainFrame: TripleFrame, _ trainer: TrainerType) -> Model) {
+    public func test(
+            dataset: KnowledgeGraphDataset<SourceElement, Int32>, metrics: [LinearMetric], train: (_ trainFrame: TripleFrame<Int32>, _ trainer: TrainerType) -> Model
+    ) {
         var scores: [String: [Float]] = metrics.toDict { (metric: LinearMetric) -> (key: String, value: [Float]) in
             (metric.name, [Float]())
         }

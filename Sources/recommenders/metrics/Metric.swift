@@ -1,5 +1,6 @@
 public protocol Metric {
     var name: String { get }
-    func compute<Model>(model: Model, trainFrame: TripleFrame, testFrame: TripleFrame, dataset: KnowledgeGraphDataset) -> Float where Model: GraphModel
+    func compute<Model, SourceElement>(model: Model, trainFrame: TripleFrame<Int32>, testFrame: TripleFrame<Int32>, dataset: KnowledgeGraphDataset<SourceElement, Int32>
+    ) -> Float where Model: GraphModel
     func aggregate(scores: [Float]) -> Float
 }

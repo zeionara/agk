@@ -11,7 +11,8 @@ public struct MAP: LinearMetric {
         "MAP@\(n)"
     }
 
-    public func compute<Model>(model: Model, trainFrame: TripleFrame, testFrame: TripleFrame, dataset: KnowledgeGraphDataset) -> Float where Model: GraphModel {
+    public func compute<Model, SourceElement>(model: Model, trainFrame: TripleFrame<Int32>, testFrame: TripleFrame<Int32>,
+            dataset: KnowledgeGraphDataset<SourceElement, Int32>) -> Float where Model: GraphModel {
         var finalScores: [Float] = []
         for validFrame in testFrame.getCombinations(k: min(testFrame.data.count, n)) {
             let corruptedFrame = validFrame.sampleNegativeFrame(negativeFrame: dataset.normalizedNegativeFrame)

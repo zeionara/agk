@@ -9,7 +9,7 @@ public struct Tester {
         self.batchSize = batchSize
     }
 
-    public func test<Model>(dataset: KnowledgeGraphDataset, model: Model) where Model: GraphModel {
+    public func test<Model, SourceElement>(dataset: KnowledgeGraphDataset<SourceElement, Int32>, model: Model) where Model: GraphModel {
         let trainBatches = dataset.normalizedFrame.batched(size: batchSize)
         for batch in dataset.normalizedNegativeFrame.batched(size: batchSize) {
             let negativeScores = model(batch.tensor)

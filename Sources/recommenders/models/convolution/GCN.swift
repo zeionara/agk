@@ -2,7 +2,7 @@ import Foundation
 import TensorFlow
 
 
-public struct GCN: ConvolutionGraphModel {
+public struct GCN<SourceElement, NormalizedElement>: ConvolutionGraphModel where SourceElement: Hashable, NormalizedElement: Hashable, NormalizedElement: Comparable {
     public var entityEmbeddings: Embedding<Float>
     public var outputLayer: Tensor<Float>
     private var inputLayer: Dense<Float>
@@ -10,7 +10,7 @@ public struct GCN: ConvolutionGraphModel {
     @noDerivative
     public let device: Device
 
-    public init(embeddingDimensionality: Int = 100, dataset: KnowledgeGraphDataset? = Optional.none, device device_: Device = Device.default,
+    public init(embeddingDimensionality: Int = 100, dataset: KnowledgeGraphDataset<SourceElement, NormalizedElement>? = Optional.none, device device_: Device = Device.default,
                 hiddenLayerSize: Int = 10, activation: @escaping Dense<Float>.Activation = relu) {
         let nEntities = dataset!.frame.entities.count + dataset!.frame.relationships.count * 2
         entityEmbeddings = initEmbeddings(dimensionality: embeddingDimensionality, nItems: nEntities, device: device_)

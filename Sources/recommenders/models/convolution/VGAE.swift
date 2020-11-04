@@ -9,7 +9,7 @@ private func normalizeWithL2_(tensor: Tensor<Float>) -> Tensor<Float> {
     tensor / computeL2Norm_(data: tensor)
 }
 
-public struct VGAE: ConvolutionGraphModel {
+public struct VGAE<SourceElement, NormalizedElement>: ConvolutionGraphModel where SourceElement: Hashable, NormalizedElement: Hashable, NormalizedElement: Comparable {
     public var entityEmbeddings: Embedding<Float>
     public var outputLayer: Tensor<Float>
     private var inputLayer: Dense<Float>
@@ -17,7 +17,7 @@ public struct VGAE: ConvolutionGraphModel {
     @noDerivative
     public let device: Device
 
-    public init(embeddingDimensionality: Int = 100, dataset: KnowledgeGraphDataset? = Optional.none, device device_: Device = Device.default,
+    public init(embeddingDimensionality: Int = 100, dataset: KnowledgeGraphDataset<SourceElement, NormalizedElement>? = Optional.none, device device_: Device = Device.default,
                 hiddenLayerSize: Int = 10, activation: @escaping Dense<Float>.Activation = relu,
                 entityEmbeddings: Embedding<Float>? = Optional.none, inputLayer: Dense<Float>? = Optional.none,
                 hiddenLayer: Dense<Float>? = Optional.none, outputLayer: Tensor<Float>? = Optional.none) {

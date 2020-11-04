@@ -16,13 +16,13 @@ private func computeScore(head: Tensor<Float>, tail: Tensor<Float>, relationship
     return norma
 }
 
-public struct TransE: LinearGraphModel {
+public struct TransE<SourceElement, NormalizedElement>: LinearGraphModel where SourceElement: Hashable, NormalizedElement: Hashable, NormalizedElement: Comparable {
     public var entityEmbeddings: Embedding<Float>
     public var relationshipEmbeddings: Embedding<Float>
     @noDerivative
     public let device: Device
 
-    public init(embeddingDimensionality: Int = 100, dataset: KnowledgeGraphDataset? = Optional.none, device device_: Device = Device.default,
+    public init(embeddingDimensionality: Int = 100, dataset: KnowledgeGraphDataset<SourceElement, NormalizedElement>? = Optional.none, device device_: Device = Device.default,
                 entityEmbeddings: Embedding<Float>? = Optional.none, relationshipEmbeddings: Embedding<Float>? = Optional.none) {
         if let entityEmbeddings_ = entityEmbeddings {
             self.entityEmbeddings = entityEmbeddings_

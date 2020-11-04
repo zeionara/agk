@@ -29,7 +29,7 @@ import TensorFlow
 //    (real: cos(embeddings), imaginary: sin(embeddings))
 //}
 
-public struct ConvE: ConvolutionGraphModel {
+public struct ConvE<SourceElement, NormalizedElement>: ConvolutionGraphModel where SourceElement: Hashable, NormalizedElement: Hashable, NormalizedElement: Comparable {
     public var entityEmbeddings: Embedding<Float>
     public var relationshipEmbeddings: Embedding<Float>
     public var convolutionFilters: DepthwiseConv2D<Float>
@@ -40,7 +40,7 @@ public struct ConvE: ConvolutionGraphModel {
     public let denseLayer: Dense<Float>
 
     public init(embeddingDimensionality: Int = 100, stackedEmbeddingsWidth: Int = 25, stackedEmbeddingsHeight: Int = 4, filterWidth: Int = 5, filterHeight: Int = 2,
-                nConvolutionalFilters: Int = 3, dataset: KnowledgeGraphDataset? = Optional.none, device device_: Device = Device.default,
+                nConvolutionalFilters: Int = 3, dataset: KnowledgeGraphDataset<SourceElement, NormalizedElement>? = Optional.none, device device_: Device = Device.default,
                 entityEmbeddings: Embedding<Float>? = Optional.none, relationshipEmbeddings: Embedding<Float>? = Optional.none,
                 convolutionFilters: DepthwiseConv2D<Float>? = Optional.none, activation: @escaping Dense<Float>.Activation = relu,
                 denseLayer: Dense<Float>? = Optional.none) {

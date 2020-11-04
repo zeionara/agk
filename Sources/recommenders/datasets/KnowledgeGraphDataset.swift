@@ -1,7 +1,7 @@
 import Foundation
 import TensorFlow
 
-public typealias CVSplit = (train: TripleFrame, test: TripleFrame)
+public typealias CVSplit<Element> = (train: TripleFrame<Element>, test: TripleFrame<Element>) where Element: Hashable
 
 public enum CorruptionDegree: Int {
     case none = 3
@@ -19,55 +19,33 @@ func getRandomNumbers(maxNumber: Int, listSize: Int) -> Set<Int> {
     return randomNumbers
 }
 
-public struct LabelFrame {
-    let data: [[Int32]]
+public struct LabelFrame<Element> {
+    let data: [[Element]]
     let device: Device
 
-    public init(data: [[Int32]], device: Device) {
+    public init(data: [[Element]], device: Device) {
         self.data = data
         self.device = device
     }
-
-    public var indices: Tensor<Int32> {
-        Tensor(
-                data.map {
-                    Tensor(
-                            Int32($0.first!),
-                            on: device
-                    )
-                }
-        )
-    }
-
-    public var labels: Tensor<Float> {
-        Tensor(
-                data.map {
-                    Tensor(
-                            Float($0.last!),
-                            on: device
-                    )
-                }
-        )
-    }
 }
 
-public struct TripleFrame {
-    public let data: [[Int32]]
+public struct TripleFrame<Element> where Element: Hashable {
+    public let data: [[Element]]
     let device: Device
-    var entities_: [Int32]?
-    var relationships_: [Int32]?
+    var entities_: [Element]?
+    var relationships_: [Element]?
 
-    public init(data: [[Int32]], device: Device, entities_: [Int32]? = Optional.none, relationships_: [Int32]? = Optional.none) {
+    public init(data: [[Element]], device: Device, entities_: [Element]? = Optional.none, relationships_: [Element]? = Optional.none) {
         self.data = data
         self.device = device
         self.entities_ = entities_
         self.relationships_ = relationships_
     }
 
-    public func cv(nFolds: Int) -> [CVSplit] {
+    public func cv(nFolds: Int) -> [CVSplit<Element>] {
         let enumeratedSplits = split(nChunks: nFolds).enumerated()
         return enumeratedSplits.map { (i: Int, testSplit: TripleFrame) in
-            CVSplit(
+            CVSplit<Element>(
                     train: TripleFrame(
                             data: enumeratedSplits.filter { (j: Int, trainPartialSplit: TripleFrame) in
                                 j != i
@@ -91,7 +69,7 @@ public struct TripleFrame {
         }
 
         var batches: [TripleFrame] = []
-        var batchSamples: [[Int32]] = []
+        var batchSamples: [[Element]] = []
         var i = 0
         var currentSizeId = 0
         for sample in shouldShuffle ? data.shuffled() : data {
@@ -129,7 +107,7 @@ public struct TripleFrame {
         }
 
         var batches: [TripleFrame] = []
-        var batchSamples: [[Int32]] = []
+        var batchSamples: [[Element]] = []
         var i = 0
         for sample in shouldShuffle ? data.shuffled() : data {
             if (i % size == 0 && i > 0) {
@@ -159,34 +137,22 @@ public struct TripleFrame {
         )
     }
 
-    public var entities: [Int32] {
+    public var entities: [Element] {
         if let entities__ = entities_ {
             return entities__
         }
         return (data[column: 0] + data[column: 1]).unique()
     }
 
-    public var relationships: [Int32] {
+    public var relationships: [Element] {
         if let relationships__ = relationships_ {
             return relationships__
         }
         return data[column: 2].unique()
     }
 
-    public var tensor: Tensor<Int32> {
-        Tensor(
-                data.map {
-                    Tensor(
-                            $0.map {
-                                Int32($0)
-                            }, on: device
-                    )
-                }
-        )
-    }
-
-    public func sampleNegativeFrame(negativeFrame: TripleFrame, n: Int = -1, corruptionDegree: CorruptionDegree = CorruptionDegree.eitherHeadEitherTail) -> TripleFrame {
-        var negativeSamples: [[[Int32]]] = data.map { positiveSample in
+    public func sampleNegativeFrame(negativeFrame: TripleFrame<Element>, n: Int = -1, corruptionDegree: CorruptionDegree = CorruptionDegree.eitherHeadEitherTail) -> TripleFrame<Element> {
+        var negativeSamples: [[[Element]]] = data.map { positiveSample in
             let corruptedTriples = negativeFrame.data.filter { negativeSample in
                 (
                         negativeSample[2] == positiveSample[2] && (
@@ -208,7 +174,7 @@ public struct TripleFrame {
                 corruptedTriples[$0]
             } : corruptedTriples
         }
-        return TripleFrame(data: negativeSamples.reduce([], +), device: device, entities_: entities, relationships_: relationships)
+        return TripleFrame<Element>(data: negativeSamples.reduce([], +), device: device, entities_: entities, relationships_: relationships)
     }
 
     public var negative: TripleFrame {
@@ -241,8 +207,8 @@ public func makeNormalizationMappings<KeyType, ValueType>(source: [KeyType], des
     )
 }
 
-public func makeNegativeFrame(frame: TripleFrame) -> TripleFrame {
-    var negativeSamples: [[Int32]] = []
+public func makeNegativeFrame<Element>(frame: TripleFrame<Element>) -> TripleFrame<Element> {
+    var negativeSamples: [[Element]] = []
     for head in frame.entities {
         for tail in frame.entities {
             for relationship in frame.relationships {
@@ -257,7 +223,11 @@ public func makeNegativeFrame(frame: TripleFrame) -> TripleFrame {
 }
 
 
-private func normalize(_ frame: TripleFrame, _ entityNormalizationMapping: [Int32: Int32], _ relationshipNormalizationMapping: [Int32: Int32]) -> TripleFrame {
+private func normalize<SourceElement, NormalizedElement>(
+        _ frame: TripleFrame<SourceElement>,
+        _ entityNormalizationMapping: [SourceElement: NormalizedElement],
+        _ relationshipNormalizationMapping: [SourceElement: NormalizedElement]
+) -> TripleFrame<NormalizedElement> {
     TripleFrame(
             data: frame.data.map {
                 [
@@ -270,51 +240,64 @@ private func normalize(_ frame: TripleFrame, _ entityNormalizationMapping: [Int3
     )
 }
 
-public struct KnowledgeGraphDataset {
-    public let frame: TripleFrame
-    public let labelFrame: LabelFrame?
-    public let normalizedFrame: TripleFrame
-    public let negativeFrame: TripleFrame
+public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where SourceElement: Hashable, NormalizedElement: Hashable, NormalizedElement: Comparable {
+    public let frame: TripleFrame<SourceElement>
+    public let labelFrame: LabelFrame<NormalizedElement>?
+    public let normalizedFrame: TripleFrame<NormalizedElement>
+    public let negativeFrame: TripleFrame<SourceElement>
 //    public let sampledNegativeFrame: TripleFrame
-    public let normalizedNegativeFrame: TripleFrame
+    public let normalizedNegativeFrame: TripleFrame<NormalizedElement>
 //    public let normalizedSampledNegativeFrame: TripleFrame
-    public let entityId2Index: [Int32: Int32]
-    public let entityIndex2Id: [Int32: Int32]
-    public let relationshipId2Index: [Int32: Int32]
-    public let relationshipIndex2Id: [Int32: Int32]
+    public let entityId2Index: [SourceElement: NormalizedElement]
+    public let entityIndex2Id: [NormalizedElement: SourceElement]
+    public let relationshipId2Index: [SourceElement: NormalizedElement]
+    public let relationshipIndex2Id: [NormalizedElement: SourceElement]
     public let device: Device
 
-    static func readData(path: String) throws -> [[Int32]] {
+    static func readData<Element>(path: String, stringToSourceElement: (String) -> Element) throws -> [[Element]] {
         let dir = URL(fileURLWithPath: #file.replacingOccurrences(of: "Sources/recommenders/datasets/KnowledgeGraphDataset.swift", with: ""))
         let fileContents = try String(
                 contentsOf: dir.appendingPathComponent("data").appendingPathComponent(path),
                 encoding: .utf8
         )
-        let data: [[Int32]] = fileContents.split(separator: "\n").map {
+        let data: [[Element]] = fileContents.split(separator: "\n").map {
             String($0).split(separator: "\t").compactMap {
-                Int32(String($0))
+                stringToSourceElement(String($0))
             }
         }
         return data
     }
 
+//    public static func stringToSourceElement(_ string: String) -> SourceElement? {
+//        print(string)
+//        return Optional.none
+//    }
+//
+//    public static func intToNormalizedElement(_ item: Int) -> NormalizedElement? {
+//        print(item)
+//        return Optional.none
+//    }
 
-    public init(path: String, classes: String? = Optional.none, device: Device = Device.default) {
-        let frame_ = TripleFrame(data: try! KnowledgeGraphDataset.readData(path: path), device: device)
+    public init(
+            path: String, classes: String? = Optional.none, device: Device = Device.default,
+            intToNormalizedElement: (Int) -> NormalizedElement, stringToNormalizedElement: (String) -> NormalizedElement, stringToSourceElement: (String) -> SourceElement,
+            sourceToNormalizedElement: (SourceElement) -> NormalizedElement
+    ) {
+        let frame_ = TripleFrame(data: try! KnowledgeGraphDataset.readData(path: path, stringToSourceElement: stringToSourceElement), device: device)
         let negativeFrame_ = makeNegativeFrame(frame: frame_)
 //        let sampledNegativeFrame_ = makeSampledNegativeFrame(frame: frame_, negativeFrame: negativeFrame_)
 
         let entityNormalizationMappings = makeNormalizationMappings(source: frame_.entities, destination: Array(0...frame_.entities.count - 1).map {
-            Int32($0)
+            intToNormalizedElement($0)
         })
         let relationshipNormalizationMappings = makeNormalizationMappings(source: frame_.relationships, destination: Array(0...frame_.entities.count - 1).map {
-            Int32($0)
+            intToNormalizedElement($0)
         })
 
         if let classes_ = classes {
             labelFrame = LabelFrame(
-                    data: (try! KnowledgeGraphDataset.readData(path: classes_)).map { row in
-                        [entityNormalizationMappings.forward[row.first!]!, row.last!]
+                    data: (try! KnowledgeGraphDataset.readData(path: classes_) { s in stringToSourceElement(s) }).map { row in
+                        [entityNormalizationMappings.forward[row.first!]!, sourceToNormalizedElement(row.last!)]
                     }.sorted {
                         $0.first! < $1.first!
                     },

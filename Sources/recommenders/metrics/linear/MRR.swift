@@ -11,8 +11,12 @@ public struct MRR: LinearMetric {
         "MRR@\(n)"
     }
 
-    public func compute<Model>(model: Model, trainFrame: TripleFrame, testFrame: TripleFrame, dataset: KnowledgeGraphDataset) -> Float where Model: GraphModel {
-        func getSortedTriples(validFrame: TripleFrame, corruptedFrame: TripleFrame, scores: [Float]) -> [[Int32]] {
+    public func compute<Model, SourceElement>(
+            model: Model,
+            trainFrame: TripleFrame<Int32>, testFrame: TripleFrame<Int32>,
+            dataset: KnowledgeGraphDataset<SourceElement, Int32>
+    ) -> Float where Model: GraphModel {
+        func getSortedTriples(validFrame: TripleFrame<Int32>, corruptedFrame: TripleFrame<Int32>, scores: [Float]) -> [[Int32]] {
             (validFrame.data + corruptedFrame.data).enumerated().sorted() { (lhs, rhs) in
                 scores[lhs.offset] < scores[rhs.offset]
             }.map { (i: Int, triple: [Int32]) in

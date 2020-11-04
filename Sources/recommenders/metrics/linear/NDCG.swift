@@ -12,7 +12,10 @@ public struct NDCG: LinearMetric {
         "NDCG@\(n)"
     }
 
-    public func compute<Model>(model: Model, trainFrame: TripleFrame, testFrame: TripleFrame, dataset: KnowledgeGraphDataset) -> Float where Model: GraphModel {
+    public func compute<Model, SourceElement>(
+            model: Model, trainFrame: TripleFrame<Int32>, testFrame: TripleFrame<Int32>,
+            dataset: KnowledgeGraphDataset<SourceElement, Int32>
+    ) -> Float where Model: GraphModel {
         func getDCG(_ degrees: [CorruptionDegree]) -> Float {
             degrees.enumerated().map { item in
                 Float(item.element.rawValue) / log2(Float(item.offset) + 2)

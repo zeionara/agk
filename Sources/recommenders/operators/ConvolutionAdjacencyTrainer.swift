@@ -11,7 +11,9 @@ public struct ConvolutionAdjacencyTrainer {
         self.batchSize = batchSize
     }
 
-    public func train<Model>(dataset: KnowledgeGraphDataset, model: inout Model, optimizer: Adam<Model>) where Model: ConvolutionGraphModel {
+    public func train<Model, SourceElement, NormalizedElement>(
+            dataset: KnowledgeGraphDataset<SourceElement, NormalizedElement>, model: inout Model, optimizer: Adam<Model>
+    ) where Model: ConvolutionGraphModel {
         for i in 1...nEpochs {
             var losses: [Float] = []
             for batch in dataset.frame.batched(size: batchSize) {
