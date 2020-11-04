@@ -25,15 +25,7 @@ import TensorFlow
 //print(dataset.training)
 //print(Device.allDevices)
 let device = Device.default
-let dataset = KnowledgeGraphDataset<String, Int32>(path: "train-ke-small-strings.txt", device: device) { i in
-    Int32(i)
-} stringToNormalizedElement: { s in
-    Int32(s)!
-} stringToSourceElement: { s in
-    s
-} sourceToNormalizedElement: { e in
-    Int32(e)!
-}
+let dataset = KnowledgeGraphDataset<String, Int32>(path: "patch.txt", device: device)
 print(dataset.normalizedFrame)
 //let chunks = dataset.normalizedFrame.split(nChunks: 2)
 //let props = chunks[0].split(proportions: [0.3, 0.7])

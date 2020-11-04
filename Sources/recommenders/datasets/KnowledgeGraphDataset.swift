@@ -283,13 +283,17 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
             intToNormalizedElement: (Int) -> NormalizedElement, stringToNormalizedElement: (String) -> NormalizedElement, stringToSourceElement: (String) -> SourceElement,
             sourceToNormalizedElement: (SourceElement) -> NormalizedElement
     ) {
+        print("Loading frame...")
         let frame_ = TripleFrame(data: try! KnowledgeGraphDataset.readData(path: path, stringToSourceElement: stringToSourceElement), device: device)
+        print("Generating negative frame...")
         let negativeFrame_ = makeNegativeFrame(frame: frame_)
 //        let sampledNegativeFrame_ = makeSampledNegativeFrame(frame: frame_, negativeFrame: negativeFrame_)
 
+        print("Building entity normalization mappings...")
         let entityNormalizationMappings = makeNormalizationMappings(source: frame_.entities, destination: Array(0...frame_.entities.count - 1).map {
             intToNormalizedElement($0)
         })
+        print("Setting up relationship normalization mappings...")
         let relationshipNormalizationMappings = makeNormalizationMappings(source: frame_.relationships, destination: Array(0...frame_.entities.count - 1).map {
             intToNormalizedElement($0)
         })
