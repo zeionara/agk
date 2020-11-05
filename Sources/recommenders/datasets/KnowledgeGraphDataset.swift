@@ -207,14 +207,35 @@ public func makeNormalizationMappings<KeyType, ValueType>(source: [KeyType], des
     )
 }
 
-public func makeNegativeFrame<Element>(frame: TripleFrame<Element>) -> TripleFrame<Element> {
+public func makeNegativeFrame<Element>(frame: TripleFrame<Element>, size: Int? = Optional.none) -> TripleFrame<Element> {
     var negativeSamples: [[Element]] = []
-    for head in frame.entities {
-        for tail in frame.entities {
-            for relationship in frame.relationships {
-                let sample = [head, tail, relationship]
-                if !frame.data.contains(sample) {
-                    negativeSamples.append(sample)
+//    let samples = frame.entities.map { head in
+//        frame.entities.map{ tail in
+//            frame.relationships.map{ (relationship) -> [Element] in
+//                [head, tail, relationship]
+//            }
+//        }.reduce([], +)
+//    }.reduce([], +).filter{ item in
+//        !data.contains(item)
+//    }
+
+    let unwrappedSize = size ?? frame.data.count * 10
+    var triple_counter = 0
+    for (i, head) in frame.entities.enumerated() {
+//        print("Handled \(i) / \(frame.entities.count) heads")
+        for (j, tail) in frame.entities.enumerated() {
+//            print("Handled \(j) / \(frame.entities.count) tails")
+            for (k, relationship) in frame.relationships.enumerated() {
+//                print("Handled \(k) / \(frame.relationships.count) relationships")
+                if (triple_counter < unwrappedSize) {
+                    print(triple_counter)
+                    let sample = [head, tail, relationship]
+                    if !frame.data.contains(sample) {
+                        negativeSamples.append(sample)
+                        triple_counter += 1
+                    }
+                } else {
+                    return TripleFrame(data: negativeSamples, device: frame.device, entities_: frame.entities, relationships_: frame.relationships)
                 }
             }
         }
@@ -300,7 +321,9 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
 
         if let classes_ = classes {
             labelFrame = LabelFrame(
-                    data: (try! KnowledgeGraphDataset.readData(path: classes_) { s in stringToSourceElement(s) }).map { row in
+                    data: (try! KnowledgeGraphDataset.readData(path: classes_) { s in
+                        stringToSourceElement(s)
+                    }).map { row in
                         [entityNormalizationMappings.forward[row.first!]!, sourceToNormalizedElement(row.last!)]
                     }.sorted {
                         $0.first! < $1.first!
