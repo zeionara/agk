@@ -151,34 +151,38 @@ public struct TripleFrame<Element> where Element: Hashable {
         return data[column: 2].unique()
     }
 
-    public func sampleNegativeFrame(negativeFrame: TripleFrame<Element>, n: Int = -1, corruptionDegree: CorruptionDegree = CorruptionDegree.eitherHeadEitherTail) -> TripleFrame<Element> {
+    public func sampleNegativeFrame(negativeFrame: NegativeFrame<Element>, n: Int = 10, corruptionDegree: CorruptionDegree = CorruptionDegree.eitherHeadEitherTail) -> TripleFrame<Element> {
         var negativeSamples: [[[Element]]] = data.map { positiveSample in
-            let corruptedTriples = negativeFrame.data.filter { negativeSample in
-                (
-                        negativeSample[2] == positiveSample[2] && (
-                                (
-                                        (negativeSample[0] != positiveSample[0] && negativeSample[1] != positiveSample[1]) && corruptionDegree == CorruptionDegree.headAndTail
-                                ) || (
-                                        (
-                                                (negativeSample[0] == positiveSample[0] && negativeSample[1] != positiveSample[1]) ||
-                                                        (negativeSample[0] != positiveSample[0] && negativeSample[1] == positiveSample[1])
-                                        ) &&
-                                                corruptionDegree == CorruptionDegree.eitherHeadEitherTail
-                                )
-                        )
-                ) || (
-                        (negativeSample[0] != positiveSample[0] && negativeSample[1] != positiveSample[1] && negativeSample[2] != positiveSample[2]) && corruptionDegree == CorruptionDegree.complete
-                )
+            var i = 0
+            var corruptedTriples = [[Element]]()
+            while i < n {
+                for negativeSample in negativeFrame.data {
+                    if (
+                               negativeSample[2] == positiveSample[2] && (
+                                       (
+                                               (negativeSample[0] != positiveSample[0] && negativeSample[1] != positiveSample[1]) && corruptionDegree == CorruptionDegree.headAndTail
+                                       ) || (
+                                               (
+                                                       (negativeSample[0] == positiveSample[0] && negativeSample[1] != positiveSample[1]) ||
+                                                               (negativeSample[0] != positiveSample[0] && negativeSample[1] == positiveSample[1])
+                                               ) &&
+                                                       corruptionDegree == CorruptionDegree.eitherHeadEitherTail
+                                       )
+                               )
+                       ) || (
+                            (negativeSample[0] != positiveSample[0] && negativeSample[1] != positiveSample[1] && negativeSample[2] != positiveSample[2]) && corruptionDegree == CorruptionDegree.complete
+                    ) {
+                        corruptedTriples.append(negativeSample)
+                    }
+                }
             }
-            return n > 0 ? getRandomNumbers(maxNumber: corruptedTriples.count - 1, listSize: n).map {
-                corruptedTriples[$0]
-            } : corruptedTriples
+            return corruptedTriples
         }
         return TripleFrame<Element>(data: negativeSamples.reduce([], +), device: device, entities_: entities, relationships_: relationships)
     }
 
-    public var negative: TripleFrame {
-        makeNegativeFrame(frame: self)
+    public var negative: NegativeFrame<Element> {
+        NegativeFrame<Element>(frame: self)
     }
 
     public func sample(size: Int) -> TripleFrame {
@@ -207,41 +211,184 @@ public func makeNormalizationMappings<KeyType, ValueType>(source: [KeyType], des
     )
 }
 
-public func makeNegativeFrame<Element>(frame: TripleFrame<Element>, size: Int? = Optional.none) -> TripleFrame<Element> {
-    var negativeSamples: [[Element]] = []
-//    let samples = frame.entities.map { head in
-//        frame.entities.map{ tail in
-//            frame.relationships.map{ (relationship) -> [Element] in
-//                [head, tail, relationship]
-//            }
-//        }.reduce([], +)
-//    }.reduce([], +).filter{ item in
-//        !data.contains(item)
-//    }
-
-    let unwrappedSize = size ?? frame.data.count * 10
-    var triple_counter = 0
-    for (i, head) in frame.entities.enumerated() {
-//        print("Handled \(i) / \(frame.entities.count) heads")
-        for (j, tail) in frame.entities.enumerated() {
-//            print("Handled \(j) / \(frame.entities.count) tails")
-            for (k, relationship) in frame.relationships.enumerated() {
-//                print("Handled \(k) / \(frame.relationships.count) relationships")
-                if (triple_counter < unwrappedSize) {
-                    print(triple_counter)
-                    let sample = [head, tail, relationship]
-                    if !frame.data.contains(sample) {
-                        negativeSamples.append(sample)
-                        triple_counter += 1
-                    }
-                } else {
-                    return TripleFrame(data: negativeSamples, device: frame.device, entities_: frame.entities, relationships_: frame.relationships)
-                }
+private func addTriple<Element>(triples: inout [Element: [Element: [Element: Bool]]], triple: [Element]) {
+    let head = triple[0]
+    let tail = triple[1]
+    let relationship = triple[2]
+    if triples[head] == nil {
+        triples[head] = [Element: [Element: Bool]]()
+        triples[head]![tail] = [Element: Bool]()
+        triples[head]![tail]![relationship] = true
+    } else {
+        if triples[head]![tail] == nil {
+            triples[head]![tail] = [Element: Bool]()
+            triples[head]![tail]![relationship] = true
+        } else {
+            if triples[head]![tail]![relationship] == nil {
+                triples[head]![tail]![relationship] = true
             }
         }
     }
-    return TripleFrame(data: negativeSamples, device: frame.device, entities_: frame.entities, relationships_: frame.relationships)
 }
+
+public struct NegativeSampleGenerator<Element>: IteratorProtocol, Sequence where Element: Hashable {
+    let positiveTriples: [Element: [Element: [Element: Bool]]]
+    let entities: [Element]
+    let relationships: [Element]
+    var history: [Element: [Element: [Element: Bool]]]
+
+    public init(frame: TripleFrame<Element>) {
+        var positiveTriples_ = [Element: [Element: [Element: Bool]]]()
+        for positiveTriple in frame.data {
+            addTriple(triples: &positiveTriples_, triple: positiveTriple)
+        }
+        self.entities = frame.entities
+        self.relationships = frame.relationships
+        self.history = [Element: [Element: [Element: Bool]]]()
+        self.positiveTriples = positiveTriples_
+    }
+
+    public mutating func next() -> [Element]? {
+        while true {
+            let head = entities.randomElement()!
+            let tail = entities.randomElement()!
+            let relationship = relationships.randomElement()!
+            let triple = [head, tail, relationship]
+            if (positiveTriples[head]?[tail]?[relationship] == nil && history[head]?[tail]?[relationship] == nil) {
+                addTriple(triples: &history, triple: triple)
+                return triple
+            }
+        }
+    }
+}
+
+public struct NegativeFrame<Element> where Element: Hashable {
+    public let data: NegativeSampleGenerator<Element>
+
+    public init(frame: TripleFrame<Element>) {
+        data = NegativeSampleGenerator(frame: frame)
+    }
+
+    public func batched(sizes: [Int]) -> [TripleFrame<Element>] {
+        func addBatch() {
+            batches.append(TripleFrame(data: batchSamples, device: device, entities_: data.entities, relationships_: data.relationships))
+            i = 0
+            batchSamples = []
+        }
+
+        var batches: [TripleFrame<Element>] = []
+        var batchSamples: [[Element]] = []
+        var i = 0
+        var currentSizeId = 0
+        for sample in data {
+            if ((i == 0 && sizes[currentSizeId] == 0) || (i > 0 && i % sizes[currentSizeId] == 0)) {
+                addBatch()
+                currentSizeId += 1
+                i = 0
+                if currentSizeId >= sizes.count {
+                    break
+                }
+            }
+            batchSamples.append(sample)
+            i += 1
+        }
+        if !batchSamples.isEmpty {
+            addBatch()
+        }
+        return batches
+    }
+
+    public func batched(size: Int, nBatches: Int) -> [TripleFrame<Element>] {
+        assert(size > 0)
+
+        func addBatch() {
+            batches.append(TripleFrame<Element>(data: batchSamples, device: device, entities_: data.entities, relationships_: data.relationships))
+            i = 0
+            batchSamples = []
+        }
+
+        var batches: [TripleFrame<Element>] = []
+        var batchSamples: [[Element]] = []
+        var i = 0
+        var j = 0
+        for sample in data {
+            if (i % size == 0 && i > 0) {
+                addBatch()
+                j += 1
+            }
+            batchSamples.append(sample)
+            i += 1
+            if (j % nBatches == 0 && j > 0) {
+                break
+            }
+        }
+        if !batchSamples.isEmpty {
+            addBatch()
+        }
+        return batches
+    }
+}
+
+//public func makeNegativeFrame<Element>(frame: TripleFrame<Element>, size: Int? = Optional.none) -> TripleFrame<Element> {
+//    var negativeSamples: [[Element]] = []
+//    var positiveMap = [Element: [Element: [Element: Bool]]]()
+//
+//    for item in frame.data {
+//        let head = item[0]
+//        let tail = item[1]
+//        let relationship = item[2]
+//        if triples[head] == nil {
+//            triples[head] = [Element: [Element: Bool]]()
+//            triples[head]![tail] = [Element: Bool]()
+//            triples[head]![tail]![relationship] = true
+//        } else {
+//            if triples[head]![tail] == nil {
+//                triples[head]![tail] = [Element: Bool]()
+//                triples[head]![tail]![relationship] = true
+//            } else {
+//                if triples[head]![tail]![relationship] == nil {
+//                    triples[head]![tail]![relationship] = true
+//                }
+//            }
+//        }
+//    }
+////    print(triples)
+////    let samples = frame.entities.map { head in
+////        frame.entities.map{ tail in
+////            frame.relationships.map{ (relationship) -> [Element] in
+////                [head, tail, relationship]
+////            }
+////        }.reduce([], +)
+////    }.reduce([], +).filter{ item in
+////        !data.contains(item)
+////    }
+//
+//    let unwrappedSize = size ?? frame.data.count * 10
+//    var triple_counter = 0
+//    var start = DispatchTime.now()
+//    for (i, head) in frame.entities.enumerated() {
+////        print("Handled \(i) / \(frame.entities.count) heads")
+//        for (j, tail) in frame.entities.enumerated() {
+////            print("Handled \(j) / \(frame.entities.count) tails")
+//            for (k, relationship) in frame.relationships.enumerated() {
+////                print("Handled \(k) / \(frame.relationships.count) relationships")
+//                if (triple_counter < unwrappedSize) {
+//                    start = DispatchTime.now()
+//                    if triples[head]?[tail]?[relationship] == nil {
+//                        negativeSamples.append([head, tail, relationship])
+//                        triple_counter += 1
+//                        print(triple_counter)
+//                    }
+//                } else {
+//                    print("Handled in \((DispatchTime.now().uptimeNanoseconds - start.uptimeNanoseconds) / 1_000_000) ms")
+//                    return TripleFrame(data: negativeSamples, device: frame.device, entities_: frame.entities, relationships_: frame.relationships)
+//                }
+//            }
+//        }
+//    }
+//    print("Handled in \((DispatchTime.now().uptimeNanoseconds - start.uptimeNanoseconds) / 1_000_000) ms")
+//    return TripleFrame(data: negativeSamples, device: frame.device, entities_: frame.entities, relationships_: frame.relationships)
+//}
 
 
 private func normalize<SourceElement, NormalizedElement>(
@@ -265,9 +412,9 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
     public let frame: TripleFrame<SourceElement>
     public let labelFrame: LabelFrame<NormalizedElement>?
     public let normalizedFrame: TripleFrame<NormalizedElement>
-    public let negativeFrame: TripleFrame<SourceElement>
+    public let negativeFrame: NegativeFrame<SourceElement>
 //    public let sampledNegativeFrame: TripleFrame
-    public let normalizedNegativeFrame: TripleFrame<NormalizedElement>
+    public let normalizedNegativeFrame: NegativeFrame<NormalizedElement>
 //    public let normalizedSampledNegativeFrame: TripleFrame
     public let entityId2Index: [SourceElement: NormalizedElement]
     public let entityIndex2Id: [NormalizedElement: SourceElement]
@@ -307,7 +454,7 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
         print("Loading frame...")
         let frame_ = TripleFrame(data: try! KnowledgeGraphDataset.readData(path: path, stringToSourceElement: stringToSourceElement), device: device)
         print("Generating negative frame...")
-        let negativeFrame_ = makeNegativeFrame(frame: frame_)
+        let negativeFrame_ = NegativeFrame(frame: frame_)
 //        let sampledNegativeFrame_ = makeSampledNegativeFrame(frame: frame_, negativeFrame: negativeFrame_)
 
         print("Building entity normalization mappings...")
@@ -333,14 +480,15 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
         } else {
             labelFrame = Optional.none
         }
+        let normalizedFrame_ = normalize(frame_, entityNormalizationMappings.forward, relationshipNormalizationMappings.forward)
 
         self.device = device
 
         frame = frame_
         negativeFrame = negativeFrame_
 //        sampledNegativeFrame = sampledNegativeFrame_
-        normalizedFrame = normalize(frame_, entityNormalizationMappings.forward, relationshipNormalizationMappings.forward)
-        normalizedNegativeFrame = normalize(negativeFrame_, entityNormalizationMappings.forward, relationshipNormalizationMappings.forward)
+        normalizedFrame = normalizedFrame_
+        normalizedNegativeFrame = NegativeFrame(frame: normalizedFrame)
 //        normalizedSampledNegativeFrame = normalize(sampledNegativeFrame_, entityNormalizationMappings.forward, relationshipNormalizationMappings.forward)
 
         entityId2Index = entityNormalizationMappings.forward

@@ -26,7 +26,13 @@ import TensorFlow
 //print(Device.allDevices)
 let device = Device.default
 let dataset = KnowledgeGraphDataset<String, Int32>(path: "patch.txt", device: device)
-print(dataset.normalizedFrame)
+for (i, triple) in dataset.negativeFrame.data.enumerated() {
+    print(triple)
+    if (i > 3) {
+        break
+    }
+}
+//print(dataset.normalizedFrame)
 //let chunks = dataset.normalizedFrame.split(nChunks: 2)
 //let props = chunks[0].split(proportions: [0.3, 0.7])
 //print(props[1].data.count)
