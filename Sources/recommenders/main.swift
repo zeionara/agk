@@ -50,7 +50,7 @@ let dataset = KnowledgeGraphDataset<String, Int32>(path: "truncated-dataset-norm
 // CV pipeline
 //let array = [0, 1, 2, 3]
 //print(array.getCombinations(k: 1))
-let tester = CVTester<RotatE<String, Int32>, Adam<RotatE>, LinearTrainer, String>(nFolds: 5, nEpochs: 100, batchSize: 256).test(dataset: dataset, metrics: [
+let tester = CVTester<RotatE<String, Int32>, Adam<RotatE>, LinearTrainer, String>(nFolds: 10, nEpochs: 100, batchSize: 256).test(dataset: dataset, metrics: [
     MRR(n: 1), MRR(n: 2), MRR(n: 3), MRR(n: 4),
     Hits(n: 1), Hits(n: 2), Hits(n: 3), Hits(n: 4),
     MAP(n: 1), MAP(n: 2), MAP(n: 3), MAP(n: 4),
