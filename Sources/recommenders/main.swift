@@ -25,42 +25,43 @@ import TensorFlow
 //print(dataset.training)
 //print(Device.allDevices)
 let device = Device.default
-let dataset = KnowledgeGraphDataset<String, Int32>(path: "patch.txt", device: device)
-for (i, triple) in dataset.negativeFrame.data.enumerated() {
-    print(triple)
-    if (i > 3) {
-        break
-    }
-}
+let dataset = KnowledgeGraphDataset<String, Int32>(path: "truncated-dataset-normalized.txt", device: device)
+//for (i, triple) in dataset.negativeFrame.data.enumerated() {
+//    print(triple)
+//    if (i > 3) {
+//        break
+//    }
+//}
 //print(dataset.normalizedFrame)
 //let chunks = dataset.normalizedFrame.split(nChunks: 2)
 //let props = chunks[0].split(proportions: [0.3, 0.7])
 //print(props[1].data.count)
-//var model = GCN(dataset: dataset)
+//var model = TransE(dataset: dataset)
 //var model = ConvE(embeddingDimensionality: 50, stackedEmbeddingsWidth: 10, stackedEmbeddingsHeight: 5, filterWidth: 3, filterHeight: 3, dataset: dataset)
 //print(sigmoidCrossEntropy(logits: model(Tensor<Int32>(dataset.normalizedFrame.tensor)), labels: dataset.normalizedFrame.adjacencySequence))
 //print(model(Tensor<Int32>(dataset.normalizedFrame.tensor)))
 //print(Tensor<Float>([[1, 2, 3], [4, 5, 6], [7, 8, 19]]).inverse)
-//let optimizer = Adam(for: model, learningRate: 0.01)
+//var optimizer = Adam(for: model, learningRate: 0.01)
 //let trainer = ConvolutionAdjacencySequenceTrainer(nEpochs: 50, batchSize: 3)
-//let trainer = LinearTrainer(nEpochs: 10, batchSize: 3)
-//trainer.train(dataset: dataset, model: &model, optimizer: optimizer, loss: computeSigmoidLoss)
+//let trainer = LinearTrainer(nEpochs: 1, batchSize: 256)
+//trainer.train(frame: dataset.normalizedFrame, model: &model, optimizer: &optimizer, loss: computeSigmoidLoss)
+
 //trainer.train(dataset: dataset, model: &model, optimizer: optimizer)
 // CV pipeline
 //let array = [0, 1, 2, 3]
 //print(array.getCombinations(k: 1))
-//let tester = CVTester<RotatE, Adam<RotatE>, LinearTrainer>(nFolds: 4, nEpochs: 10, batchSize: 3).test(dataset: dataset, metrics: [
-//    MRR(n: 1), MRR(n: 2), MRR(n: 3), MRR(n: 4),
-//    Hits(n: 1), Hits(n: 2), Hits(n: 3), Hits(n: 4),
-//    MAP(n: 1), MAP(n: 2), MAP(n: 3), MAP(n: 4),
-//    NDCG(n: 1), NDCG(n: 2), NDCG(n: 3), NDCG(n: 4)
-//])
-//{ trainFrame, trainer in
-//    var model = RotatE(embeddingDimensionality: 100, dataset: dataset, device: Device.default)
-//    var optimizer = Adam<RotatE>(for: model, learningRate: 0.01)
-//    trainer.train(frame: trainFrame, model: &model, optimizer: &optimizer, loss: computeSigmoidLoss)
-//    return model
-//}
+let tester = CVTester<RotatE<String, Int32>, Adam<RotatE>, LinearTrainer, String>(nFolds: 5, nEpochs: 100, batchSize: 256).test(dataset: dataset, metrics: [
+    MRR(n: 1), MRR(n: 2), MRR(n: 3), MRR(n: 4),
+    Hits(n: 1), Hits(n: 2), Hits(n: 3), Hits(n: 4),
+    MAP(n: 1), MAP(n: 2), MAP(n: 3), MAP(n: 4),
+    NDCG(n: 1), NDCG(n: 2), NDCG(n: 3), NDCG(n: 4)
+])
+{ trainFrame, trainer in
+    var model = RotatE(embeddingDimensionality: 100, dataset: dataset, device: Device.default)
+    var optimizer = Adam<RotatE>(for: model, learningRate: 0.01)
+    trainer.train(frame: trainFrame, model: &model, optimizer: &optimizer, loss: computeSigmoidLoss)
+    return model
+}
 //var scores: [Float] = []
 //let metric = RandomMetric(k: 2.2)
 //for (trainFrame, testFrame) in dataset.normalizedFrame.cv(nFolds: 4) {

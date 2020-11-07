@@ -21,10 +21,15 @@ public struct CVTester<Model, OptimizerType, TrainerType, SourceElement>
             (metric.name, [Float]())
         }
         for (trainFrame, testFrame) in dataset.normalizedFrame.cv(nFolds: nFolds) {
+            let training_start_timestamp = DispatchTime.now().uptimeNanoseconds
             let model = train(trainFrame, trainer)
+            print("Trained model in \((DispatchTime.now().uptimeNanoseconds - training_start_timestamp) / 1_000_000_000) seconds")
+            let evaluation_start_timestamp = DispatchTime.now().uptimeNanoseconds
             for metric in metrics {
                 scores[metric.name]!.append(metric.compute(model: model, trainFrame: trainFrame, testFrame: testFrame, dataset: dataset))
             }
+            print("Computed metrics in \((DispatchTime.now().uptimeNanoseconds - evaluation_start_timestamp) / 1_000_000_000) seconds")
+            print(scores)
         }
         for metric in metrics {
             print("\(metric.name): \(metric.aggregate(scores: scores[metric.name]!))")

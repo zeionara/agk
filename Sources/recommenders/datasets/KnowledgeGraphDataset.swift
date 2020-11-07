@@ -92,7 +92,7 @@ public struct TripleFrame<Element> where Element: Hashable {
     }
 
     public func getCombinations(k: Int) -> [TripleFrame] {
-        self.data.getCombinations(k: k).map { combination in
+        self.data.getCombinations(k: k, n: self.data.count).map { combination in
             TripleFrame(data: combination, device: device, entities_: entities, relationships_: relationships)
         }
     }
@@ -151,31 +151,37 @@ public struct TripleFrame<Element> where Element: Hashable {
         return data[column: 2].unique()
     }
 
-    public func sampleNegativeFrame(negativeFrame: NegativeFrame<Element>, n: Int = 10, corruptionDegree: CorruptionDegree = CorruptionDegree.eitherHeadEitherTail) -> TripleFrame<Element> {
+    public func sampleNegativeFrame(negativeFrame: NegativeFrame<Element>, n: Int = 1, corruptionDegree: CorruptionDegree = CorruptionDegree.eitherHeadEitherTail) -> TripleFrame<Element> {
+        var j = 0
         var negativeSamples: [[[Element]]] = data.map { positiveSample in
+            j += 1
             var i = 0
             var corruptedTriples = [[Element]]()
-            while i < n {
-                for negativeSample in negativeFrame.data {
-                    if (
-                               negativeSample[2] == positiveSample[2] && (
-                                       (
-                                               (negativeSample[0] != positiveSample[0] && negativeSample[1] != positiveSample[1]) && corruptionDegree == CorruptionDegree.headAndTail
-                                       ) || (
-                                               (
-                                                       (negativeSample[0] == positiveSample[0] && negativeSample[1] != positiveSample[1]) ||
-                                                               (negativeSample[0] != positiveSample[0] && negativeSample[1] == positiveSample[1])
-                                               ) &&
-                                                       corruptionDegree == CorruptionDegree.eitherHeadEitherTail
-                                       )
-                               )
-                       ) || (
-                            (negativeSample[0] != positiveSample[0] && negativeSample[1] != positiveSample[1] && negativeSample[2] != positiveSample[2]) && corruptionDegree == CorruptionDegree.complete
-                    ) {
-                        corruptedTriples.append(negativeSample)
+//            while i < n {
+            for negativeSample in negativeFrame.data {
+                if (
+                           negativeSample[2] == positiveSample[2] && (
+                                   (
+                                           (negativeSample[0] != positiveSample[0] && negativeSample[1] != positiveSample[1]) && corruptionDegree == CorruptionDegree.headAndTail
+                                   ) || (
+                                           (
+                                                   (negativeSample[0] == positiveSample[0] && negativeSample[1] != positiveSample[1]) ||
+                                                           (negativeSample[0] != positiveSample[0] && negativeSample[1] == positiveSample[1])
+                                           ) &&
+                                                   corruptionDegree == CorruptionDegree.eitherHeadEitherTail
+                                   )
+                           )
+                   ) || (
+                        (negativeSample[0] != positiveSample[0] && negativeSample[1] != positiveSample[1] && negativeSample[2] != positiveSample[2]) && corruptionDegree == CorruptionDegree.complete
+                ) {
+                    corruptedTriples.append(negativeSample)
+                    i += 1
+                    if i >= n {
+                        break
                     }
                 }
             }
+//            }
             return corruptedTriples
         }
         return TripleFrame<Element>(data: negativeSamples.reduce([], +), device: device, entities_: entities, relationships_: relationships)
@@ -451,17 +457,17 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
             intToNormalizedElement: (Int) -> NormalizedElement, stringToNormalizedElement: (String) -> NormalizedElement, stringToSourceElement: (String) -> SourceElement,
             sourceToNormalizedElement: (SourceElement) -> NormalizedElement
     ) {
-        print("Loading frame...")
+//        print("Loading frame...")
         let frame_ = TripleFrame(data: try! KnowledgeGraphDataset.readData(path: path, stringToSourceElement: stringToSourceElement), device: device)
-        print("Generating negative frame...")
+//        print("Generating negative frame...")
         let negativeFrame_ = NegativeFrame(frame: frame_)
 //        let sampledNegativeFrame_ = makeSampledNegativeFrame(frame: frame_, negativeFrame: negativeFrame_)
 
-        print("Building entity normalization mappings...")
+//        print("Building entity normalization mappings...")
         let entityNormalizationMappings = makeNormalizationMappings(source: frame_.entities, destination: Array(0...frame_.entities.count - 1).map {
             intToNormalizedElement($0)
         })
-        print("Setting up relationship normalization mappings...")
+//        print("Setting up relationship normalization mappings...")
         let relationshipNormalizationMappings = makeNormalizationMappings(source: frame_.relationships, destination: Array(0...frame_.entities.count - 1).map {
             intToNormalizedElement($0)
         })

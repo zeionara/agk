@@ -17,8 +17,11 @@ public struct LinearTrainer: Trainer {
     ) where Model: LinearGraphModel, OptimizerType: Optimizer, OptimizerType.Model == Model {
         for i in 1...nEpochs {
             var losses: [Float] = []
+//            print("Batching...")
             for batch in frame.batched(size: batchSize) {
+//                print(batch)
                 let negativeFrame = batch.sampleNegativeFrame(negativeFrame: frame.negative)
+//                print(negativeFrame)
                 let (loss, grad) = valueWithGradient(at: model) { model -> Tensor<Float> in
                     loss(model(batch.tensor), model(negativeFrame.tensor), margin)
                 }

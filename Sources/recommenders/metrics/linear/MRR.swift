@@ -26,6 +26,7 @@ public struct MRR: LinearMetric {
 
         var finalScores: [Float] = []
         for validFrame in testFrame.getCombinations(k: min(testFrame.data.count, n)) {
+//            print("Handling validation frame")
             let corruptedFrame = validFrame.sampleNegativeFrame(negativeFrame: dataset.normalizedNegativeFrame)
             let totalTensor = Tensor(stacking: validFrame.tensor.unstacked() + corruptedFrame.tensor.unstacked())
             let scores = model(totalTensor).unstacked().map {
