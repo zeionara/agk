@@ -275,7 +275,7 @@ public struct NegativeFrame<Element> where Element: Hashable {
         data = NegativeSampleGenerator(frame: frame)
     }
 
-    public func batched(sizes: [Int]) -> [TripleFrame<Element>] {
+    public func batched(sizes: [Int], device: Device = Device.default) -> [TripleFrame<Element>] {
         func addBatch() {
             batches.append(TripleFrame(data: batchSamples, device: device, entities_: data.entities, relationships_: data.relationships))
             i = 0
@@ -304,7 +304,7 @@ public struct NegativeFrame<Element> where Element: Hashable {
         return batches
     }
 
-    public func batched(size: Int, nBatches: Int) -> [TripleFrame<Element>] {
+    public func batched(size: Int, nBatches: Int, device: Device = Device.default) -> [TripleFrame<Element>] {
         assert(size > 0)
 
         func addBatch() {

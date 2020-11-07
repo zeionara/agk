@@ -1,4 +1,5 @@
 import TensorFlow
+import ArgumentParser
 
 //testNeuMF(
 //        size: [16, 32, 16, 8],
@@ -24,8 +25,8 @@ import TensorFlow
 //let dataset = SimpleDataset(trainPath: "train.txt", testPath: "test.txt")
 //print(dataset.training)
 //print(Device.allDevices)
-let device = Device.default
-let dataset = KnowledgeGraphDataset<String, Int32>(path: "truncated-dataset-normalized.txt", device: device)
+//let device = Device.default
+//let dataset = KnowledgeGraphDataset<String, Int32>(path: "truncated-dataset-normalized.txt", device: device)
 //for (i, triple) in dataset.negativeFrame.data.enumerated() {
 //    print(triple)
 //    if (i > 3) {
@@ -50,18 +51,18 @@ let dataset = KnowledgeGraphDataset<String, Int32>(path: "truncated-dataset-norm
 // CV pipeline
 //let array = [0, 1, 2, 3]
 //print(array.getCombinations(k: 1))
-let tester = CVTester<RotatE<String, Int32>, Adam<RotatE>, LinearTrainer, String>(nFolds: 10, nEpochs: 100, batchSize: 256).test(dataset: dataset, metrics: [
-    MRR(n: 1), MRR(n: 2), MRR(n: 3), MRR(n: 4),
-    Hits(n: 1), Hits(n: 2), Hits(n: 3), Hits(n: 4),
-    MAP(n: 1), MAP(n: 2), MAP(n: 3), MAP(n: 4),
-    NDCG(n: 1), NDCG(n: 2), NDCG(n: 3), NDCG(n: 4)
-])
-{ trainFrame, trainer in
-    var model = RotatE(embeddingDimensionality: 100, dataset: dataset, device: Device.default)
-    var optimizer = Adam<RotatE>(for: model, learningRate: 0.01)
-    trainer.train(frame: trainFrame, model: &model, optimizer: &optimizer, loss: computeSigmoidLoss)
-    return model
-}
+//let tester = CVTester<RotatE<String, Int32>, Adam<RotatE>, LinearTrainer, String>(nFolds: 10, nEpochs: 100, batchSize: 256).test(dataset: dataset, metrics: [
+//    MRR(n: 1), MRR(n: 2), MRR(n: 3), MRR(n: 4),
+//    Hits(n: 1), Hits(n: 2), Hits(n: 3), Hits(n: 4),
+//    MAP(n: 1), MAP(n: 2), MAP(n: 3), MAP(n: 4),
+//    NDCG(n: 1), NDCG(n: 2), NDCG(n: 3), NDCG(n: 4)
+//])
+//{ trainFrame, trainer in
+//    var model = RotatE(embeddingDimensionality: 100, dataset: dataset, device: Device.default)
+//    var optimizer = Adam<RotatE>(for: model, learningRate: 0.01)
+//    trainer.train(frame: trainFrame, model: &model, optimizer: &optimizer, loss: computeSigmoidLoss)
+//    return model
+//}
 //var scores: [Float] = []
 //let metric = RandomMetric(k: 2.2)
 //for (trainFrame, testFrame) in dataset.normalizedFrame.cv(nFolds: 4) {
@@ -96,3 +97,107 @@ let tester = CVTester<RotatE<String, Int32>, Adam<RotatE>, LinearTrainer, String
 //print(score)
 //print(score)
 //print(dataset.headsUnique)
+
+enum ModelError: Error {
+    case unsupportedModel(message: String)
+}
+
+struct CrossValidate: ParsableCommand {
+
+    private enum Model: String, ExpressibleByArgument {
+        case transe
+        case rotate
+        case transd
+    }
+
+    @Option(name: .shortAndLong, help: "Model name which to use")
+    private var model: Model
+
+    @Option(name: .shortAndLong, help: "Dataset filename (should be located in the 'data' folder)")
+    private var datasetPath: String
+
+    @Option(name: .shortAndLong, default: 100, help: "Number of epochs to execute during model training")
+    var nEpochs: Int
+
+    @Option(default: 10, help: "Number of splits to perform for making the cross-validation")
+    var nFolds: Int
+
+    @Option(name: .shortAndLong, default: 256, help: "How many samples to put through the model at once")
+    var batchSize: Int
+
+    @Option(name: .shortAndLong, default: 100, help: "Size of vectors for embeddings generation")
+    var embeddingDimensionality: Int
+
+    @Option(name: .shortAndLong, default: 0.01, help: "How fast to tweak the weights")
+    var learningRate: Float
+
+    @Flag(name: .shortAndLong, help: "Perform computations on the gpu")
+    var gpu = false
+
+    mutating func run() throws {
+        let device = gpu ? Device.defaultXLA : Device.default
+        let dataset = KnowledgeGraphDataset<String, Int32>(path: datasetPath, device: device)
+        var learningRate_ = learningRate
+        var embeddingDimensionality_ = embeddingDimensionality
+
+        if (model == .rotate) {
+            let tester = CVTester<RotatE<String, Int32>, Adam<RotatE>, LinearTrainer, String>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(dataset: dataset, metrics: [
+                MRR(n: 1), MRR(n: 2), MRR(n: 3), MRR(n: 4),
+                Hits(n: 1), Hits(n: 2), Hits(n: 3), Hits(n: 4),
+                MAP(n: 1), MAP(n: 2), MAP(n: 3), MAP(n: 4),
+                NDCG(n: 1), NDCG(n: 2), NDCG(n: 3), NDCG(n: 4)
+            ]) { trainFrame, trainer in
+                var model_ = RotatE(embeddingDimensionality: embeddingDimensionality_, dataset: dataset, device: device) // :TransE(embeddingDimensionality: embeddingDimensionality, dataset: dataset, device: device)
+                var optimizer = Adam<RotatE>(for: model_, learningRate: learningRate_)
+                trainer.train(frame: trainFrame, model: &model_, optimizer: &optimizer, loss: computeSigmoidLoss)
+                return model_
+            }
+        } else if (model == .transe) {
+            let tester = CVTester<TransE<String, Int32>, Adam<TransE>, LinearTrainer, String>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(dataset: dataset, metrics: [
+                MRR(n: 1), MRR(n: 2), MRR(n: 3), MRR(n: 4),
+                Hits(n: 1), Hits(n: 2), Hits(n: 3), Hits(n: 4),
+                MAP(n: 1), MAP(n: 2), MAP(n: 3), MAP(n: 4),
+                NDCG(n: 1), NDCG(n: 2), NDCG(n: 3), NDCG(n: 4)
+            ]) { trainFrame, trainer in
+                var model_ = TransE(embeddingDimensionality: embeddingDimensionality_, dataset: dataset, device: device)
+                var optimizer = Adam<TransE>(for: model_, learningRate: learningRate_)
+                trainer.train(frame: trainFrame, model: &model_, optimizer: &optimizer)
+                return model_
+            }
+        }
+        else {
+            throw ModelError.unsupportedModel(message: "Model \(model) is not supported yet!")
+        }
+    }
+}
+
+struct Agk: ParsableCommand {
+//    @Flag(help: "Include a counter with each repetition.")
+//    var includeCounter = false
+//
+//    @Option(name: .shortAndLong, help: "The number of times to repeat 'phrase'.")
+//    var count: Int?
+//
+//    @Argument(help: "The phrase to repeat.")
+//    var phrase: String
+
+//    mutating func run() throws {
+//        let repeatCount = count ?? .max
+//
+//        for i in 1...repeatCount {
+//            if includeCounter {
+//                print("\(i): \(phrase)")
+//            } else {
+//                print(phrase)
+//            }
+//        }
+//    }
+
+    static var configuration = CommandConfiguration(
+            abstract: "A tool for automating operation on the knowledge graph models",
+            subcommands: [CrossValidate.self],
+            defaultSubcommand: CrossValidate.self
+    )
+}
+
+Agk.main()
