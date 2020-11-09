@@ -165,8 +165,7 @@ struct CrossValidate: ParsableCommand {
                 trainer.train(frame: trainFrame, model: &model_, optimizer: &optimizer)
                 return model_
             }
-        }
-        else {
+        } else {
             throw ModelError.unsupportedModel(message: "Model \(model) is not supported yet!")
         }
     }
@@ -187,8 +186,28 @@ struct TrainExternally: ParsableCommand {
     mutating func run() throws {
         let openke = Python.import("openke.api")
         let dataset = KnowledgeGraphDataset<String, Int32>(path: datasetPath, device: Device.default)
-        let con = openke.train(n_epochs: 100, model: model.rawValue, triples: dataset.normalizedFrame.data, entity_to_id: dataset.entityId2Index, relation_to_id: dataset.relationshipId2Index, gpu: true)
-        print(con.trainModel)
+        let triples_ = Tensor<Int32>(dataset.normalizedFrame.data[0..<5].map {
+            Tensor<Int32>($0)
+        })
+        let config = openke.train(n_epochs: 10, model: model.rawValue, triples: dataset.normalizedFrame.data, entity_to_id: dataset.entityId2Index, relation_to_id: dataset.relationshipId2Index, gpu: true)
+
+        let model = OpenKEModel(
+                configuration: config,
+                device: Device.default
+        )
+//        let triples = Array(dataset.normalizedFrame.data[0..<5])
+//        let other_triples = triples_.unstacked().map {
+//            $0.unstacked().map {
+//                Int($0.scalarized())
+//            }
+//        }
+
+        print(
+                MRR(n: 1).compute(model: model, trainFrame: dataset.normalizedFrame, testFrame: dataset.normalizedFrame, dataset: dataset)
+        )
+
+//        print(config.pythonObject.predict_triples(other_triples))
+//        print(model(triples_))
     }
 }
 
