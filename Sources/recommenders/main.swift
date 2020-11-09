@@ -187,8 +187,8 @@ struct TrainExternally: ParsableCommand {
     mutating func run() throws {
         let openke = Python.import("openke.api")
         let dataset = KnowledgeGraphDataset<String, Int32>(path: datasetPath, device: Device.default)
-        openke.train(model: model.rawValue, triples: dataset.normalizedFrame.data, entity_to_id: dataset.entityId2Index, relation_to_id: dataset.relationshipId2Index)
-//        print(self.model)
+        let con = openke.train(n_epochs: 100, model: model.rawValue, triples: dataset.normalizedFrame.data, entity_to_id: dataset.entityId2Index, relation_to_id: dataset.relationshipId2Index, gpu: true)
+        print(con.trainModel)
     }
 }
 
