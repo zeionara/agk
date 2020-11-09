@@ -1,5 +1,6 @@
 import TensorFlow
 import ArgumentParser
+import PythonKit
 
 //testNeuMF(
 //        size: [16, 32, 16, 8],
@@ -171,6 +172,26 @@ struct CrossValidate: ParsableCommand {
     }
 }
 
+struct TrainExternally: ParsableCommand {
+
+    private enum Model: String, ExpressibleByArgument {
+        case transe
+    }
+
+    @Option(name: .shortAndLong, help: "Model name which to use")
+    private var model: Model
+
+    @Option(name: .shortAndLong, help: "Dataset filename (should be located in the 'data' folder)")
+    private var datasetPath: String
+
+    mutating func run() throws {
+        let openke = Python.import("openke.api")
+        let dataset = KnowledgeGraphDataset<String, Int32>(path: datasetPath, device: Device.default)
+        openke.train(model: model.rawValue, triples: dataset.normalizedFrame.data, entity_to_id: dataset.entityId2Index, relation_to_id: dataset.relationshipId2Index)
+//        print(self.model)
+    }
+}
+
 struct Agk: ParsableCommand {
 //    @Flag(help: "Include a counter with each repetition.")
 //    var includeCounter = false
@@ -195,7 +216,7 @@ struct Agk: ParsableCommand {
 
     static var configuration = CommandConfiguration(
             abstract: "A tool for automating operation on the knowledge graph models",
-            subcommands: [CrossValidate.self],
+            subcommands: [CrossValidate.self, TrainExternally.self],
             defaultSubcommand: CrossValidate.self
     )
 }
