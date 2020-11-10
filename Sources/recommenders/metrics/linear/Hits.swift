@@ -20,7 +20,7 @@ public struct Hits: LinearMetric {
     public func compute<Model, SourceElement>(
             model: Model,
             trainFrame: TripleFrame<Int32>, testFrame: TripleFrame<Int32>, dataset: KnowledgeGraphDataset<SourceElement, Int32>
-    ) -> Float where Model: GraphModel {
+    ) -> Float where Model: GenericModel {
         var finalScores: [Float] = []
         for validFrame in testFrame.getCombinations(k: min(testFrame.data.count, n)) {
             let corruptedFrame = validFrame.sampleNegativeFrame(negativeFrame: dataset.normalizedNegativeFrame)

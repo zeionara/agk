@@ -103,6 +103,13 @@ enum ModelError: Error {
     case unsupportedModel(message: String)
 }
 
+let metrics: [LinearMetric] = [
+    MRR(n: 1), MRR(n: 2), MRR(n: 3), MRR(n: 4),
+    Hits(n: 1), Hits(n: 2), Hits(n: 3), Hits(n: 4),
+    MAP(n: 1), MAP(n: 2), MAP(n: 3), MAP(n: 4),
+    NDCG(n: 1), NDCG(n: 2), NDCG(n: 3), NDCG(n: 4)
+]
+
 struct CrossValidate: ParsableCommand {
 
     private enum Model: String, ExpressibleByArgument {
@@ -133,6 +140,9 @@ struct CrossValidate: ParsableCommand {
     var learningRate: Float
 
     @Flag(name: .shortAndLong, help: "Perform computations on the gpu")
+    var openke = false
+
+    @Flag(name: .shortAndLong, help: "Use openke implementation")
     var gpu = false
 
     mutating func run() throws {
@@ -142,28 +152,27 @@ struct CrossValidate: ParsableCommand {
         var embeddingDimensionality_ = embeddingDimensionality
 
         if (model == .rotate) {
-            let tester = CVTester<RotatE<String, Int32>, Adam<RotatE>, LinearTrainer, String>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(dataset: dataset, metrics: [
-                MRR(n: 1), MRR(n: 2), MRR(n: 3), MRR(n: 4),
-                Hits(n: 1), Hits(n: 2), Hits(n: 3), Hits(n: 4),
-                MAP(n: 1), MAP(n: 2), MAP(n: 3), MAP(n: 4),
-                NDCG(n: 1), NDCG(n: 2), NDCG(n: 3), NDCG(n: 4)
-            ]) { trainFrame, trainer in
+            CVTester<RotatE<String, Int32>, LinearTrainer, String>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(dataset: dataset, metrics: metrics) { trainFrame, trainer in
                 var model_ = RotatE(embeddingDimensionality: embeddingDimensionality_, dataset: dataset, device: device) // :TransE(embeddingDimensionality: embeddingDimensionality, dataset: dataset, device: device)
                 var optimizer = Adam<RotatE>(for: model_, learningRate: learningRate_)
                 trainer.train(frame: trainFrame, model: &model_, optimizer: &optimizer, loss: computeSigmoidLoss)
                 return model_
             }
         } else if (model == .transe) {
-            let tester = CVTester<TransE<String, Int32>, Adam<TransE>, LinearTrainer, String>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(dataset: dataset, metrics: [
-                MRR(n: 1), MRR(n: 2), MRR(n: 3), MRR(n: 4),
-                Hits(n: 1), Hits(n: 2), Hits(n: 3), Hits(n: 4),
-                MAP(n: 1), MAP(n: 2), MAP(n: 3), MAP(n: 4),
-                NDCG(n: 1), NDCG(n: 2), NDCG(n: 3), NDCG(n: 4)
-            ]) { trainFrame, trainer in
-                var model_ = TransE(embeddingDimensionality: embeddingDimensionality_, dataset: dataset, device: device)
-                var optimizer = Adam<TransE>(for: model_, learningRate: learningRate_)
-                trainer.train(frame: trainFrame, model: &model_, optimizer: &optimizer)
-                return model_
+            if openke {
+                let model_name = model.rawValue
+                CVTester<OpenKEModel, OpenKEModelTrainer, String>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(dataset: dataset, metrics: metrics) { trainFrame, trainer in
+                    OpenKEModel(
+                            configuration: trainer.train(model: model_name, frame: trainFrame, dataset: dataset)
+                    )
+                }
+            } else {
+                CVTester<TransE<String, Int32>, LinearTrainer, String>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(dataset: dataset, metrics: metrics) { trainFrame, trainer in
+                    var model_ = TransE(embeddingDimensionality: embeddingDimensionality_, dataset: dataset, device: device)
+                    var optimizer = Adam<TransE>(for: model_, learningRate: learningRate_)
+                    trainer.train(frame: trainFrame, model: &model_, optimizer: &optimizer)
+                    return model_
+                }
             }
         } else {
             throw ModelError.unsupportedModel(message: "Model \(model) is not supported yet!")
@@ -171,71 +180,10 @@ struct CrossValidate: ParsableCommand {
     }
 }
 
-struct TrainExternally: ParsableCommand {
-
-    private enum Model: String, ExpressibleByArgument {
-        case transe
-    }
-
-    @Option(name: .shortAndLong, help: "Model name which to use")
-    private var model: Model
-
-    @Option(name: .shortAndLong, help: "Dataset filename (should be located in the 'data' folder)")
-    private var datasetPath: String
-
-    mutating func run() throws {
-        let openke = Python.import("openke.api")
-        let dataset = KnowledgeGraphDataset<String, Int32>(path: datasetPath, device: Device.default)
-        let triples_ = Tensor<Int32>(dataset.normalizedFrame.data[0..<5].map {
-            Tensor<Int32>($0)
-        })
-        let config = openke.train(n_epochs: 10, model: model.rawValue, triples: dataset.normalizedFrame.data, entity_to_id: dataset.entityId2Index, relation_to_id: dataset.relationshipId2Index, gpu: true)
-
-        let model = OpenKEModel(
-                configuration: config,
-                device: Device.default
-        )
-//        let triples = Array(dataset.normalizedFrame.data[0..<5])
-//        let other_triples = triples_.unstacked().map {
-//            $0.unstacked().map {
-//                Int($0.scalarized())
-//            }
-//        }
-
-        print(
-                MRR(n: 1).compute(model: model, trainFrame: dataset.normalizedFrame, testFrame: dataset.normalizedFrame, dataset: dataset)
-        )
-
-//        print(config.pythonObject.predict_triples(other_triples))
-//        print(model(triples_))
-    }
-}
-
 struct Agk: ParsableCommand {
-//    @Flag(help: "Include a counter with each repetition.")
-//    var includeCounter = false
-//
-//    @Option(name: .shortAndLong, help: "The number of times to repeat 'phrase'.")
-//    var count: Int?
-//
-//    @Argument(help: "The phrase to repeat.")
-//    var phrase: String
-
-//    mutating func run() throws {
-//        let repeatCount = count ?? .max
-//
-//        for i in 1...repeatCount {
-//            if includeCounter {
-//                print("\(i): \(phrase)")
-//            } else {
-//                print(phrase)
-//            }
-//        }
-//    }
-
     static var configuration = CommandConfiguration(
             abstract: "A tool for automating operation on the knowledge graph models",
-            subcommands: [CrossValidate.self, TrainExternally.self],
+            subcommands: [CrossValidate.self], // TrainExternally.self
             defaultSubcommand: CrossValidate.self
     )
 }

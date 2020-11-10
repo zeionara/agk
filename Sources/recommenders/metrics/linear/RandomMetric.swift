@@ -12,7 +12,7 @@ public struct RandomMetric: LinearMetric {
     public func compute<Model, SourceElement, NormalizedElement>(
             model: Model, trainFrame: TripleFrame<NormalizedElement>, testFrame: TripleFrame<NormalizedElement>,
             dataset: KnowledgeGraphDataset<SourceElement, NormalizedElement>
-    ) -> Float where Model: GraphModel {
+    ) -> Float where Model: GenericModel {
         Float.random(in: 0..<1.0)
     }
 }

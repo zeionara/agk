@@ -6,7 +6,7 @@ public struct OpenKEModel<ConfigurationType>: GenericModel where ConfigurationTy
     public let configuration: ConfigurationType
     public let device: Device
 
-    public init(configuration: ConfigurationType, device: Device) {
+    public init(configuration: ConfigurationType, device: Device = Device.default) {
         self.configuration = configuration
         self.device = device
     }
