@@ -11,7 +11,7 @@ public struct CVTester<Model, TrainerType, SourceElement> where Model: GenericMo
         self.nFolds = nFolds
     }
 
-    private func testOneSplit(trainFrame: TripleFrame<Int32>, testFrame: TripleFrame<Int32>, metrics: [LinearMetric], scores: inout [String: [Float]],
+    private func testOneSplit(trainFrame: TripleFrame<Int32>, testFrame: TripleFrame<Int32>, metrics: [Metric], scores: inout [String: [Float]],
                               splitIndex i: Int,
                               dataset: KnowledgeGraphDataset<SourceElement, Int32>,
                               train: @escaping (_ trainFrame: TripleFrame<Int32>, _ trainer: TrainerType) -> Model,
@@ -35,10 +35,10 @@ public struct CVTester<Model, TrainerType, SourceElement> where Model: GenericMo
     }
 
     public func test(
-            dataset: KnowledgeGraphDataset<SourceElement, Int32>, metrics: [LinearMetric], train: @escaping (_ trainFrame: TripleFrame<Int32>, _ trainer: TrainerType) -> Model,
+            dataset: KnowledgeGraphDataset<SourceElement, Int32>, metrics: [Metric], train: @escaping (_ trainFrame: TripleFrame<Int32>, _ trainer: TrainerType) -> Model,
             enableParallelism: Bool = true
     ) {
-        var scores: [String: [Float]] = metrics.toDict { (metric: LinearMetric) -> (key: String, value: [Float]) in
+        var scores: [String: [Float]] = metrics.toDict { (metric: Metric) -> (key: String, value: [Float]) in
             (metric.name, [Float]())
         }
         let group = enableParallelism ? DispatchGroup() : Optional.none

@@ -103,7 +103,7 @@ enum ModelError: Error {
     case unsupportedModel(message: String)
 }
 
-let metrics: [LinearMetric] = [
+let metrics: [Metric] = [
     MRR(n: 1), MRR(n: 2), MRR(n: 3), MRR(n: 4),
     Hits(n: 1), Hits(n: 2), Hits(n: 3), Hits(n: 4),
     MAP(n: 1), MAP(n: 2), MAP(n: 3), MAP(n: 4),
