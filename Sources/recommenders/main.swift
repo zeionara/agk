@@ -161,7 +161,7 @@ struct CrossValidate: ParsableCommand {
         } else if (model == .transe) {
             if openke {
                 let model_name = model.rawValue
-                CVTester<OpenKEModel, OpenKEModelTrainer, String>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(dataset: dataset, metrics: metrics) { trainFrame, trainer in
+                CVTester<OpenKEModel, OpenKEModelTrainer, String>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(dataset: dataset, metrics: metrics, enableParallelism: false) { trainFrame, trainer in
                     OpenKEModel(
                             configuration: trainer.train(model: model_name, frame: trainFrame, dataset: dataset)
                     )
