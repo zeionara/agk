@@ -153,37 +153,41 @@ public struct TripleFrame<Element> where Element: Hashable {
 
     public func sampleNegativeFrame(negativeFrame: NegativeFrame<Element>, n: Int = 1, corruptionDegree: CorruptionDegree = CorruptionDegree.eitherHeadEitherTail) -> TripleFrame<Element> {
         var j = 0
+        let start_timestamp = DispatchTime.now().uptimeNanoseconds
         var negativeSamples: [[[Element]]] = data.map { positiveSample in
             j += 1
             var i = 0
             var corruptedTriples = [[Element]]()
 //            while i < n {
-            for negativeSample in negativeFrame.data {
-                if (
-                           negativeSample[2] == positiveSample[2] && (
-                                   (
-                                           (negativeSample[0] != positiveSample[0] && negativeSample[1] != positiveSample[1]) && corruptionDegree == CorruptionDegree.headAndTail
-                                   ) || (
-                                           (
-                                                   (negativeSample[0] == positiveSample[0] && negativeSample[1] != positiveSample[1]) ||
-                                                           (negativeSample[0] != positiveSample[0] && negativeSample[1] == positiveSample[1])
-                                           ) &&
-                                                   corruptionDegree == CorruptionDegree.eitherHeadEitherTail
-                                   )
-                           )
-                   ) || (
-                        (negativeSample[0] != positiveSample[0] && negativeSample[1] != positiveSample[1] && negativeSample[2] != positiveSample[2]) && corruptionDegree == CorruptionDegree.complete
-                ) {
-                    corruptedTriples.append(negativeSample)
-                    i += 1
-                    if i >= n {
-                        break
-                    }
+            // for negativeSample in negativeFrame.generateData(positiveSample: positiveSample, corruptionDegree: corruptionDegree) {
+            while true {
+                let negativeSample = negativeFrame.generateSample(positiveSample: positiveSample, corruptionDegree: corruptionDegree)!
+//                if (
+//                           negativeSample[2] == positiveSample[2] && (
+//                                   (
+//                                           (negativeSample[0] != positiveSample[0] && negativeSample[1] != positiveSample[1]) && corruptionDegree == CorruptionDegree.headAndTail
+//                                   ) || (
+//                                           (
+//                                                   (negativeSample[0] == positiveSample[0] && negativeSample[1] != positiveSample[1]) ||
+//                                                           (negativeSample[0] != positiveSample[0] && negativeSample[1] == positiveSample[1])
+//                                           ) &&
+//                                                   corruptionDegree == CorruptionDegree.eitherHeadEitherTail
+//                                   )
+//                           )
+//                   ) || (
+//                        (negativeSample[0] != positiveSample[0] && negativeSample[1] != positiveSample[1] && negativeSample[2] != positiveSample[2]) && corruptionDegree == CorruptionDegree.complete
+//                ) {
+                corruptedTriples.append(negativeSample)
+                i += 1
+                if i >= n {
+                    break
                 }
+//                }
             }
 //            }
             return corruptedTriples
         }
+        // print("Generated negative frame in \((DispatchTime.now().uptimeNanoseconds - start_timestamp) / 1_000_000_000) seconds")
         return TripleFrame<Element>(data: negativeSamples.reduce([], +), device: device, entities_: entities, relationships_: relationships)
     }
 
@@ -237,24 +241,31 @@ private func addTriple<Element>(triples: inout [Element: [Element: [Element: Boo
     }
 }
 
-public struct NegativeSampleGenerator<Element>: IteratorProtocol, Sequence where Element: Hashable {
+public class NegativeSampleGenerator<Element>: IteratorProtocol, Sequence where Element: Hashable {
     let positiveTriples: [Element: [Element: [Element: Bool]]]
     let entities: [Element]
     let relationships: [Element]
+//    let positiveSample: [Element]?
+//    let corruptionDegree: CorruptionDegree?
     var history: [Element: [Element: [Element: Bool]]]
 
-    public init(frame: TripleFrame<Element>) {
+    public init(frame: TripleFrame<Element>, history: [Element: [Element: [Element: Bool]]]? = nil) {
         var positiveTriples_ = [Element: [Element: [Element: Bool]]]()
         for positiveTriple in frame.data {
             addTriple(triples: &positiveTriples_, triple: positiveTriple)
         }
-        self.entities = frame.entities
-        self.relationships = frame.relationships
-        self.history = [Element: [Element: [Element: Bool]]]()
-        self.positiveTriples = positiveTriples_
+        entities = frame.entities
+        relationships = frame.relationships
+        self.history = history ?? [Element: [Element: [Element: Bool]]]()
+        positiveTriples = positiveTriples_
+//        self.positiveSample = positiveSample
+//        self.corruptionDegree = corruptionDegree
     }
 
-    public mutating func next() -> [Element]? {
+    public func next() -> [Element]? {
+//        if let positiveSample = positiveSample, let corruptionDegree = corruptionDegree {
+        // var secondIteration = false
+//        } else {
         while true {
             let head = entities.randomElement()!
             let tail = entities.randomElement()!
@@ -265,14 +276,51 @@ public struct NegativeSampleGenerator<Element>: IteratorProtocol, Sequence where
                 return triple
             }
         }
+//        }
+    }
+
+    public func next(positiveSample: [Element], corruptionDegree: CorruptionDegree) -> [Element]? {
+        while true {
+            let relationship = corruptionDegree == .complete ? relationships.randomElement()! : positiveSample[2]
+            var head: Element = positiveSample[0]
+            var tail: Element = positiveSample[1]
+            if (corruptionDegree == .complete || corruptionDegree == .headAndTail) {
+                head = entities.randomElement()!
+                tail = entities.randomElement()!
+            } else if corruptionDegree == .eitherHeadEitherTail {
+                let shouldCorruptHead = Int.random(in: 0...1)
+                if shouldCorruptHead == 1 {
+                    head = entities.randomElement()!
+                    tail = positiveSample[1]
+                } else {
+                    tail = entities.randomElement()!
+                    head = positiveSample[0]
+                }
+            }
+            let triple = [head, tail, relationship]
+            if (positiveTriples[head]?[tail]?[relationship] == nil && history[head]?[tail]?[relationship] == nil) {
+                addTriple(triples: &history, triple: triple)
+                return triple
+            }
+        }
+    }
+
+    public func resetHistory() {
+        history = [Element: [Element: [Element: Bool]]]()
     }
 }
 
 public struct NegativeFrame<Element> where Element: Hashable {
     public let data: NegativeSampleGenerator<Element>
+    public let frame: TripleFrame<Element>
 
     public init(frame: TripleFrame<Element>) {
+        self.frame = frame
         data = NegativeSampleGenerator(frame: frame)
+    }
+
+    public func generateSample(positiveSample: [Element], corruptionDegree: CorruptionDegree) -> [Element]? {
+        data.next(positiveSample: positiveSample, corruptionDegree: corruptionDegree)
     }
 
     public func batched(sizes: [Int], device: Device = Device.default) -> [TripleFrame<Element>] {
@@ -427,6 +475,7 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
     public let relationshipId2Index: [SourceElement: NormalizedElement]
     public let relationshipIndex2Id: [NormalizedElement: SourceElement]
     public let device: Device
+    public let path: String
 
     static func readData<Element>(path: String, stringToSourceElement: (String) -> Element) throws -> [[Element]] {
         let dir = URL(fileURLWithPath: #file.replacingOccurrences(of: "Sources/recommenders/datasets/KnowledgeGraphDataset.swift", with: ""))
@@ -457,6 +506,7 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
             intToNormalizedElement: (Int) -> NormalizedElement, stringToNormalizedElement: (String) -> NormalizedElement, stringToSourceElement: (String) -> SourceElement,
             sourceToNormalizedElement: (SourceElement) -> NormalizedElement
     ) {
+        self.path = path
 //        print("Loading frame...")
         let frame_ = TripleFrame(data: try! KnowledgeGraphDataset.readData(path: path, stringToSourceElement: stringToSourceElement), device: device)
 //        print("Generating negative frame...")

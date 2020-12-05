@@ -21,7 +21,6 @@ public struct NDCG: LinearMetric {
                 Float(item.element.rawValue) / log2(Float(item.offset) + 2)
             }.reduce(0, +)
         }
-
         var finalScores: [Float] = []
         for validFrame in testFrame.getCombinations(k: min(testFrame.data.count, n)) {
             let eitherHeadEitherTailCorruptedFrame = validFrame.sampleNegativeFrame(negativeFrame: dataset.normalizedNegativeFrame)

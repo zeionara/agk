@@ -13,4 +13,8 @@ extension KnowledgeGraphDataset where SourceElement == String, NormalizedElement
             Int32(e)!
         }
     }
+
+    public func copy() -> KnowledgeGraphDataset<SourceElement, NormalizedElement> {
+        KnowledgeGraphDataset<String, Int32>(path: path, device: device)
+    }
 }

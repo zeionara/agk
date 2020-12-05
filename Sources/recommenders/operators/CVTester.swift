@@ -13,7 +13,7 @@ public struct CVTester<Model, TrainerType, SourceElement> where Model: GenericMo
 
     private func testOneSplit(trainFrame: TripleFrame<Int32>, testFrame: TripleFrame<Int32>, metrics: [Metric], scores: inout [String: [Float]],
                               splitIndex i: Int,
-                              dataset: KnowledgeGraphDataset<SourceElement, Int32>,
+                              dataset: KnowledgeGraphDataset<String, Int32>,
                               train: @escaping (_ trainFrame: TripleFrame<Int32>, _ trainer: TrainerType) -> Model,
                               lockScoresArray: Optional<() -> Void> = Optional.none, unlockScoresArray: Optional<() -> Void> = Optional.none) {
         let training_start_timestamp = DispatchTime.now().uptimeNanoseconds
@@ -35,7 +35,7 @@ public struct CVTester<Model, TrainerType, SourceElement> where Model: GenericMo
     }
 
     public func test(
-            dataset: KnowledgeGraphDataset<SourceElement, Int32>, metrics: [Metric], train: @escaping (_ trainFrame: TripleFrame<Int32>, _ trainer: TrainerType) -> Model,
+            dataset: KnowledgeGraphDataset<String, Int32>, metrics: [Metric], train: @escaping (_ trainFrame: TripleFrame<Int32>, _ trainer: TrainerType) -> Model,
             enableParallelism: Bool = true
     ) {
         var scores: [String: [Float]] = metrics.toDict { (metric: Metric) -> (key: String, value: [Float]) in
@@ -49,7 +49,7 @@ public struct CVTester<Model, TrainerType, SourceElement> where Model: GenericMo
         for (i, (trainFrame, testFrame)) in dataset.normalizedFrame.cv(nFolds: nFolds).enumerated() {
             if enableParallelism {
                 DispatchQueue.global(qos: .userInitiated).async {
-                    testOneSplit(trainFrame: trainFrame, testFrame: testFrame, metrics: metrics, scores: &scores, splitIndex: i, dataset: dataset, train: train) {
+                    testOneSplit(trainFrame: trainFrame, testFrame: testFrame, metrics: metrics, scores: &scores, splitIndex: i, dataset: dataset.copy(), train: train) {
                         lock?.lock()
                     } unlockScoresArray: {
                         lock?.unlock()
@@ -58,6 +58,8 @@ public struct CVTester<Model, TrainerType, SourceElement> where Model: GenericMo
                 }
             } else {
                 testOneSplit(trainFrame: trainFrame, testFrame: testFrame, metrics: metrics, scores: &scores, splitIndex: i, dataset: dataset, train: train)
+                dataset.normalizedNegativeFrame.data.resetHistory()
+                dataset.negativeFrame.data.resetHistory()
             }
         }
 

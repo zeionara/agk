@@ -4,7 +4,7 @@
         {
             "label": "swift-build",
             "type": "shell",
-            "command": "swift build",
+            "command": "swift build --product recommenders",
             "problemMatcher": [],
             "group": {
                 "kind": "build",

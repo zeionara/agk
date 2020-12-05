@@ -148,8 +148,8 @@ struct CrossValidate: ParsableCommand {
     mutating func run() throws {
         let device = gpu ? Device.defaultXLA : Device.default
         let dataset = KnowledgeGraphDataset<String, Int32>(path: datasetPath, device: device)
-        var learningRate_ = learningRate
-        var embeddingDimensionality_ = embeddingDimensionality
+        let learningRate_ = learningRate
+        let embeddingDimensionality_ = embeddingDimensionality
 
         if (model == .rotate) {
             CVTester<RotatE<String, Int32>, LinearTrainer, String>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(dataset: dataset, metrics: metrics) { trainFrame, trainer in
