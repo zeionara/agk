@@ -152,11 +152,16 @@ struct CrossValidate: ParsableCommand {
         let embeddingDimensionality_ = embeddingDimensionality
 
         if (model == .rotate) {
-            CVTester<RotatE<String, Int32>, LinearTrainer, String>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(dataset: dataset, metrics: metrics) { trainFrame, trainer in
-                var model_ = RotatE(embeddingDimensionality: embeddingDimensionality_, dataset: dataset, device: device) // :TransE(embeddingDimensionality: embeddingDimensionality, dataset: dataset, device: device)
-                var optimizer = Adam<RotatE>(for: model_, learningRate: learningRate_)
-                trainer.train(frame: trainFrame, model: &model_, optimizer: &optimizer, loss: computeSigmoidLoss)
-                return model_
+            if openke {
+                let model_name = model.rawValue
+                throw ModelError.unsupportedModel(message: "Rotate is not implemented in the OpenKE library!")
+            } else {
+                CVTester<RotatE<String, Int32>, LinearTrainer, String>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(dataset: dataset, metrics: metrics) { trainFrame, trainer in
+                    var model_ = RotatE(embeddingDimensionality: embeddingDimensionality_, dataset: dataset, device: device) // :TransE(embeddingDimensionality: embeddingDimensionality, dataset: dataset, device: device)
+                    var optimizer = Adam<RotatE>(for: model_, learningRate: learningRate_)
+                    trainer.train(frame: trainFrame, model: &model_, optimizer: &optimizer, loss: computeSigmoidLoss)
+                    return model_
+                }
             }
         } else if (model == .transe) {
             if openke {
@@ -171,6 +176,22 @@ struct CrossValidate: ParsableCommand {
                     var model_ = TransE(embeddingDimensionality: embeddingDimensionality_, dataset: dataset, device: device)
                     var optimizer = Adam<TransE>(for: model_, learningRate: learningRate_)
                     trainer.train(frame: trainFrame, model: &model_, optimizer: &optimizer)
+                    return model_
+                }
+            }
+        } else if (model == .transd) {
+            if openke {
+                let model_name = model.rawValue
+                CVTester<OpenKEModel, OpenKEModelTrainer, String>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(dataset: dataset, metrics: metrics, enableParallelism: false) { trainFrame, trainer in
+                    OpenKEModel(
+                            configuration: trainer.train(model: model_name, frame: trainFrame, dataset: dataset)
+                    )
+                }
+            } else {
+                CVTester<TransD<String, Int32>, LinearTrainer, String>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(dataset: dataset, metrics: metrics) { trainFrame, trainer in
+                    var model_ = TransD(embeddingDimensionality: embeddingDimensionality_, dataset: dataset, device: device) // :TransE(embeddingDimensionality: embeddingDimensionality, dataset: dataset, device: device)
+                    var optimizer = Adam<TransD>(for: model_, learningRate: learningRate_)
+                    trainer.train(frame: trainFrame, model: &model_, optimizer: &optimizer, loss: computeSigmoidLoss)
                     return model_
                 }
             }
