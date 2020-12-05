@@ -201,10 +201,85 @@ struct CrossValidate: ParsableCommand {
     }
 }
 
+public struct ReportEntry {
+    public let header: String
+    public var metrics: [String: Float]
+}
+
+struct RestructureReport: ParsableCommand {
+
+    @Argument(help: "Path to file containing input report")
+    private var inputPath: String
+
+    @Argument(help: "Path to output file to save generated table")
+    private var outputPath: String
+
+    @Option(name: .shortAndLong, default: 3, help: "Precision with which values will be printed")
+    var nDecimalPlaces: Int
+
+    private func readData(path: String) throws -> [ReportEntry] {
+        func skipEmptyLines() {
+            while lines[offset] == "" && offset < lines.count - 1 {
+                offset += 1
+            }
+        }
+
+        var reportEntries = [ReportEntry]()
+        let lines = try readLines(path: path)
+        var offset = 0
+
+        do {
+            while offset < lines.count {
+//                print("a")
+                skipEmptyLines()
+//                print("b")
+                let header = lines[offset]
+//                print("c")
+                offset += 1
+//                print("d")
+//                print(header)
+//                print(offset)
+                if offset >= lines.count {
+                    break
+                }
+                skipEmptyLines()
+//                print("e")
+                var metrics = [String: Float]()
+//                print("f")
+                while lines[offset] != "" {
+                    let metricWithValue = lines[offset].components(separatedBy: ": ")
+                    metrics[metricWithValue[0]] = Float(metricWithValue[1])!
+                    offset += 1
+                }
+//                print(offset)
+                reportEntries.append(ReportEntry(header: header, metrics: metrics))
+            }
+        } catch {
+        }
+        return reportEntries
+    }
+
+    private func writeData(path: String, data: [ReportEntry]) throws {
+        let metric_keys = data[0].metrics.keys.sorted()
+        let model_keys = data.map {
+            $0.header
+        }
+        var lines: [String] = ["metric\t\(model_keys.joined(separator: "\t"))"] + metric_keys.map { metric in
+            "\(metric)\t\(model_keys.map {String(format: "%.\(nDecimalPlaces)f", data[$0]!.metrics[metric]!)}.joined(separator: "\t"))"
+        }
+        try writeLines(path: path, lines: lines)
+    }
+
+    mutating func run() throws {
+        let data = try readData(path: inputPath)
+        try writeData(path: outputPath, data: data)
+    }
+}
+
 struct Agk: ParsableCommand {
     static var configuration = CommandConfiguration(
             abstract: "A tool for automating operation on the knowledge graph models",
-            subcommands: [CrossValidate.self], // TrainExternally.self
+            subcommands: [CrossValidate.self, RestructureReport.self], // TrainExternally.self
             defaultSubcommand: CrossValidate.self
     )
 }
