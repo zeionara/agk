@@ -4,14 +4,34 @@
         {
             "type": "lldb",
             "request": "launch",
-            "preLaunchTask": "swift-build",
-            "name": "Debug",
+            "name": "Cross-validate rotate",
             "program": "${workspaceFolder}/.build/debug/recommenders",
             "args": [
                 "cross-validate",
-                "-m", "transe",
-                "-d", "truncated-dataset-normalized.txt"
+                "-m",
+                "rotate",
+                "-d",
+                "truncated-dataset-normalized.txt"
             ],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": [
+                "swift"
+            ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "swift-build",
+            "name": "Cross-validate transe",
+            "program": "${workspaceFolder}/.build/debug/recommenders",
+            "args": [
+                "cross-validate",
+                "-m",
+                "transe",
+                "-d",
+                "truncated-dataset-normalized.txt"
+            ],
+            "cwd": "${workspaceFolder}",
             "sourceLanguages": [
                 "swift"
             ]
