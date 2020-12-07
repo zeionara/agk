@@ -56,7 +56,7 @@ public struct SimpleDataset<Entropy: RandomNumberGenerator> {
     public let training: Training
 
     static func readData(path: String) throws -> [[Float]] {
-        let dir = URL(fileURLWithPath: #file.replacingOccurrences(of: "Sources/recommenders/datasets/SimpleDataset.swift", with: ""))
+        let dir = URL(fileURLWithPath: #file.replacingOccurrences(of: "Sources/agk/datasets/SimpleDataset.swift", with: ""))
         let fileContents = try String(
                 contentsOf: dir.appendingPathComponent("data").appendingPathComponent(path),
                 encoding: .utf8

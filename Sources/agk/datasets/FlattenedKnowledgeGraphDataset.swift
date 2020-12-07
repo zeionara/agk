@@ -86,7 +86,7 @@ public struct FlattenedKnowledgeGraphDataset {
     public let device: Device
 
     static func readData(path: String) throws -> [[Int32]] {
-        let dir = URL(fileURLWithPath: #file.replacingOccurrences(of: "Sources/recommenders/datasets/FlattenedKnowledgeGraphDataset.swift", with: ""))
+        let dir = URL(fileURLWithPath: #file.replacingOccurrences(of: "Sources/agk/datasets/FlattenedKnowledgeGraphDataset.swift", with: ""))
         let fileContents = try String(
                 contentsOf: dir.appendingPathComponent("data").appendingPathComponent(path),
                 encoding: .utf8

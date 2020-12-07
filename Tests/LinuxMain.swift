@@ -1,7 +1,7 @@
 import XCTest
 
-import recommendersTests
+import agkTests
 
 var tests = [XCTestCaseEntry]()
-tests += recommendersTests.allTests()
+tests += agkTests.allTests()
 XCTMain(tests)

@@ -478,7 +478,7 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
     public let path: String
 
     static func readData<Element>(path: String, stringToSourceElement: (String) -> Element) throws -> [[Element]] {
-        let dir = URL(fileURLWithPath: #file.replacingOccurrences(of: "Sources/recommenders/datasets/KnowledgeGraphDataset.swift", with: ""))
+        let dir = URL(fileURLWithPath: #file.replacingOccurrences(of: "Sources/agk/datasets/KnowledgeGraphDataset.swift", with: ""))
         let fileContents = try String(
                 contentsOf: dir.appendingPathComponent("data").appendingPathComponent(path),
                 encoding: .utf8
