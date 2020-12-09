@@ -11,10 +11,13 @@ public struct ConvolutionClassificationTrainer {
         self.batchSize = batchSize
     }
 
-    public func train<Model, SourceElement>(dataset: KnowledgeGraphDataset<SourceElement, Int32>, model: inout Model, optimizer: Adam<Model>) where Model: ConvolutionGraphModel, Model.Scalar == Float {
+    public func train<Model, OptimizerType, SourceElement>(
+        dataset: KnowledgeGraphDataset<SourceElement, Int32>, model: inout Model, optimizer: inout OptimizerType,
+        labels: LabelFrame<Int32>, frame: TripleFrame<Int32>
+    ) where Model: ConvolutionGraphModel, Model.Scalar == Float, OptimizerType: Optimizer, OptimizerType.Model == Model {
         for i in 1...nEpochs{
             var losses: [Float] = []
-            for batch in dataset.frame.batched(size: batchSize) {
+            for batch in frame.batched(size: batchSize) {
                 print("Generated batch")
 
                 var tunedMatrix: Tensor<Float>
@@ -41,7 +44,7 @@ public struct ConvolutionClassificationTrainer {
                     print("Computing loss")
                     // print(labels_.flattened().gathering(atIndices: dataset.labelFrame!.indices))
                     // print(dataset.labelFrame!.labels)
-                    return sigmoidCrossEntropy(logits: labels_.flattened().gathering(atIndices: dataset.labelFrame!.indices) + 0.001, labels: dataset.labelFrame!.labels + 0.001)
+                    return sigmoidCrossEntropy(logits: labels_.flattened().gathering(atIndices: labels.indices) + 0.001, labels: labels.labels + 0.001)
                     // kullbackLeiblerDivergence(predicted: labels_.flattened().gathering(atIndices: dataset.labelFrame!.indices) + 0.001, expected: dataset.labelFrame!.labels + 0.001)
                 }
                 // print(grad)

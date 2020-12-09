@@ -21,7 +21,7 @@ private func normalizeWithL2_(tensor: Tensor<Float>, axis: Int = 0) -> Tensor<Fl
 
 public struct GCN<SourceElement, NormalizedElement>: ConvolutionGraphModel where SourceElement: Hashable, NormalizedElement: Hashable, NormalizedElement: Comparable {
     public var entityEmbeddings: Embedding<Float>
-    // public var outputLayer: Dense<Float>
+    public var outputLayer: Dense<Float>
     // private var inputLayer: Dense<Float>
     private var dataset: KnowledgeGraphDataset<SourceElement, NormalizedElement>
     // private var hiddenLayers: [Dense<Float>]
@@ -30,9 +30,9 @@ public struct GCN<SourceElement, NormalizedElement>: ConvolutionGraphModel where
     // @noDerivative public var tunedDegreeMatrices: [[Float]: Tensor<Float>]
 
     public init(embeddingDimensionality: Int = 100, dataset: KnowledgeGraphDataset<SourceElement, NormalizedElement>? = Optional.none, device device_: Device = Device.default,
-                hiddenLayerSize: Int = 10, activation: @escaping Dense<Float>.Activation = relu, entityEmbeddings: Embedding<Float>? = Optional.none
+                hiddenLayerSize: Int = 10, activation: @escaping Dense<Float>.Activation = relu, entityEmbeddings: Embedding<Float>? = Optional.none,
                 // inputLayer: Dense<Float>? = Optional.none, 
-                // outputLayer: Dense<Float>? = Optional.none
+                outputLayer: Dense<Float>? = Optional.none
                 ) {
         let nEntities = dataset!.frame.entities.count + dataset!.frame.relationships.count * 2
         self.dataset = dataset!
@@ -56,7 +56,7 @@ public struct GCN<SourceElement, NormalizedElement>: ConvolutionGraphModel where
         //         upperBound: Tensor(Float(1.0) / Float(hiddenLayerSize), on: device_),
         //         on: device_
         // )
-        // self.outputLayer = outputLayer ?? Dense<Float>(inputSize: embeddingDimensionality, outputSize: 1, activation: activation)
+        self.outputLayer = outputLayer ?? Dense<Float>(inputSize: embeddingDimensionality, outputSize: 1, activation: activation)
         device = device_
     }
 
@@ -64,9 +64,9 @@ public struct GCN<SourceElement, NormalizedElement>: ConvolutionGraphModel where
         return GCN(
             dataset: dataset,
             device: device,
-            entityEmbeddings: Embedding<Float>(embeddings: normalizeWithL2_(tensor: entityEmbeddings.embeddings, axis: 1))
+            entityEmbeddings: Embedding<Float>(embeddings: normalizeWithL2_(tensor: entityEmbeddings.embeddings, axis: 1)),
             // inputLayer: inputLayer,
-            // outputLayer: outputLayer
+            outputLayer: outputLayer
         )
     }
 
@@ -121,7 +121,7 @@ public struct GCN<SourceElement, NormalizedElement>: ConvolutionGraphModel where
         // // print(outputLayer(output).flattened())
         // print(outputLayer(output).flattened())
         // let result = sigmoid(outputLayer(output).flattened())
-        // let result = outputLayer(output).flattened()
+        let result = outputLayer(output).flattened()
         // print(result)
         // return result
         return sigmoid(output.sum(alongAxes: [0]))

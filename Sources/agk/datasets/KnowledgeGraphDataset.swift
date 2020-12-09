@@ -2,6 +2,7 @@ import Foundation
 import TensorFlow
 
 public typealias CVSplit<Element> = (train: TripleFrame<Element>, test: TripleFrame<Element>) where Element: Hashable
+public typealias LabelCVSplit<Element> = (train: LabelFrame<Element>, test: LabelFrame<Element>) where Element: Hashable
 
 public enum CorruptionDegree: Int {
     case none = 3
@@ -19,13 +20,60 @@ func getRandomNumbers(maxNumber: Int, listSize: Int) -> Set<Int> {
     return randomNumbers
 }
 
-public struct LabelFrame<Element> {
+public struct LabelFrame<Element> where Element: Hashable {
     let data: [[Element]]
     let device: Device
 
     public init(data: [[Element]], device: Device) {
         self.data = data
         self.device = device
+    }
+
+    public func batched(size: Int, shouldShuffle: Bool = true) -> [LabelFrame] {
+        assert(size > 0)
+
+        func addBatch() {
+            batches.append(LabelFrame(data: batchSamples, device: device))
+            i = 0
+            batchSamples = []
+        }
+
+        var batches: [LabelFrame] = []
+        var batchSamples: [[Element]] = []
+        var i = 0
+        for sample in shouldShuffle ? data.shuffled() : data {
+            if (i % size == 0 && i > 0) {
+                addBatch()
+            }
+            batchSamples.append(sample)
+            i += 1
+        }
+        if !batchSamples.isEmpty {
+            addBatch()
+        }
+        return batches
+    }
+
+    public func split(nChunks: Int, shouldShuffle: Bool = true) -> [LabelFrame] {
+        assert(nChunks > 0)
+        return batched(size: Int((Float(data.count) / Float(nChunks)).rounded(.up)), shouldShuffle: shouldShuffle)
+    }
+
+    public func cv(nFolds: Int) -> [LabelCVSplit<Element>] {
+        let enumeratedSplits = split(nChunks: nFolds).enumerated()
+        return enumeratedSplits.map { (i: Int, testSplit: LabelFrame) in
+            LabelCVSplit<Element>(
+                    train: LabelFrame(
+                            data: enumeratedSplits.filter { (j: Int, trainPartialSplit: LabelFrame) in
+                                j != i
+                            }.map { (j: Int, trainPartialSplit: LabelFrame) in
+                                trainPartialSplit.data
+                            }.reduce([], +),
+                            device: device
+                    ),
+                    test: testSplit
+            )
+        }
     }
 }
 
