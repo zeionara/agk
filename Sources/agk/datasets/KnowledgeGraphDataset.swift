@@ -527,7 +527,7 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
                     data: (try! KnowledgeGraphDataset.readData(path: classes_) { s in
                         stringToSourceElement(s)
                     }).map { row in
-                        [entityNormalizationMappings.forward[row.first!]!, sourceToNormalizedElement(row.last!)]
+                        return [entityNormalizationMappings.forward[row.first!]!, sourceToNormalizedElement(row.last!)]
                     }.sorted {
                         $0.first! < $1.first!
                     },

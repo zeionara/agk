@@ -18,6 +18,7 @@ let package = Package(
             name: "agk",
             dependencies: [
                 .product(name: "Datasets", package: "swift-models"),
+                .product(name: "Checkpoints", package: "swift-models"),
                 .product(name: "RecommendationModels", package: "swift-models"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ]),

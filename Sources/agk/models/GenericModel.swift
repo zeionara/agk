@@ -2,5 +2,6 @@ import Foundation
 import TensorFlow
 
 public protocol GenericModel {
-    func callAsFunction(_ triples: Tensor<Int32>) -> Tensor<Float>
+    associatedtype Scalar: TensorFlowScalar
+    func callAsFunction(_ triples: Tensor<Scalar>) -> Tensor<Float>
 }

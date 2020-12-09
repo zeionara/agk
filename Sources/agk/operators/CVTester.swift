@@ -2,7 +2,7 @@ import Foundation
 import TensorFlow
 
 
-public struct CVTester<Model, TrainerType, SourceElement> where Model: GenericModel, TrainerType: Trainer, SourceElement: Hashable {
+public struct CVTester<Model, TrainerType, SourceElement> where Model: GenericModel, TrainerType: Trainer, SourceElement: Hashable, Model.Scalar == Int32 {
     public let trainer: TrainerType
     public let nFolds: Int
 

@@ -1,6 +1,6 @@
 import Foundation
 import TensorFlow
-
+import Checkpoints
 
 public struct ConvolutionAdjacencyTrainer {
     public let nEpochs: Int
@@ -13,7 +13,7 @@ public struct ConvolutionAdjacencyTrainer {
 
     public func train<Model, SourceElement, NormalizedElement>(
             dataset: KnowledgeGraphDataset<SourceElement, NormalizedElement>, model: inout Model, optimizer: Adam<Model>
-    ) where Model: ConvolutionGraphModel {
+    ) where Model: ConvolutionGraphModel, Model.Scalar == Int32 {
         for i in 1...nEpochs {
             var losses: [Float] = []
             for batch in dataset.frame.batched(size: batchSize) {

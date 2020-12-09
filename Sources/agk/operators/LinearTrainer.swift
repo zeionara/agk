@@ -14,7 +14,7 @@ public struct LinearTrainer: Trainer {
     public func train<Model, OptimizerType>(
             frame: TripleFrame<Int32>, model: inout Model, optimizer: inout OptimizerType, margin: Float = 2.0,
             loss: @differentiable (Tensor<Float>, Tensor<Float>, Float) -> Tensor<Float> = computeSumLoss
-    ) where Model: LinearGraphModel, OptimizerType: Optimizer, OptimizerType.Model == Model {
+    ) where Model: LinearGraphModel, OptimizerType: Optimizer, OptimizerType.Model == Model, Model.Scalar == Int32 {
         for i in 1...nEpochs {
             var losses: [Float] = []
 //            print("Batching...")

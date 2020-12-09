@@ -35,6 +35,24 @@
             "sourceLanguages": [
                 "swift"
             ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "swift-build",
+            "name": "Cross-validate gcn",
+            "program": "${workspaceFolder}/.build/debug/agk",
+            "args": [
+                "cross-validate",
+                "-m",
+                "gcn",
+                "-d",
+                "deduplicated-dataset.txt"
+            ],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": [
+                "swift"
+            ]
         }
     ]
 }

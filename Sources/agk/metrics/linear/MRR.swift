@@ -15,7 +15,7 @@ public struct MRR: LinearMetric {
             model: Model,
             trainFrame: TripleFrame<Int32>, testFrame: TripleFrame<Int32>,
             dataset: KnowledgeGraphDataset<SourceElement, Int32>
-    ) -> Float where Model: GenericModel {
+    ) -> Float where Model: GenericModel, Model.Scalar == Int32 {
         func getSortedTriples(validFrame: TripleFrame<Int32>, corruptedFrame: TripleFrame<Int32>, scores: [Float]) -> [[Int32]] {
             (validFrame.data + corruptedFrame.data).enumerated().sorted() { (lhs, rhs) in
                 scores[lhs.offset] < scores[rhs.offset]

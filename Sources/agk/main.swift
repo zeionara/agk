@@ -116,6 +116,7 @@ struct CrossValidate: ParsableCommand {
         case transe
         case rotate
         case transd
+        case gcn
     }
 
     @Option(name: .shortAndLong, help: "Model name which to use")
@@ -151,7 +152,14 @@ struct CrossValidate: ParsableCommand {
         let learningRate_ = learningRate
         let embeddingDimensionality_ = embeddingDimensionality
 
-        if (model == .rotate) {
+        if (model == .gcn) {
+            let dataset_ = KnowledgeGraphDataset<String, Int32>(path: datasetPath, classes: "humorous.txt", device: device)
+            var model__ = GCN(embeddingDimensionality: 100, dataset: dataset_, device: device, hiddenLayerSize: 100)
+            let optimizer_ = Adam<GCN<String, Int32>>(for: model__, learningRate: 0.1)
+            let trainer_ = ConvolutionClassificationTrainer(nEpochs: 100, batchSize: 1000)
+            print("training...")
+            trainer_.train(dataset: dataset_, model: &model__, optimizer: optimizer_)
+        } else if (model == .rotate) {
             if openke {
                 let model_name = model.rawValue
                 throw ModelError.unsupportedModel(message: "Rotate is not implemented in the OpenKE library!")
