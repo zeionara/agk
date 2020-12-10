@@ -5,16 +5,18 @@ public struct F1Score: ClassificationMetric {
     private let nDecimalPlaces: Int
     private let precision: Precision
     private let recall: Recall
+    private let reverse: Bool
 
-    public init(_ threshold: Float = 0.5, nDecimalPlaces: Int = 3) {
+    public init(_ threshold: Float = 0.5, nDecimalPlaces: Int = 3, reverse: Bool = false) {
         self.threshold = threshold
         self.nDecimalPlaces = nDecimalPlaces
-        self.precision = Precision(threshold)
-        self.recall = Recall(threshold)
+        self.precision = Precision(threshold, reverse: reverse)
+        self.recall = Recall(threshold, reverse: reverse)
+        self.reverse = reverse
      }
 
     public var name: String {
-        "F1Score@" + String(format: "%.\(nDecimalPlaces)f", threshold)
+        "F1Score@" + String(format: "%.\(nDecimalPlaces)f", threshold) + (reverse ? " (reversed)" : "")
     }
 
     public func compute<Model, SourceElement>(

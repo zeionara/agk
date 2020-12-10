@@ -37,18 +37,12 @@ extension Tensor where Scalar: Numeric {
             let flattened = Tensor<Float>(self).flattened()
             return flattened[0] * flattened[3] - flattened[1] * flattened[2]
         } else {
-            // let flattened = self.flattened().unstacked().map{$0.scalar! as! Float}
-            // determinant_cache[flattened] = 0
-            // determinant_cache[flattened] = 0
             let i = 0
             let zero = Tensor<Float>(0.0, on: device)
             let coefficients = Tensor<Float>(self).unstacked()[i].unstacked()
             let flattened = coefficients.map {
                 $0.scalar!
             }
-            // let lock = NSLock()
-            // let group = DispatchGroup()
-            // print("--")
             determinant_cache_lock.lock()
             if let cached = determinant_cache[flattened] {
                 determinant_cache_lock.unlock()
@@ -56,17 +50,10 @@ extension Tensor where Scalar: Numeric {
             }
             determinant_cache_lock.unlock()
             var value = Tensor<Float>(0.0, on: device)
-            // group.enter()
             for (j, item) in coefficients.enumerated() {
-                // DispatchQueue.global(qos: .userInitiated).async {
-                let result = item != zero ? Tensor<Float>(Float(raise(-1, Int(i + j))), on: device) * item * (item != zero ? self.getMinor(withoutRow: i, withoutColumn: j).determinant : zero) : zero
-                // lock.lock()
+                let result = item != zero ? Tensor<Float>(Float(raise(-1, Int(i + j))), on: device) * item * self.getMinor(withoutRow: i, withoutColumn: j).determinant : zero
                 value += result
-                // lock.unlock()
-                // group.leave()
-                // }
             }
-            // group.wait()
             determinant_cache_lock.lock()
             determinant_cache[flattened] = value
             determinant_cache_lock.unlock()
@@ -79,40 +66,20 @@ extension Tensor where Scalar: Numeric {
             let start_time = DispatchTime.now().uptimeNanoseconds
             let lock = NSLock()
             let group = DispatchGroup()
-//            let n_threads = 10
-//            var n_items_per_thread = shape[0] / n_threads
             for i in (0...self.shape[0] - 1) {
-//                for divisor in (0...n_threads) {
-                // print("-\(i)")
                 group.enter()
                 DispatchQueue.global().async {
-//                    print((divisor * n_items_per_thread)..<((divisor + 1) * n_items_per_thread))
-//                    for i in (divisor * n_items_per_thread)..<((divisor + 1) * n_items_per_thread) {
-//                    if i < shape[0] {
                     print(i)
                     let result = Tensor<Float>(
                             (0...shape[1] - 1).map { j -> Tensor<Float> in
-                                // print(i, j)
-                                // if j % 50 == 0 {
-                                //     print(i, j)
-                                // }
-//                                print("     \(j)")
-                                // let i = 1
-                                // DispatchQueue.global(qos: .userInitiated).async {
                                 Tensor<Float>(Float(raise(-1, Int(i + j))), on: device) * self.getMinor(withoutRow: i, withoutColumn: j).determinant
-                                // }
                             }
                     )
                     lock.lock()
                     results[i] = result
                     lock.unlock()
-//                    }
                     group.leave()
-//                    print("\(i) left")
                 }
-//                print("\((divisor * n_items_per_thread)..<((divisor + 1) * n_items_per_thread))) left")
-
-//                }
             }
             group.wait()
             print("Handled matrix in \((DispatchTime.now().uptimeNanoseconds - start_time) / 1_000_000_000) seconds")
@@ -125,11 +92,15 @@ extension Tensor where Scalar: Numeric {
             Tensor<Float>?.none
         }
         return Tensor<Float>(
-                run()
+            run()
         )
     }
 
     var inverse: Tensor<Float> {
-        Tensor<Float>(self).additional.transposed() / self.determinant
+        isDiagonal ? (Tensor<Float>(1.0) / Tensor<Float>(self).diagonalPart()).diagonal() : Tensor<Float>(self).additional.transposed() / self.determinant
+    }
+
+    var isDiagonal: Bool {
+        return (self - self.diagonalPart().diagonal()).sum().scalar! == 0
     }
 }

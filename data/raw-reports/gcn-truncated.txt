@@ -1,567 +1,651 @@
 
-Truncated GCN model (entity embeddings + output layer) trained 10 epochs, learning-rate = 0.001
+gcn-truncated(epochs: 10, learning-rate: 0.01)
 
-Precision@0.000: 0.36538464
-Precision@0.200: 0.35512823
-Precision@0.400: 0.35512823
+Precision@0.000: 0.507611
+Precision@0.200: 0.507611
+Precision@0.400: 0.507611
+Precision@0.600: 0.568254
+Precision@0.800: nan
+Precision@1.000: nan
+Precision@0.000 (reversed): 0.4923891
+Recall@0.000: 1.0
+Recall@0.200: 1.0
+Recall@0.400: 1.0
+Recall@0.600: 0.09037241
+Recall@0.800: 0.0
+Recall@1.000: 0.0
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.67330414
+F1Score@0.200: 0.67330414
+F1Score@0.400: 0.67330414
+F1Score@0.600: 0.15465058
+F1Score@0.800: nan
+F1Score@1.000: nan
+F1Score@0.000 (reversed): 0.6597704
+Accuracy@0.000: 0.507611
+Accuracy@0.200: 0.507611
+Accuracy@0.400: 0.507611
+Accuracy@0.600: 0.507611
+Accuracy@0.800: 0.4923891
+Accuracy@1.000: 0.4923891
+Accuracy@0.000 (reversed): 0.4923891
+
+gcn-truncated(epochs: 10, learning-rate: 0.015)
+
+Precision@0.000: 0.5077737
+Precision@0.200: 0.5077737
+Precision@0.400: 0.5077737
 Precision@0.600: nan
 Precision@0.800: nan
 Precision@1.000: nan
+Precision@0.000 (reversed): 0.49222633
 Recall@0.000: 1.0
-Recall@0.200: 0.50805557
-Recall@0.400: 0.50805557
-Recall@0.600: 0.0
+Recall@0.200: 1.0
+Recall@0.400: 1.0
+Recall@0.600: 0.26666668
 Recall@0.800: 0.0
 Recall@1.000: 0.0
-F1Score@0.000: 0.5195775
-F1Score@0.200: 0.3837115
-F1Score@0.400: 0.3837115
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.67271155
+F1Score@0.200: 0.67271155
+F1Score@0.400: 0.67271155
 F1Score@0.600: nan
 F1Score@0.800: nan
 F1Score@1.000: nan
-Accuracy@0.000: 0.36538464
-Accuracy@0.200: 0.45576924
-Accuracy@0.400: 0.45576924
-Accuracy@0.600: 0.63461536
-Accuracy@0.800: 0.63461536
-Accuracy@1.000: 0.63461536
+F1Score@0.000 (reversed): 0.6588653
+Accuracy@0.000: 0.5077737
+Accuracy@0.200: 0.5077737
+Accuracy@0.400: 0.5077737
+Accuracy@0.600: 0.49255192
+Accuracy@0.800: 0.49222633
+Accuracy@1.000: 0.49222633
+Accuracy@0.000 (reversed): 0.49222633
 
-Truncated GCN model (entity embeddings + output layer) trained 10 epochs, learning-rate = 0.01
+gcn-truncated(epochs: 10, learning-rate: 0.3)
 
-Precision@0.000: 0.37884617
-Precision@0.200: 0.3344697
-Precision@0.400: 0.3344697
+Precision@0.000: 0.5076109
+Precision@0.200: 0.5076109
+Precision@0.400: 0.5076109
 Precision@0.600: nan
 Precision@0.800: nan
 Precision@1.000: nan
+Precision@0.000 (reversed): 0.4923891
 Recall@0.000: 1.0
-Recall@0.200: 0.478373
-Recall@0.400: 0.478373
+Recall@0.200: 1.0
+Recall@0.400: 1.0
 Recall@0.600: 0.0
 Recall@0.800: 0.0
 Recall@1.000: 0.0
-F1Score@0.000: 0.5434664
-F1Score@0.200: 0.38441306
-F1Score@0.400: 0.38441306
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.6727597
+F1Score@0.200: 0.6727597
+F1Score@0.400: 0.6727597
 F1Score@0.600: nan
 F1Score@0.800: nan
 F1Score@1.000: nan
-Accuracy@0.000: 0.37884617
-Accuracy@0.200: 0.45576924
-Accuracy@0.400: 0.45576924
-Accuracy@0.600: 0.62115383
-Accuracy@0.800: 0.62115383
-Accuracy@1.000: 0.62115383
+F1Score@0.000 (reversed): 0.6591914
+Accuracy@0.000: 0.5076109
+Accuracy@0.200: 0.5076109
+Accuracy@0.400: 0.5076109
+Accuracy@0.600: 0.4923891
+Accuracy@0.800: 0.4923891
+Accuracy@1.000: 0.4923891
+Accuracy@0.000 (reversed): 0.4923891
 
-Truncated GCN model (entity embeddings + output layer) trained 10 epochs, learning-rate = 0.1
+gcn-truncated(epochs: 50, learning-rate: 0.01)
 
-Precision@0.000: 0.3653846
-Precision@0.200: 0.323171
-Precision@0.400: 0.323171
+Precision@0.000: 0.50695974
+Precision@0.200: 0.50695974
+Precision@0.400: 0.50695974
+Precision@0.600: 0.52084553
+Precision@0.800: 0.528423
+Precision@1.000: nan
+Precision@0.000 (reversed): 0.49304032
+Recall@0.000: 1.0
+Recall@0.200: 1.0
+Recall@0.400: 1.0
+Recall@0.600: 1.0
+Recall@0.800: 0.9705603
+Recall@1.000: 0.0
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.66993123
+F1Score@0.200: 0.66993123
+F1Score@0.400: 0.66993123
+F1Score@0.600: 0.6818178
+F1Score@0.800: 0.6805601
+F1Score@1.000: nan
+F1Score@0.000 (reversed): 0.6573903
+Accuracy@0.000: 0.50695974
+Accuracy@0.200: 0.50695974
+Accuracy@0.400: 0.50695974
+Accuracy@0.600: 0.53260076
+Accuracy@0.800: 0.54285717
+Accuracy@1.000: 0.49304032
+Accuracy@0.000 (reversed): 0.49304032
+
+gcn-truncated(epochs: 50, learning-rate: 0.015)
+
+Precision@0.000: 0.5080993
+Precision@0.200: 0.5080993
+Precision@0.400: 0.5080993
+Precision@0.600: 0.53271747
+Precision@0.800: 0.5411761
+Precision@1.000: nan
+Precision@0.000 (reversed): 0.4919007
+Recall@0.000: 1.0
+Recall@0.200: 1.0
+Recall@0.400: 1.0
+Recall@0.600: 1.0
+Recall@0.800: 1.0
+Recall@1.000: 0.0
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.67315954
+F1Score@0.200: 0.67315954
+F1Score@0.400: 0.67315954
+F1Score@0.600: 0.694592
+F1Score@0.800: 0.70196503
+F1Score@1.000: nan
+F1Score@0.000 (reversed): 0.658756
+Accuracy@0.000: 0.5080993
+Accuracy@0.200: 0.5080993
+Accuracy@0.400: 0.5080993
+Accuracy@0.600: 0.55474156
+Accuracy@0.800: 0.5701262
+Accuracy@1.000: 0.4919007
+Accuracy@0.000 (reversed): 0.4919007
+
+gcn-truncated(epochs: 50, learning-rate: 0.3)
+
+Precision@0.000: 0.5082621
+Precision@0.200: 0.5082621
+Precision@0.400: 0.5082621
 Precision@0.600: nan
 Precision@0.800: nan
 Precision@1.000: nan
+Precision@0.000 (reversed): 0.49173787
 Recall@0.000: 1.0
-Recall@0.200: 0.46103173
-Recall@0.400: 0.46103173
-Recall@0.600: 0.0
-Recall@0.800: 0.0
-Recall@1.000: 0.0
-F1Score@0.000: 0.5220535
-F1Score@0.200: nan
-F1Score@0.400: nan
+Recall@0.200: 1.0
+Recall@0.400: 1.0
+Recall@0.600: 0.3095238
+Recall@0.800: 0.3095238
+Recall@1.000: 0.071428575
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.6721454
+F1Score@0.200: 0.6721454
+F1Score@0.400: 0.6721454
 F1Score@0.600: nan
 F1Score@0.800: nan
 F1Score@1.000: nan
-Accuracy@0.000: 0.3653846
-Accuracy@0.200: 0.45576924
-Accuracy@0.400: 0.45576924
-Accuracy@0.600: 0.6346154
-Accuracy@0.800: 0.6346154
-Accuracy@1.000: 0.6346154
+F1Score@0.000 (reversed): 0.6574846
+Accuracy@0.000: 0.5082621
+Accuracy@0.200: 0.5082621
+Accuracy@0.400: 0.5082621
+Accuracy@0.600: 0.5019943
+Accuracy@0.800: 0.5019943
+Accuracy@1.000: 0.5071225
+Accuracy@0.000 (reversed): 0.49173787
 
-Truncated GCN model (entity embeddings + output layer) trained 50 epochs, learning-rate = 0.001
+gcn-truncated(epochs: 100, learning-rate: 0.01)
 
-Precision@0.000: 0.36807692
-Precision@0.200: 0.3376535
-Precision@0.400: 0.3376535
+Precision@0.000: 0.50793654
+Precision@0.200: 0.50793654
+Precision@0.400: 0.50793654
+Precision@0.600: 0.5248553
+Precision@0.800: 0.52777773
+Precision@1.000: nan
+Precision@0.000 (reversed): 0.4920635
+Recall@0.000: 1.0
+Recall@0.200: 1.0
+Recall@0.400: 1.0
+Recall@0.600: 1.0
+Recall@0.800: 0.989899
+Recall@1.000: 0.0
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.6735878
+F1Score@0.200: 0.6735878
+F1Score@0.400: 0.6735878
+F1Score@0.600: 0.6880694
+F1Score@0.800: 0.6881721
+F1Score@1.000: nan
+F1Score@0.000 (reversed): 0.65947485
+Accuracy@0.000: 0.50793654
+Accuracy@0.200: 0.50793654
+Accuracy@0.400: 0.50793654
+Accuracy@0.600: 0.53919417
+Accuracy@0.800: 0.5443223
+Accuracy@1.000: 0.4920635
+Accuracy@0.000 (reversed): 0.4920635
+
+gcn-truncated(epochs: 100, learning-rate: 0.015)
+
+Precision@0.000: 0.50842494
+Precision@0.200: 0.50842494
+Precision@0.400: 0.50842494
+Precision@0.600: 0.543426
+Precision@0.800: 0.5526369
+Precision@1.000: nan
+Precision@0.000 (reversed): 0.49157512
+Recall@0.000: 1.0
+Recall@0.200: 1.0
+Recall@0.400: 1.0
+Recall@0.600: 1.0
+Recall@0.800: 1.0
+Recall@1.000: 0.0
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.6720974
+F1Score@0.200: 0.6720974
+F1Score@0.400: 0.6720974
+F1Score@0.600: 0.70147926
+F1Score@0.800: 0.7091019
+F1Score@1.000: nan
+F1Score@0.000 (reversed): 0.65710783
+Accuracy@0.000: 0.50842494
+Accuracy@0.200: 0.50842494
+Accuracy@0.400: 0.50842494
+Accuracy@0.600: 0.5709402
+Accuracy@0.800: 0.5864876
+Accuracy@1.000: 0.49157512
+Accuracy@0.000 (reversed): 0.49157512
+
+gcn-truncated(epochs: 100, learning-rate: 0.3)
+
+Precision@0.000: 0.5082621
+Precision@0.200: 0.5082621
+Precision@0.400: 0.5082621
 Precision@0.600: nan
 Precision@0.800: nan
 Precision@1.000: nan
+Precision@0.000 (reversed): 0.49173787
 Recall@0.000: 1.0
-Recall@0.200: 0.4564286
-Recall@0.400: 0.4564286
-Recall@0.600: 0.0
-Recall@0.800: 0.0
-Recall@1.000: 0.0
-F1Score@0.000: 0.5340826
-F1Score@0.200: 0.38301554
-F1Score@0.400: 0.38301554
+Recall@0.200: 1.0
+Recall@0.400: 1.0
+Recall@0.600: 0.33333334
+Recall@0.800: 0.33333334
+Recall@1.000: 0.2121212
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.67311144
+F1Score@0.200: 0.67311144
+F1Score@0.400: 0.67311144
 F1Score@0.600: nan
 F1Score@0.800: nan
 F1Score@1.000: nan
-Accuracy@0.000: 0.36807692
-Accuracy@0.200: 0.46115384
-Accuracy@0.400: 0.46115384
-Accuracy@0.600: 0.6319231
-Accuracy@0.800: 0.6319231
-Accuracy@1.000: 0.6319231
+F1Score@0.000 (reversed): 0.65839285
+Accuracy@0.000: 0.5082621
+Accuracy@0.200: 0.5082621
+Accuracy@0.400: 0.5082621
+Accuracy@0.600: 0.54814816
+Accuracy@0.800: 0.54814816
+Accuracy@1.000: 0.53276354
+Accuracy@0.000 (reversed): 0.49173787
 
-Truncated GCN model (entity embeddings + output layer) trained 50 epochs, learning-rate = 0.01
+gcn-truncated(epochs: 500, learning-rate: 0.01)
 
-Precision@0.000: 0.36807692
-Precision@0.200: 0.31737372
-Precision@0.400: 0.31737372
+Precision@0.000: 0.5082621
+Precision@0.200: 0.5082621
+Precision@0.400: 0.5082621
+Precision@0.600: 0.5338043
+Precision@0.800: 0.5435629
+Precision@1.000: nan
+Precision@0.000 (reversed): 0.49173793
+Recall@0.000: 1.0
+Recall@0.200: 1.0
+Recall@0.400: 1.0
+Recall@0.600: 1.0
+Recall@0.800: 1.0
+Recall@1.000: 0.0
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.67330426
+F1Score@0.200: 0.67330426
+F1Score@0.400: 0.67330426
+F1Score@0.600: 0.69503546
+F1Score@0.800: 0.702872
+F1Score@1.000: nan
+F1Score@0.000 (reversed): 0.6585743
+Accuracy@0.000: 0.5082621
+Accuracy@0.200: 0.5082621
+Accuracy@0.400: 0.5082621
+Accuracy@0.600: 0.5550672
+Accuracy@0.800: 0.57077736
+Accuracy@1.000: 0.49173793
+Accuracy@0.000 (reversed): 0.49173793
+
+gcn-truncated(epochs: 500, learning-rate: 0.015)
+
+Precision@0.000: 0.50842494
+Precision@0.200: 0.50842494
+Precision@0.400: 0.50842494
+Precision@0.600: 0.5437474
+Precision@0.800: 0.54646975
+Precision@1.000: nan
+Precision@0.000 (reversed): 0.49157512
+Recall@0.000: 1.0
+Recall@0.200: 1.0
+Recall@0.400: 1.0
+Recall@0.600: 1.0
+Recall@0.800: 1.0
+Recall@1.000: 0.0
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.6714098
+F1Score@0.200: 0.6714098
+F1Score@0.400: 0.6714098
+F1Score@0.600: 0.7024915
+F1Score@0.800: 0.70501256
+F1Score@1.000: nan
+F1Score@0.000 (reversed): 0.656481
+Accuracy@0.000: 0.50842494
+Accuracy@0.200: 0.50842494
+Accuracy@0.400: 0.50842494
+Accuracy@0.600: 0.5757428
+Accuracy@0.800: 0.58087105
+Accuracy@1.000: 0.49157512
+Accuracy@0.000 (reversed): 0.49157512
+
+gcn-truncated(epochs: 500, learning-rate: 0.3)
+
+Precision@0.000: 0.50793654
+Precision@0.200: 0.50793654
+Precision@0.400: 0.50793654
 Precision@0.600: nan
 Precision@0.800: nan
 Precision@1.000: nan
+Precision@0.000 (reversed): 0.4920635
 Recall@0.000: 1.0
-Recall@0.200: 0.44154763
-Recall@0.400: 0.44154763
+Recall@0.200: 1.0
+Recall@0.400: 1.0
 Recall@0.600: 0.0
 Recall@0.800: 0.0
 Recall@1.000: 0.0
-F1Score@0.000: 0.5336756
-F1Score@0.200: nan
-F1Score@0.400: nan
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.6717136
+F1Score@0.200: 0.6717136
+F1Score@0.400: 0.6717136
 F1Score@0.600: nan
 F1Score@0.800: nan
 F1Score@1.000: nan
-Accuracy@0.000: 0.36807692
-Accuracy@0.200: 0.46384615
-Accuracy@0.400: 0.46384615
-Accuracy@0.600: 0.6319231
-Accuracy@0.800: 0.6319231
-Accuracy@1.000: 0.6319231
+F1Score@0.000 (reversed): 0.6576007
+Accuracy@0.000: 0.50793654
+Accuracy@0.200: 0.50793654
+Accuracy@0.400: 0.50793654
+Accuracy@0.600: 0.4869353
+Accuracy@0.800: 0.4869353
+Accuracy@1.000: 0.4869353
+Accuracy@0.000 (reversed): 0.4920635
 
-Truncated GCN model (entity embeddings + output layer) trained 50 epochs, learning-rate = 0.1
+gcn-truncated(epochs: 1000, learning-rate: 0.01)
 
-Precision@0.000: 0.37346154
-Precision@0.200: 0.34293485
-Precision@0.400: 0.34293485
+Precision@0.000: 0.50695974
+Precision@0.200: 0.50695974
+Precision@0.400: 0.50695974
+Precision@0.600: 0.51495296
+Precision@0.800: 0.535337
+Precision@1.000: nan
+Precision@0.000 (reversed): 0.49304032
+Recall@0.000: 1.0
+Recall@0.200: 1.0
+Recall@0.400: 1.0
+Recall@0.600: 1.0
+Recall@0.800: 0.9916666
+Recall@1.000: 0.0
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.669246
+F1Score@0.200: 0.669246
+F1Score@0.400: 0.669246
+F1Score@0.600: 0.67620134
+F1Score@0.800: 0.6914285
+F1Score@1.000: nan
+F1Score@0.000 (reversed): 0.65656567
+Accuracy@0.000: 0.50695974
+Accuracy@0.200: 0.50695974
+Accuracy@0.400: 0.50695974
+Accuracy@0.600: 0.52250713
+Accuracy@0.800: 0.5587302
+Accuracy@1.000: 0.49304032
+Accuracy@0.000 (reversed): 0.49304032
+
+gcn-truncated(epochs: 1000, learning-rate: 0.015)
+
+Precision@0.000: 0.50842494
+Precision@0.200: 0.50842494
+Precision@0.400: 0.50842494
+Precision@0.600: 0.5351852
+Precision@0.800: 0.5420818
+Precision@1.000: nan
+Precision@0.000 (reversed): 0.49157512
+Recall@0.000: 1.0
+Recall@0.200: 1.0
+Recall@0.400: 1.0
+Recall@0.600: 1.0
+Recall@0.800: 1.0
+Recall@1.000: 0.0
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.6714098
+F1Score@0.200: 0.6714098
+F1Score@0.400: 0.6714098
+F1Score@0.600: 0.69499177
+F1Score@0.800: 0.70031095
+F1Score@1.000: nan
+F1Score@0.000 (reversed): 0.656481
+Accuracy@0.000: 0.50842494
+Accuracy@0.200: 0.50842494
+Accuracy@0.400: 0.50842494
+Accuracy@0.600: 0.5601954
+Accuracy@0.800: 0.57077736
+Accuracy@1.000: 0.4864469
+Accuracy@0.000 (reversed): 0.49157512
+
+gcn-truncated(epochs: 1000, learning-rate: 0.3)
+
+Precision@0.000: 0.5087505
+Precision@0.200: 0.5087505
+Precision@0.400: 0.5087505
 Precision@0.600: nan
 Precision@0.800: nan
 Precision@1.000: nan
+Precision@0.000 (reversed): 0.49124953
 Recall@0.000: 1.0
-Recall@0.200: 0.4738997
-Recall@0.400: 0.4738997
-Recall@0.600: 0.0
-Recall@0.800: 0.0
-Recall@1.000: 0.0
-F1Score@0.000: 0.5376616
-F1Score@0.200: nan
-F1Score@0.400: nan
+Recall@0.200: 1.0
+Recall@0.400: 1.0
+Recall@0.600: 0.053763438
+Recall@0.800: 0.053763438
+Recall@1.000: 0.021505376
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.6717766
+F1Score@0.200: 0.6717766
+F1Score@0.400: 0.6717766
 F1Score@0.600: nan
 F1Score@0.800: nan
 F1Score@1.000: nan
-Accuracy@0.000: 0.37346154
-Accuracy@0.200: 0.46384615
-Accuracy@0.400: 0.46384615
-Accuracy@0.600: 0.62653846
-Accuracy@0.800: 0.62653846
-Accuracy@1.000: 0.62653846
+F1Score@0.000 (reversed): 0.6559739
+Accuracy@0.000: 0.5087505
+Accuracy@0.200: 0.5087505
+Accuracy@0.400: 0.5087505
+Accuracy@0.600: 0.4861213
+Accuracy@0.800: 0.4861213
+Accuracy@1.000: 0.49637774
+Accuracy@0.000 (reversed): 0.49124953
 
-Truncated GCN model (entity embeddings + output layer) trained 100 epochs, learning-rate = 0.001
+gcn-truncated(epochs: 5000, learning-rate: 0.01)
 
-Precision@0.000: 0.37346154
-Precision@0.200: 0.3380231
-Precision@0.400: 0.3380231
+Precision@0.000: 0.5071225
+Precision@0.200: 0.5071225
+Precision@0.400: 0.5071225
+Precision@0.600: 0.586454
+Precision@0.800: 0.5711219
+Precision@1.000: nan
+Precision@0.000 (reversed): 0.4928775
+Recall@0.000: 1.0
+Recall@0.200: 1.0
+Recall@0.400: 1.0
+Recall@0.600: 0.7383513
+Recall@0.800: 0.63734293
+Recall@1.000: 0.0
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.6704059
+F1Score@0.200: 0.6704059
+F1Score@0.400: 0.6704059
+F1Score@0.600: 0.6415078
+F1Score@0.800: 0.58736324
+F1Score@1.000: nan
+F1Score@0.000 (reversed): 0.6575276
+Accuracy@0.000: 0.5071225
+Accuracy@0.200: 0.5071225
+Accuracy@0.400: 0.5071225
+Accuracy@0.600: 0.60154665
+Accuracy@0.800: 0.5759056
+Accuracy@1.000: 0.4928775
+Accuracy@0.000 (reversed): 0.4928775
+
+gcn-truncated(epochs: 5000, learning-rate: 0.015)
+
+Precision@0.000: 0.50793654
+Precision@0.200: 0.50793654
+Precision@0.400: 0.50793654
 Precision@0.600: nan
 Precision@0.800: nan
 Precision@1.000: nan
+Precision@0.000 (reversed): 0.4920635
 Recall@0.000: 1.0
-Recall@0.200: 0.48858586
-Recall@0.400: 0.48858586
-Recall@0.600: 0.0
-Recall@0.800: 0.0
+Recall@0.200: 1.0
+Recall@0.400: 1.0
+Recall@0.600: 0.41562685
+Recall@0.800: 0.40552583
 Recall@1.000: 0.0
-F1Score@0.000: 0.53112483
-F1Score@0.200: nan
-F1Score@0.400: nan
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.67340064
+F1Score@0.200: 0.67340064
+F1Score@0.400: 0.67340064
 F1Score@0.600: nan
 F1Score@0.800: nan
 F1Score@1.000: nan
-Accuracy@0.000: 0.37346154
-Accuracy@0.200: 0.4665385
-Accuracy@0.400: 0.4665385
-Accuracy@0.600: 0.6265385
-Accuracy@0.800: 0.6265385
-Accuracy@1.000: 0.6265385
+F1Score@0.000 (reversed): 0.65928775
+Accuracy@0.000: 0.50793654
+Accuracy@0.200: 0.50793654
+Accuracy@0.400: 0.50793654
+Accuracy@0.600: 0.55954415
+Accuracy@0.800: 0.5698006
+Accuracy@1.000: 0.4920635
+Accuracy@0.000 (reversed): 0.4920635
 
-Truncated GCN model (entity embeddings + output layer) trained 100 epochs, learning-rate = 0.01
+gcn-truncated(epochs: 5000, learning-rate: 0.3)
 
-Precision@0.000: 0.37884617
-Precision@0.200: 0.33079058
-Precision@0.400: 0.33079058
+Precision@0.000: 0.50842494
+Precision@0.200: 0.50842494
+Precision@0.400: 0.50842494
 Precision@0.600: nan
 Precision@0.800: nan
 Precision@1.000: nan
+Precision@0.000 (reversed): 0.49157512
 Recall@0.000: 1.0
-Recall@0.200: 0.44540602
-Recall@0.400: 0.44540602
-Recall@0.600: 0.0
-Recall@0.800: 0.0
-Recall@1.000: 0.0
-F1Score@0.000: 0.53538907
-F1Score@0.200: nan
-F1Score@0.400: nan
+Recall@0.200: 1.0
+Recall@0.400: 1.0
+Recall@0.600: 0.14814815
+Recall@0.800: 0.14814815
+Recall@1.000: 0.06481481
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.6725878
+F1Score@0.200: 0.6725878
+F1Score@0.400: 0.6725878
 F1Score@0.600: nan
 F1Score@0.800: nan
 F1Score@1.000: nan
-Accuracy@0.000: 0.37884617
-Accuracy@0.200: 0.4611538
-Accuracy@0.400: 0.4611538
-Accuracy@0.600: 0.6211538
-Accuracy@0.800: 0.6211538
-Accuracy@1.000: 0.6211538
+F1Score@0.000 (reversed): 0.65755504
+Accuracy@0.000: 0.50842494
+Accuracy@0.200: 0.50842494
+Accuracy@0.400: 0.50842494
+Accuracy@0.600: 0.5127391
+Accuracy@0.800: 0.5127391
+Accuracy@1.000: 0.48099312
+Accuracy@0.000 (reversed): 0.49157512
 
-Truncated GCN model (entity embeddings + output layer) trained 100 epochs, learning-rate = 0.1
+gcn-truncated(epochs: 10000, learning-rate: 0.01)
 
-Precision@0.000: 0.36807692
-Precision@0.200: 0.3288402
-Precision@0.400: 0.3288402
+Precision@0.000: 0.5087505
+Precision@0.200: 0.5087505
+Precision@0.400: 0.5087505
+Precision@0.600: 0.529614
+Precision@0.800: 0.5421663
+Precision@1.000: 0.38333333
+Precision@0.000 (reversed): 0.49124953
+Recall@0.000: 1.0
+Recall@0.200: 1.0
+Recall@0.400: 1.0
+Recall@0.600: 1.0
+Recall@0.800: 1.0
+Recall@1.000: 0.04177156
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.6717766
+F1Score@0.200: 0.6717766
+F1Score@0.400: 0.6717766
+F1Score@0.600: 0.6904252
+F1Score@0.800: 0.7005873
+F1Score@1.000: 0.07390572
+F1Score@0.000 (reversed): 0.6559739
+Accuracy@0.000: 0.5087505
+Accuracy@0.200: 0.5087505
+Accuracy@0.400: 0.5087505
+Accuracy@0.600: 0.549939
+Accuracy@0.800: 0.57077736
+Accuracy@1.000: 0.47586492
+Accuracy@0.000 (reversed): 0.49124953
+
+gcn-truncated(epochs: 10000, learning-rate: 0.015)
+
+Precision@0.000: 0.50647134
+Precision@0.200: 0.50647134
+Precision@0.400: 0.50647134
+Precision@0.600: 0.542401
+Precision@0.800: 0.54950386
+Precision@1.000: nan
+Precision@0.000 (reversed): 0.4935287
+Recall@0.000: 1.0
+Recall@0.200: 1.0
+Recall@0.400: 1.0
+Recall@0.600: 0.8954823
+Recall@0.800: 0.8688645
+Recall@1.000: 0.06150794
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.6672414
+F1Score@0.200: 0.6672414
+F1Score@0.400: 0.6672414
+F1Score@0.600: 0.66183984
+F1Score@0.800: 0.656884
+F1Score@1.000: nan
+F1Score@0.000 (reversed): 0.6559045
+Accuracy@0.000: 0.50647134
+Accuracy@0.200: 0.50647134
+Accuracy@0.400: 0.50647134
+Accuracy@0.600: 0.54831094
+Accuracy@0.800: 0.55376476
+Accuracy@1.000: 0.51387876
+Accuracy@0.000 (reversed): 0.4935287
+
+gcn-truncated(epochs: 10000, learning-rate: 0.3)
+
+Precision@0.000: 0.50695974
+Precision@0.200: 0.50695974
+Precision@0.400: 0.50695974
 Precision@0.600: nan
 Precision@0.800: nan
 Precision@1.000: nan
+Precision@0.000 (reversed): 0.49304032
 Recall@0.000: 1.0
-Recall@0.200: 0.49226183
-Recall@0.400: 0.49226183
+Recall@0.200: 1.0
+Recall@0.400: 1.0
 Recall@0.600: 0.0
 Recall@0.800: 0.0
 Recall@1.000: 0.0
-F1Score@0.000: 0.5284165
-F1Score@0.200: 0.38321152
-F1Score@0.400: 0.38321152
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.66993123
+F1Score@0.200: 0.66993123
+F1Score@0.400: 0.66993123
 F1Score@0.600: nan
 F1Score@0.800: nan
 F1Score@1.000: nan
-Accuracy@0.000: 0.36807692
-Accuracy@0.200: 0.46923074
-Accuracy@0.400: 0.46923074
-Accuracy@0.600: 0.6319231
-Accuracy@0.800: 0.6319231
-Accuracy@1.000: 0.6319231
-
-Truncated GCN model (entity embeddings + output layer) trained 500 epochs, learning-rate = 0.001
-
-Precision@0.000: 0.37346154
-Precision@0.200: 0.36148354
-Precision@0.400: 0.36148354
-Precision@0.600: nan
-Precision@0.800: nan
-Precision@1.000: nan
-Recall@0.000: 1.0
-Recall@0.200: 0.47174603
-Recall@0.400: 0.47174603
-Recall@0.600: 0.0
-Recall@0.800: 0.0
-Recall@1.000: 0.0
-F1Score@0.000: 0.5363072
-F1Score@0.200: 0.39032573
-F1Score@0.400: 0.39032573
-F1Score@0.600: nan
-F1Score@0.800: nan
-F1Score@1.000: nan
-Accuracy@0.000: 0.37346154
-Accuracy@0.200: 0.45846158
-Accuracy@0.400: 0.45846158
-Accuracy@0.600: 0.6265384
-Accuracy@0.800: 0.6265384
-Accuracy@1.000: 0.6265384
-
-Truncated GCN model (entity embeddings + output layer) trained 500 epochs, learning-rate = 0.01
-
-Precision@0.000: 0.38153848
-Precision@0.200: 0.34569263
-Precision@0.400: 0.34569263
-Precision@0.600: nan
-Precision@0.800: nan
-Precision@1.000: nan
-Recall@0.000: 1.0
-Recall@0.200: 0.43055552
-Recall@0.400: 0.43055552
-Recall@0.600: 0.0
-Recall@0.800: 0.0
-Recall@1.000: 0.0
-F1Score@0.000: 0.5378333
-F1Score@0.200: nan
-F1Score@0.400: nan
-F1Score@0.600: nan
-F1Score@0.800: nan
-F1Score@1.000: nan
-Accuracy@0.000: 0.38153848
-Accuracy@0.200: 0.46115384
-Accuracy@0.400: 0.46115384
-Accuracy@0.600: 0.6184615
-Accuracy@0.800: 0.6184615
-Accuracy@1.000: 0.6184615
-
-Truncated GCN model (entity embeddings + output layer) trained 500 epochs, learning-rate = 0.1
-
-Precision@0.000: 0.37076923
-Precision@0.200: 0.33962122
-Precision@0.400: 0.33962122
-Precision@0.600: nan
-Precision@0.800: nan
-Precision@1.000: nan
-Recall@0.000: 1.0
-Recall@0.200: 0.5119589
-Recall@0.400: 0.5119589
-Recall@0.600: 0.0
-Recall@0.800: 0.0
-Recall@1.000: 0.0
-F1Score@0.000: 0.5369114
-F1Score@0.200: 0.39694446
-F1Score@0.400: 0.39694446
-F1Score@0.600: nan
-F1Score@0.800: nan
-F1Score@1.000: nan
-Accuracy@0.000: 0.37076923
-Accuracy@0.200: 0.46923074
-Accuracy@0.400: 0.46923074
-Accuracy@0.600: 0.6292308
-Accuracy@0.800: 0.6292308
-Accuracy@1.000: 0.6292308
-
-Truncated GCN model (entity embeddings + output layer) trained 1000 epochs, learning-rate = 0.001
-
-Precision@0.000: 0.37615386
-Precision@0.200: 0.3225075
-Precision@0.400: 0.3225075
-Precision@0.600: nan
-Precision@0.800: nan
-Precision@1.000: nan
-Recall@0.000: 1.0
-Recall@0.200: 0.47891417
-Recall@0.400: 0.47891417
-Recall@0.600: 0.0
-Recall@0.800: 0.0
-Recall@1.000: 0.0
-F1Score@0.000: 0.5366342
-F1Score@0.200: 0.37413526
-F1Score@0.400: 0.37413526
-F1Score@0.600: nan
-F1Score@0.800: nan
-F1Score@1.000: nan
-Accuracy@0.000: 0.37615386
-Accuracy@0.200: 0.45576924
-Accuracy@0.400: 0.45576924
-Accuracy@0.600: 0.6238462
-Accuracy@0.800: 0.6238462
-Accuracy@1.000: 0.6238462
-
-Truncated GCN model (entity embeddings + output layer) trained 1000 epochs, learning-rate = 0.01
-
-Precision@0.000: 0.3761539
-Precision@0.200: 0.33167946
-Precision@0.400: 0.33167946
-Precision@0.600: nan
-Precision@0.800: nan
-Precision@1.000: nan
-Recall@0.000: 1.0
-Recall@0.200: 0.46944442
-Recall@0.400: 0.46944442
-Recall@0.600: 0.0
-Recall@0.800: 0.0
-Recall@1.000: 0.0
-F1Score@0.000: 0.54045004
-F1Score@0.200: 0.37600225
-F1Score@0.400: 0.37600225
-F1Score@0.600: nan
-F1Score@0.800: nan
-F1Score@1.000: nan
-Accuracy@0.000: 0.3761539
-Accuracy@0.200: 0.45846158
-Accuracy@0.400: 0.45846158
-Accuracy@0.600: 0.6238462
-Accuracy@0.800: 0.6238462
-Accuracy@1.000: 0.6238462
-
-Truncated GCN model (entity embeddings + output layer) trained 1000 epochs, learning-rate = 0.1
-
-Precision@0.000: 0.37884617
-Precision@0.200: 0.3485859
-Precision@0.400: 0.3485859
-Precision@0.600: nan
-Precision@0.800: nan
-Precision@1.000: nan
-Recall@0.000: 1.0
-Recall@0.200: 0.4629942
-Recall@0.400: 0.4629942
-Recall@0.600: 0.0
-Recall@0.800: 0.0
-Recall@1.000: 0.0
-F1Score@0.000: 0.5397414
-F1Score@0.200: 0.38693047
-F1Score@0.400: 0.38693047
-F1Score@0.600: nan
-F1Score@0.800: nan
-F1Score@1.000: nan
-Accuracy@0.000: 0.37884617
-Accuracy@0.200: 0.45576924
-Accuracy@0.400: 0.45576924
-Accuracy@0.600: 0.6211538
-Accuracy@0.800: 0.6211538
-Accuracy@1.000: 0.6211538
-
-Truncated GCN model (entity embeddings + output layer) trained 5000 epochs, learning-rate = 0.001
-
-Precision@0.000: 0.3707692
-Precision@0.200: 0.34183264
-Precision@0.400: 0.34183264
-Precision@0.600: nan
-Precision@0.800: nan
-Precision@1.000: nan
-Recall@0.000: 1.0
-Recall@0.200: 0.46583334
-Recall@0.400: 0.46583334
-Recall@0.600: 0.0
-Recall@0.800: 0.0
-Recall@1.000: 0.0
-F1Score@0.000: 0.5340593
-F1Score@0.200: 0.38338763
-F1Score@0.400: 0.38338763
-F1Score@0.600: nan
-F1Score@0.800: nan
-F1Score@1.000: nan
-Accuracy@0.000: 0.3707692
-Accuracy@0.200: 0.45846152
-Accuracy@0.400: 0.45846152
-Accuracy@0.600: 0.6292308
-Accuracy@0.800: 0.6292308
-Accuracy@1.000: 0.6292308
-
-Truncated GCN model (entity embeddings + output layer) trained 5000 epochs, learning-rate = 0.01
-
-Precision@0.000: 0.36807692
-Precision@0.200: 0.33551225
-Precision@0.400: 0.33551225
-Precision@0.600: nan
-Precision@0.800: nan
-Precision@1.000: nan
-Recall@0.000: 1.0
-Recall@0.200: 0.46130952
-Recall@0.400: 0.46130952
-Recall@0.600: 0.0
-Recall@0.800: 0.0
-Recall@1.000: 0.0
-F1Score@0.000: 0.53477585
-F1Score@0.200: 0.38304216
-F1Score@0.400: 0.38304216
-F1Score@0.600: nan
-F1Score@0.800: nan
-F1Score@1.000: nan
-Accuracy@0.000: 0.36807692
-Accuracy@0.200: 0.4638462
-Accuracy@0.400: 0.4638462
-Accuracy@0.600: 0.6319231
-Accuracy@0.800: 0.6319231
-Accuracy@1.000: 0.6319231
-
-Truncated GCN model (entity embeddings + output layer) trained 5000 epochs, learning-rate = 0.1
-
-Precision@0.000: 0.3707692
-Precision@0.200: 0.34240758
-Precision@0.400: 0.34240758
-Precision@0.600: nan
-Precision@0.800: nan
-Precision@1.000: nan
-Recall@0.000: 1.0
-Recall@0.200: 0.4671537
-Recall@0.400: 0.4671537
-Recall@0.600: 0.0
-Recall@0.800: 0.0
-Recall@1.000: 0.0
-F1Score@0.000: 0.5369535
-F1Score@0.200: 0.38735455
-F1Score@0.400: 0.38735455
-F1Score@0.600: nan
-F1Score@0.800: nan
-F1Score@1.000: nan
-Accuracy@0.000: 0.3707692
-Accuracy@0.200: 0.45307693
-Accuracy@0.400: 0.45307693
-Accuracy@0.600: 0.6292307
-Accuracy@0.800: 0.6292307
-Accuracy@1.000: 0.6292307
-
-Truncated GCN model (entity embeddings + output layer) trained 10000 epochs, learning-rate = 0.001
-
-Precision@0.000: 0.37615386
-Precision@0.200: 0.32936454
-Precision@0.400: 0.32936454
-Precision@0.600: nan
-Precision@0.800: nan
-Precision@1.000: nan
-Recall@0.000: 1.0
-Recall@0.200: 0.44997835
-Recall@0.400: 0.44997835
-Recall@0.600: 0.0
-Recall@0.800: 0.0
-Recall@1.000: 0.0
-F1Score@0.000: 0.5382689
-F1Score@0.200: 0.37461045
-F1Score@0.400: 0.37461045
-F1Score@0.600: nan
-F1Score@0.800: nan
-F1Score@1.000: nan
-Accuracy@0.000: 0.37615386
-Accuracy@0.200: 0.46115384
-Accuracy@0.400: 0.46115384
-Accuracy@0.600: 0.6238462
-Accuracy@0.800: 0.6238462
-Accuracy@1.000: 0.6238462
-
-Truncated GCN model (entity embeddings + output layer) trained 10000 epochs, learning-rate = 0.01
-
-Precision@0.000: 0.36807692
-Precision@0.200: 0.33397022
-Precision@0.400: 0.33397022
-Precision@0.600: nan
-Precision@0.800: nan
-Precision@1.000: nan
-Recall@0.000: 1.0
-Recall@0.200: 0.5157539
-Recall@0.400: 0.5157539
-Recall@0.600: 0.0
-Recall@0.800: 0.0
-Recall@1.000: 0.0
-F1Score@0.000: 0.531676
-F1Score@0.200: 0.39186925
-F1Score@0.400: 0.39186925
-F1Score@0.600: nan
-F1Score@0.800: nan
-F1Score@1.000: nan
-Accuracy@0.000: 0.36807692
-Accuracy@0.200: 0.4638462
-Accuracy@0.400: 0.4638462
-Accuracy@0.600: 0.6319231
-Accuracy@0.800: 0.6319231
-Accuracy@1.000: 0.6319231
-
-Truncated GCN model (entity embeddings + output layer) trained 10000 epochs, learning-rate = 0.1
-
-Precision@0.000: 0.3707692
-Precision@0.200: 0.3397078
-Precision@0.400: 0.3397078
-Precision@0.600: nan
-Precision@0.800: nan
-Precision@1.000: nan
-Recall@0.000: 1.0
-Recall@0.200: 0.48492375
-Recall@0.400: 0.48492375
-Recall@0.600: 0.0
-Recall@0.800: 0.0
-Recall@1.000: 0.0
-F1Score@0.000: 0.52766967
-F1Score@0.200: 0.38367954
-F1Score@0.400: 0.38367954
-F1Score@0.600: nan
-F1Score@0.800: nan
-F1Score@1.000: nan
-Accuracy@0.000: 0.3707692
-Accuracy@0.200: 0.46384615
-Accuracy@0.400: 0.46384615
-Accuracy@0.600: 0.6292308
-Accuracy@0.800: 0.6292308
-Accuracy@1.000: 0.6292308
+F1Score@0.000 (reversed): 0.6573903
+Accuracy@0.000: 0.50695974
+Accuracy@0.200: 0.50695974
+Accuracy@0.400: 0.50695974
+Accuracy@0.600: 0.49304032
+Accuracy@0.800: 0.49304032
+Accuracy@1.000: 0.49304032
+Accuracy@0.000 (reversed): 0.49304032

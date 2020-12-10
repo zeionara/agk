@@ -524,6 +524,7 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
     public let relationshipIndex2Id: [NormalizedElement: SourceElement]
     public let device: Device
     public let path: String
+    public let name: String
 
     static func readData<Element>(path: String, stringToSourceElement: (String) -> Element) throws -> [[Element]] {
         let dir = URL(fileURLWithPath: #file.replacingOccurrences(of: "Sources/agk/datasets/KnowledgeGraphDataset.swift", with: ""))
@@ -555,6 +556,7 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
             sourceToNormalizedElement: (SourceElement) -> NormalizedElement
     ) {
         self.path = path
+        self.name = path.components(separatedBy: "/").last!.components(separatedBy: ".").first!
 //        print("Loading frame...")
         let frame_ = TripleFrame(data: try! KnowledgeGraphDataset.readData(path: path, stringToSourceElement: stringToSourceElement), device: device)
 //        print("Generating negative frame...")

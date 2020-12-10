@@ -103,14 +103,7 @@ extension TripleFrame {
 }
 
 extension Tensor where Scalar: Numeric {
-    public var degree: Self {
-        print("1.0")
-        var a = self.sum(alongAxes: 0)
-        print("1.1")
-        a = a.diagonal()
-        print("1.2")
-        a = a.reshaped(to: self.shape)
-        print("1.3")
-        return a
+    public var degree: Tensor<Int32> {
+        return Tensor<Int32>(self).sum(alongAxes: 0).diagonal().reshaped(to: self.shape)
     }
 }
