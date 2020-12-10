@@ -1,5 +1,6 @@
 import Foundation
 import TensorFlow
+import Checkpoints
 
 
 public struct ClassificationCVTester<Model, SourceElement> where Model: GenericModel, SourceElement: Hashable, Model.Scalar == Float {
@@ -22,7 +23,28 @@ public struct ClassificationCVTester<Model, SourceElement> where Model: GenericM
         let evaluation_start_timestamp = DispatchTime.now().uptimeNanoseconds
         for metric in metrics {
             print("Computing \(metric.name)")
-            let value = metric.compute(model: model, trainLabels: trainLabels, testLabels: testLabels, dataset: dataset)
+
+            var tunedMatrix: Tensor<Float>
+            if tunedDegreeMatrices == Optional.none {
+                print("1")
+                let tunedDegreeMatrix = sqrt(Tensor<Float>(frame.adjacencyTensor.degree)).inverse
+                print("2")
+                let tunedMatrix_ = matmul(matmul(tunedDegreeMatrix, Tensor<Float>(frame.adjacencyTensor)), tunedDegreeMatrix)
+                print("3")
+                tunedDegreeMatrices = tunedMatrix_
+                tunedMatrix = tunedMatrix_
+                do {
+                    try CheckpointWriter(tensors: ["matrix": tunedDegreeMatrices!]).write(to: URL(fileURLWithPath: "/home/zeio/agk/data/gcn.agk"), name: "matrix")
+                } catch let exception {
+                    print(exception)
+                }
+            } else {
+                tunedMatrix = tunedDegreeMatrices!
+            }
+
+
+            let logits = model(tunedMatrix).flattened().gathering(atIndices: testLabels.indices)
+            let value = metric.compute(model: model, labels: testLabels.labels.unstacked().map{$0.scalar!}.map{Int32($0)}, logits: logits.unstacked().map{$0.scalar!}, dataset: dataset)
             print("Computed \(metric.name)")
             lockScoresArray?()
             scores[metric.name]!.append(value)

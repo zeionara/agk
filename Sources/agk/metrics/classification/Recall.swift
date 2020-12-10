@@ -1,6 +1,6 @@
 import TensorFlow
 
-public struct Precision: ClassificationMetric {
+public struct Recall: ClassificationMetric {
     public let threshold: Float
     private let nDecimalPlaces: Int
 
@@ -10,7 +10,7 @@ public struct Precision: ClassificationMetric {
      }
 
     public var name: String {
-        "Precision@" + String(format: "%.\(nDecimalPlaces)f", threshold)
+        "Recall@" + String(format: "%.\(nDecimalPlaces)f", threshold)
     }
 
     public func compute<Model, SourceElement>(
@@ -20,7 +20,7 @@ public struct Precision: ClassificationMetric {
         // print("logits: \(logits)")
         let testLabels = logits.map{$0 >= threshold ? 1 : 0}.map{Int32($0)}
         // print("logits: \(testLabels)")
-        let divisor = nPositive(testLabels)
+        let divisor = nPositive(labels)
         return divisor > 0 ? nMatching(labels, testLabels) / divisor : Float.nan
     }
 }

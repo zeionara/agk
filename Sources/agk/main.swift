@@ -110,6 +110,13 @@ let metrics: [Metric] = [
     NDCG(n: 1), NDCG(n: 2), NDCG(n: 3), NDCG(n: 4)
 ]
 
+let classificationMetrics: [ClassificationMetric] = [
+    Precision(0), Precision(0.2), Precision(0.4), Precision(0.6), Precision(0.8), Precision(1),
+    Recall(0), Recall(0.2), Recall(0.4), Recall(0.6), Recall(0.8), Recall(1),
+    F1Score(0), F1Score(0.2), F1Score(0.4), F1Score(0.6), F1Score(0.8), F1Score(1),
+    Accuracy(0), Accuracy(0.2), Accuracy(0.4), Accuracy(0.6), Accuracy(0.8), Accuracy(1)
+]
+
 struct CrossValidate: ParsableCommand {
 
     private enum Model: String, ExpressibleByArgument {
@@ -137,7 +144,7 @@ struct CrossValidate: ParsableCommand {
     @Option(name: .shortAndLong, default: 100, help: "Size of vectors for embeddings generation")
     var embeddingDimensionality: Int
 
-    @Option(name: .shortAndLong, default: 0.001, help: "How fast to tweak the weights")
+    @Option(name: .shortAndLong, default: 0.01, help: "How fast to tweak the weights")
     var learningRate: Float
 
     @Flag(name: .shortAndLong, help: "Perform computations on the gpu")
@@ -153,18 +160,12 @@ struct CrossValidate: ParsableCommand {
         let embeddingDimensionality_ = embeddingDimensionality
 
         if (model == .gcn) {
+            if openke {
+                let model_name = model.rawValue
+                throw ModelError.unsupportedModel(message: "Model \(model_name) is not implemented in the OpenKE library!")
+            }
             let dataset_ = KnowledgeGraphDataset<String, Int32>(path: datasetPath, classes: "adult-audience-oriented.txt", device: device)
-            // var model__ = GCN(embeddingDimensionality: 100, dataset: dataset_, device: device, hiddenLayerSize: 100)
-            // let optimizer_ = Adam<GCN<String, Int32>>(for: model__, learningRate: 0.1)
-            // let trainer_ = ConvolutionClassificationTrainer(nEpochs: 100, batchSize: 1000)
-            // print("training...")
-            // trainer_.train(dataset: dataset_, model: &model__, optimizer: optimizer_)
-            
-            // for split in dataset_.labelFrame!.cv(nFolds: 10) {
-            //     print(split.test.labels)
-            // }
-        
-            ClassificationCVTester<GCN<String, Int32>, String>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(dataset: dataset_, metrics: [Precision()], enableParallelism: false) { frame, trainer, labels in
+            ClassificationCVTester<GCN<String, Int32>, String>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(dataset: dataset_, metrics: classificationMetrics, enableParallelism: false) { frame, trainer, labels in
                 var model_ = GCN(embeddingDimensionality: embeddingDimensionality_, dataset: dataset_, device: device) // :TransE(embeddingDimensionality: embeddingDimensionality, dataset: dataset, device: device)
                 var optimizer = Adam<GCN<String, Int32>>(for: model_, learningRate: learningRate_)
                 trainer.train(dataset: dataset_, model: &model_, optimizer: &optimizer, labels: labels, frame: frame) // loss: computeSigmoidLoss
@@ -267,7 +268,7 @@ struct RestructureReport: ParsableCommand {
 //                print("f")
                 while lines[offset] != "" {
                     let metricWithValue = lines[offset].components(separatedBy: ": ")
-                    metrics[metricWithValue[0]] = Float(metricWithValue[1])!
+                    metrics[metricWithValue[0]] = metricWithValue[1] != "nan" ? Float(metricWithValue[1])! : Float.nan
                     offset += 1
                 }
 //                print(offset)
@@ -284,7 +285,7 @@ struct RestructureReport: ParsableCommand {
             $0.header
         }
         var lines: [String] = ["metric\t\(model_keys.joined(separator: "\t"))"] + metric_keys.map { metric in
-            "\(metric)\t\(model_keys.map {String(format: "%.\(nDecimalPlaces)f", data[$0]!.metrics[metric]!)}.joined(separator: "\t"))"
+            "\(metric)\t\(model_keys.map{data[$0]!.metrics[metric]! == Float.nan ? "-" : String(format: "%.\(nDecimalPlaces)f", data[$0]!.metrics[metric]!)}.joined(separator: "\t"))"
         }
         try writeLines(path: path, lines: lines)
     }
