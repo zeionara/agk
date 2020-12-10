@@ -145,7 +145,7 @@ struct CrossValidate: ParsableCommand {
     @Option(name: .shortAndLong, default: 1000, help: "How many samples to put through the model at once")
     var batchSize: Int
 
-    @Option(name: .shortAndLong, default: 10, help: "Size of vectors for embeddings generation")
+    @Option(name: .shortAndLong, default: 200, help: "Size of vectors for embeddings generation")
     var embeddingDimensionality: Int
 
     @Option(name: .shortAndLong, default: 0.015, help: "How fast to tweak the weights")
@@ -168,9 +168,9 @@ struct CrossValidate: ParsableCommand {
                 let model_name = model.rawValue
                 throw ModelError.unsupportedModel(message: "Model \(model_name) is not implemented in the OpenKE library!")
             }
-            let dataset_ = KnowledgeGraphDataset<String, Int32>(path: datasetPath, classes: "humorous.txt", device: device)
+            let dataset_ = KnowledgeGraphDataset<String, Int32>(path: datasetPath, classes: "adult-audience-oriented.txt", device: device)
             ClassificationCVTester<GCN<String, Int32>, String>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(dataset: dataset_, metrics: classificationMetrics, enableParallelism: false) { frame, trainer, labels in
-                var model_ = GCN(embeddingDimensionality: embeddingDimensionality_, dataset: dataset_, device: device, hiddenLayerSize: 10) // :TransE(embeddingDimensionality: embeddingDimensionality, dataset: dataset, device: device)
+                var model_ = GCN(embeddingDimensionality: embeddingDimensionality_, dataset: dataset_, device: device, hiddenLayerSize: 100) // :TransE(embeddingDimensionality: embeddingDimensionality, dataset: dataset, device: device)
                 var optimizer = Adam<GCN<String, Int32>>(for: model_, learningRate: learningRate_)
                 trainer.train(dataset: dataset_, model: &model_, optimizer: &optimizer, labels: labels, frame: frame) // loss: computeSigmoidLoss
                 return model_

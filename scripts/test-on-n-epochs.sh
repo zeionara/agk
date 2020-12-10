@@ -8,7 +8,7 @@ test() {
 
 swift build --product agk
 for n_epochs in 10 50 100 500 1000 5000 10000; do
-    for learning_rate in 0.01 0.015 0.3; do
+    for learning_rate in 0.01 0.015 0.07; do
         test $1 $n_epochs $learning_rate
     done
 done

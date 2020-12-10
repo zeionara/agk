@@ -33,6 +33,7 @@ public struct ConvolutionClassificationTrainer {
             // print(grad)
             optimizer.update(&model, along: grad)
             losses.append(loss.scalarized())
+            model = model.normalizeEmbeddings()
             // }
             print("\(i) / \(nEpochs) Epoch. Loss: \(losses.reduce(0, +) / Float(losses.count))")
         }
