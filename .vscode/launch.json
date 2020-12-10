@@ -56,6 +56,22 @@
             // "env": {
             //     "CUDA_VISIBLE_DEVICES": "-1"
             // }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "swift-build",
+            "name": "Generate gcn report",
+            "program": "${workspaceFolder}/.build/debug/agk",
+            "args": [
+                "restructure-report",
+                "raw-reports/gcn-truncated.txt",
+                "reports/gcn-truncated.txt"
+            ],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": [
+                "swift"
+            ]
         }
     ]
 }
