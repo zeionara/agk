@@ -61,12 +61,12 @@
             "type": "lldb",
             "request": "launch",
             "preLaunchTask": "swift-build",
-            "name": "Generate gcn report",
+            "name": "Generate report",
             "program": "${workspaceFolder}/.build/debug/agk",
             "args": [
                 "restructure-report",
-                "raw-reports/gcn-truncated.txt",
-                "reports/gcn-truncated.txt"
+                "raw-reports/vgae-classification.txt",
+                "reports/vgae-classification.txt"
             ],
             "cwd": "${workspaceFolder}",
             "sourceLanguages": [
@@ -84,8 +84,8 @@
                 "-m",
                 "vgae",
                 "-d",
-                "deduplicated-dataset.txt",
-                "--read-embeddings"
+                "deduplicated-dataset.txt"
+                // "--read-embeddings"
             ],
             "cwd": "${workspaceFolder}",
             "sourceLanguages": [

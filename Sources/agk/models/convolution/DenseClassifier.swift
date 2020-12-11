@@ -2,9 +2,11 @@ import Foundation
 import TensorFlow
 import Checkpoints
 
-public struct DenseClassifier<SourceElement, NormalizedElement>: Module where SourceElement: Hashable, NormalizedElement: Hashable, NormalizedElement: Comparable {
+public struct DenseClassifier<SourceElement, NormalizedElement>: GenericModel, Module where SourceElement: Hashable, NormalizedElement: Hashable, NormalizedElement: Comparable {
     @noDerivative public var graphEmbedder: VGAE<SourceElement, NormalizedElement>
     private var layer: Dense<Float>
+    private var inputLayer: Dense<Float>
+    private var dropout: GaussianDropout<Float>
     @noDerivative public let device: Device
 
     public init(
@@ -21,14 +23,28 @@ public struct DenseClassifier<SourceElement, NormalizedElement>: Module where So
             ),
             to: device
         )
+        self.inputLayer = Dense<Float>(
+            copying: Dense<Float>(
+                inputSize: graphEmbedder.entityEmbeddings.embeddings.shape[1],
+                outputSize: graphEmbedder.entityEmbeddings.embeddings.shape[1],
+                activation: activation
+            ),
+            to: device
+        )
+        self.dropout = GaussianDropout<Float>(probability: 0.1)
         self.device = device
     }
 
     @differentiable
     public func callAsFunction(_ entityIds: Tensor<Int32>) -> Tensor<Float> {
+        
         return sigmoid(
             layer(
-                graphEmbedder.entityEmbeddings(entityIds)
+                dropout(
+                    inputLayer(
+                        graphEmbedder.entityEmbeddings(entityIds)
+                    )
+                )
             )
         )
     }

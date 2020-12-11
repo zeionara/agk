@@ -47,8 +47,8 @@ public struct ClassificationCVTester<Model, SourceElement> where Model: GenericM
         let lock = enableParallelism ? NSLock() : Optional.none
 
         for (i, (trainLabels, testLabels)) in dataset.labelFrame!.cv(nFolds: nFolds).enumerated() {
-            group?.enter()
             if enableParallelism {
+                group?.enter()
                 DispatchQueue.global(qos: .userInitiated).async {
                     testOneSplit(frame: dataset.normalizedFrame, trainLabels: trainLabels, testLabels: testLabels, metrics: metrics, scores: &scores, splitIndex: i, dataset: dataset.copy(), train: train) {
                         lock?.lock()

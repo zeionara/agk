@@ -25,6 +25,10 @@ public struct ClassificationTrainer {
                         logits: labels_.flattened().gathering(atIndices: batch.indices) + 0.001,
                         labels: batch.labels + 0.001
                     )
+                    //sigmoidCrossEntropy(
+                    //    logits: labels_.flattened().gathering(atIndices: batch.indices) + 0.001,
+                    //    labels: batch.labels + 0.001
+                    //)
                 }
                 optimizer.update(&model, along: grad)
                 losses.append(loss.scalarized())

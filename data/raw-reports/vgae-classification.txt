@@ -1,0 +1,155 @@
+
+vgae(embeddings=10, hidden=10, lr=0.15)
+
+Precision@0.000: 0.6260481
+Precision@0.200: 0.6260481
+Precision@0.400: 0.6260481
+Precision@0.600: 0.5465608
+Precision@0.800: nan
+Precision@1.000: nan
+Precision@0.000 (reversed): 0.373952
+Recall@0.000: 1.0
+Recall@0.200: 1.0
+Recall@0.400: 1.0
+Recall@0.600: 0.67361116
+Recall@0.800: 0.5897436
+Recall@1.000: 0.0
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.76686287
+F1Score@0.200: 0.76686287
+F1Score@0.400: 0.76686287
+F1Score@0.600: 0.49701032
+F1Score@0.800: nan
+F1Score@1.000: nan
+F1Score@0.000 (reversed): 0.5388325
+Accuracy@0.000: 0.6260481
+Accuracy@0.200: 0.6260481
+Accuracy@0.400: 0.6260481
+Accuracy@0.600: 0.46707368
+Accuracy@0.800: 0.44143263
+Accuracy@1.000: 0.373952
+Accuracy@0.000 (reversed): 0.373952
+
+vgae(embeddings=20, hidden=20, lr=0.15)
+
+Precision@0.000: 0.62686205
+Precision@0.200: 0.62686205
+Precision@0.400: 0.62686205
+Precision@0.600: 0.6301075
+Precision@0.800: nan
+Precision@1.000: nan
+Precision@0.000 (reversed): 0.37313798
+Recall@0.000: 1.0
+Recall@0.200: 1.0
+Recall@0.400: 1.0
+Recall@0.600: 0.98370105
+Recall@0.800: 0.30769232
+Recall@1.000: 0.0
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.77033406
+F1Score@0.200: 0.77033406
+F1Score@0.400: 0.77033406
+F1Score@0.600: 0.76749176
+F1Score@0.800: nan
+F1Score@1.000: nan
+F1Score@0.000 (reversed): 0.5429666
+Accuracy@0.000: 0.62686205
+Accuracy@0.200: 0.62686205
+Accuracy@0.400: 0.62686205
+Accuracy@0.600: 0.62669927
+Accuracy@0.800: 0.42507124
+Accuracy@1.000: 0.37313798
+Accuracy@0.000 (reversed): 0.37313798
+
+vgae(embeddings=20, hidden=20, lr=0.3)
+
+Precision@0.000: 0.62669927
+Precision@0.200: 0.62669927
+Precision@0.400: 0.62669927
+Precision@0.600: 0.6277943
+Precision@0.800: 0.36666667
+Precision@1.000: nan
+Precision@0.000 (reversed): 0.3733008
+Recall@0.000: 1.0
+Recall@0.200: 1.0
+Recall@0.400: 1.0
+Recall@0.600: 0.9694641
+Recall@0.800: 0.34356725
+Recall@1.000: 0.0
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.7682107
+F1Score@0.200: 0.7682107
+F1Score@0.400: 0.7682107
+F1Score@0.600: 0.75830173
+F1Score@0.800: nan
+F1Score@1.000: nan
+F1Score@0.000 (reversed): 0.53964597
+Accuracy@0.000: 0.62669927
+Accuracy@0.200: 0.62669927
+Accuracy@0.400: 0.62669927
+Accuracy@0.600: 0.61644286
+Accuracy@0.800: 0.43166462
+Accuracy@1.000: 0.3733008
+Accuracy@0.000 (reversed): 0.3733008
+
+vgae(embeddings=20, hidden=20, lr=0.005)
+
+Precision@0.000: 0.62718767
+Precision@0.200: 0.62718767
+Precision@0.400: 0.62718767
+Precision@0.600: 0.62718767
+Precision@0.800: 0.6281908
+Precision@1.000: nan
+Precision@0.000 (reversed): 0.3728124
+Recall@0.000: 1.0
+Recall@0.200: 1.0
+Recall@0.400: 1.0
+Recall@0.600: 1.0
+Recall@0.800: 0.9016051
+Recall@1.000: 0.0
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.77068216
+F1Score@0.200: 0.77068216
+F1Score@0.400: 0.77068216
+F1Score@0.600: 0.77068216
+F1Score@0.800: 0.7391448
+F1Score@1.000: nan
+F1Score@0.000 (reversed): 0.5428005
+Accuracy@0.000: 0.62718767
+Accuracy@0.200: 0.62718767
+Accuracy@0.400: 0.62718767
+Accuracy@0.600: 0.62718767
+Accuracy@0.800: 0.60105824
+Accuracy@1.000: 0.3728124
+Accuracy@0.000 (reversed): 0.3728124
+
+vgae(embeddings=20, hidden=20, lr=0.1) + additional hidden layer in the classifier
+
+Precision@0.000: 0.6270248
+Precision@0.200: 0.6270248
+Precision@0.400: 0.6270248
+Precision@0.600: 0.6270248
+Precision@0.800: 0.6270248
+Precision@1.000: 0.6325274
+Precision@0.000 (reversed): 0.3729752
+Recall@0.000: 1.0
+Recall@0.200: 1.0
+Recall@0.400: 1.0
+Recall@0.600: 1.0
+Recall@0.800: 1.0
+Recall@1.000: 0.76203704
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.7692507
+F1Score@0.200: 0.7692507
+F1Score@0.400: 0.7692507
+F1Score@0.600: 0.7692507
+F1Score@0.800: 0.7692507
+F1Score@1.000: 0.69120693
+F1Score@0.000 (reversed): 0.5408311
+Accuracy@0.000: 0.6270248
+Accuracy@0.200: 0.6270248
+Accuracy@0.400: 0.6270248
+Accuracy@0.600: 0.6270248
+Accuracy@0.800: 0.6270248
+Accuracy@1.000: 0.5811966
+Accuracy@0.000 (reversed): 0.3729752

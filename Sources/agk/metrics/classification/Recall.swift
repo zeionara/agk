@@ -18,7 +18,7 @@ public struct Recall: ClassificationMetric {
     public func compute<Model, SourceElement>(
             model: Model,
             labels: [Int32], logits: [Float], dataset: KnowledgeGraphDataset<SourceElement, Int32>
-    ) -> Float where Model: GenericModel, Model.Scalar == Float {
+    ) -> Float where Model: GenericModel {
         // print("logits: \(logits)")
         let testLabels = logits.map{$0 >= threshold ? (!reverse).asInt : reverse.asInt}.map{Int32($0)}
         // print("logits: \(testLabels)")

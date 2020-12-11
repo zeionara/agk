@@ -22,7 +22,7 @@ public struct F1Score: ClassificationMetric {
     public func compute<Model, SourceElement>(
             model: Model,
             labels: [Int32], logits: [Float], dataset: KnowledgeGraphDataset<SourceElement, Int32>
-    ) -> Float where Model: GenericModel, Model.Scalar == Float {
+    ) -> Float where Model: GenericModel {
         let precision = self.precision.compute(model: model, labels: labels, logits: logits, dataset: dataset)
         let recall = self.recall.compute(model: model, labels: labels, logits: logits, dataset: dataset)
         let divisor = precision + recall
