@@ -2,6 +2,7 @@ import TensorFlow
 import ArgumentParser
 import PythonKit
 import Foundation
+import Logging
 
 //testNeuMF(
 //        size: [16, 32, 16, 8],
@@ -138,7 +139,7 @@ struct CrossValidate: ParsableCommand {
     @Option(name: .shortAndLong, help: "Dataset filename (should be located in the 'data' folder)")
     private var datasetPath: String
 
-    @Option(name: .shortAndLong, default: "humorous.txt", help: "Filename containing labels for graph nodes (should be located in the 'data' folder)")
+    @Option(default: "humorous.txt", help: "Filename containing labels for graph nodes (should be located in the 'data' folder)")
     private var labelsPath: String
 
     @Option(name: .shortAndLong, default: 20, help: "Number of epochs to execute during model training")
@@ -176,13 +177,16 @@ struct CrossValidate: ParsableCommand {
         let dataset = KnowledgeGraphDataset<String, Int32>(path: datasetPath, device: device)
         let learningRate_ = learningRate
         let embeddingDimensionality_ = embeddingDimensionality
+        var logger = Logger(label: "root")
+        logger.logLevel = .trace
 
         if (model == .vgae) {
             if openke {
                 let model_name = model.rawValue
                 throw ModelError.unsupportedModel(message: "Model \(model_name) is not implemented in the OpenKE library!")
             }
-            print("ok")
+            logger[metadataKey: "foo"] = "bar"
+            logger.debug("ok")
             let nEpochs_ = nEpochs
             let classifierLearningRate_ = classifierLearningRate
             let readEmbeddings_ = readEmbeddings
