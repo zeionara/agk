@@ -15,26 +15,18 @@ public struct ConvolutionClassificationTrainer {
     ) where Model: ConvolutionGraphModel, Model.Scalar == Float, OptimizerType: Optimizer, OptimizerType.Model == Model {
         for i in 1...nEpochs{
             var losses: [Float] = []
-            // for batch in frame.batched(size: batchSize) {
-            // print("Generated batch")
             let (loss, grad) = valueWithGradient(at: model) { model -> Tensor<Float> in
                 print("Computing model labels")
                 let labels_ = model(dataset.tunedAdjecencyMatrixInverse) // model(Tensor<Int32>(batch.adjacencyTensor))
                 print("Computing loss")
-                // print(labels_.flattened().gathering(atIndices: dataset.labelFrame!.indices))
-                // print(dataset.labelFrame!.labels)
                 return sigmoidCrossEntropy(
                     logits: labels_.flattened().gathering(atIndices: labels.indices) + 0.001,
                     labels: labels.labels + 0.001
                 )
-                // kullbackLeiblerDivergence(predicted: labels_.flattened().gathering(atIndices: dataset.labelFrame!.indices) + 0.001, expected: dataset.labelFrame!.labels + 0.001)
             }
-            // print(grad)
-            // print(grad)
             optimizer.update(&model, along: grad)
             losses.append(loss.scalarized())
             model = model.normalizeEmbeddings()
-            // }
             print("\(i) / \(nEpochs) Epoch. Loss: \(losses.reduce(0, +) / Float(losses.count))")
         }
     }

@@ -128,6 +128,7 @@ struct CrossValidate: ParsableCommand {
         case rotate
         case transd
         case gcn
+        case vgae
     }
 
     @Option(name: .shortAndLong, help: "Model name which to use")
@@ -157,13 +158,35 @@ struct CrossValidate: ParsableCommand {
     @Flag(name: .shortAndLong, help: "Use openke implementation")
     var gpu = false
 
+    @Flag(help: "Do not retrain embeddings for classifier")
+    var readEmbeddings = false
+
     mutating func run() throws {
         let device = gpu ? Device.defaultXLA : Device.default
         let dataset = KnowledgeGraphDataset<String, Int32>(path: datasetPath, device: device)
         let learningRate_ = learningRate
         let embeddingDimensionality_ = embeddingDimensionality
 
-        if (model == .gcn) {
+        if (model == .vgae) {
+            if openke {
+                let model_name = model.rawValue
+                throw ModelError.unsupportedModel(message: "Model \(model_name) is not implemented in the OpenKE library!")
+            }
+            print("ok")
+            let dataset_ = KnowledgeGraphDataset<String, Int32>(path: datasetPath, classes: "adult-audience-oriented.txt", device: device)
+            var model_ = readEmbeddings ? try VGAE(dataset: dataset, device: device) : VGAE(embeddingDimensionality: 20, dataset: dataset_, device: device, hiddenLayerSize: 10)
+            if !readEmbeddings {
+                let trainer_ = ConvolutionAdjacencyTrainer(nEpochs: 50)
+                var optimizer_ = Adam<VGAE<String, Int32>>(for: model_, learningRate: learningRate_)
+                trainer_.train(dataset: dataset, model: &model_, optimizer: optimizer_)
+                try model_.save()
+            }
+            var classifier = DenseClassifier(graphEmbedder: model_, device: device)
+            let classificationTrainer = ClassificationTrainer(nEpochs: 50, batchSize: 20)
+            var classification_optimizer_ = Adam<DenseClassifier<String, Int32>>(for: classifier, learningRate: learningRate_)
+            classificationTrainer.train(model: &classifier, optimizer: &classification_optimizer_, labels: dataset_.labelFrame!)
+        }
+        else if (model == .gcn) {
             if openke {
                 let model_name = model.rawValue
                 throw ModelError.unsupportedModel(message: "Model \(model_name) is not implemented in the OpenKE library!")

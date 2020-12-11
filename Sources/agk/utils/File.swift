@@ -16,6 +16,12 @@ public func getTensorsCacheRoot() -> URL {
     return url
 }
 
+public func getModelsCacheRoot() -> URL {
+    let url = getTensorsCacheRoot().appendingPathComponent("models")
+    createDirectory(url)
+    return url
+}
+
 public func getTensorsDatasetCacheRoot() -> URL {
     let url = getTensorsCacheRoot().appendingPathComponent("datasets")
     createDirectory(url)
