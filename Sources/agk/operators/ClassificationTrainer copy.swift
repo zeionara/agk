@@ -12,17 +12,18 @@ public struct ClassificationTrainer {
     }
 
     public func train<OptimizerType>(
-        model: inout DenseClassifier<String, Int32>, optimizer: inout OptimizerType, labels: LabelFrame<Int32>
+        model: inout DenseClassifier<String, Int32>, optimizer: inout OptimizerType, labels: LabelFrame<Int32>, getEntityIndices: (LabelFrame<Int32>) -> Tensor<Int32> = { $0.indices }
     ) where OptimizerType: Optimizer, OptimizerType.Model == DenseClassifier<String, Int32> {
         for i in 1...nEpochs{
             var losses: [Float] = []
             for batch in labels.batched(size: batchSize) {
                 let (loss, grad) = valueWithGradient(at: model) { model -> Tensor<Float> in
                     // print("Computing model labels")
-                    let labels_ = model(batch.indices) // model(Tensor<Int32>(batch.adjacencyTensor))
+                    let entityIndices = getEntityIndices(batch)
+                    let labels_ = model(entityIndices) // model(Tensor<Int32>(batch.adjacencyTensor))
                     // print("Computing loss")
                     return sigmoidCrossEntropy(
-                        logits: labels_.flattened().gathering(atIndices: batch.indices) + 0.001,
+                        logits: labels_.flattened() + 0.001,
                         labels: batch.labels + 0.001
                     )
                     //sigmoidCrossEntropy(

@@ -7,9 +7,16 @@ var tunedDegreeMatrices = [String: Tensor<Float>]()
 
 let EPSILON: Float = 0.001
 
+
 extension KnowledgeGraphDataset {
     
-    private func getTunedMatrixInverse(tensorName: String, tensorPath: KeyPath<KnowledgeGraphDataset<SourceElement, NormalizedElement>, Tensor<Int8>>) -> Tensor<Float> {
+    private func computeTunedMatrixInverse(tensorPath: KeyPath<KnowledgeGraphDataset<SourceElement, NormalizedElement>, Tensor<Int8>>) -> Tensor<Float> {
+        let matrix = self[keyPath: tensorPath]
+        let tunedDegreeMatrix = sqrt(Tensor<Float>(matrix.degree)).inverse
+        return matmul(matmul(tunedDegreeMatrix, Tensor<Float>(matrix)), tunedDegreeMatrix)
+    }
+
+    private func getCachedTensor(tensorName: String, computeTensor: () -> Tensor<Float>) -> Tensor<Float> {
 
         let key = "\(name)-\(tensorName)"
 
@@ -42,9 +49,7 @@ extension KnowledgeGraphDataset {
             
             let recomputingStartTimestamp = DispatchTime.now().uptimeNanoseconds
 
-            let matrix = self[keyPath: tensorPath]
-            let tunedDegreeMatrix = sqrt(Tensor<Float>(matrix.degree)).inverse
-            let tunedMatrix = matmul(matmul(tunedDegreeMatrix, Tensor<Float>(matrix)), tunedDegreeMatrix) // normalizeWithL2(tensor: matmul(matmul(tunedDegreeMatrix, Tensor<Float>(normalizedFrame.adjacencyTensor)), tunedDegreeMatrix) + EPSILON)
+            let tunedMatrix = computeTensor()
 
             logger.debug("Recomputed tensor \(tensorName) for dataset \(name) in \((DispatchTime.now().uptimeNanoseconds - recomputingStartTimestamp) / 1_000_000_000) seconds")
 
@@ -87,11 +92,25 @@ extension KnowledgeGraphDataset {
     }
     
     public var tunedAdjecencyMatrixInverse: Tensor<Float> {
-        return getTunedMatrixInverse(tensorName: "tuned-adjaecency-matrix-inverse", tensorPath: \.normalizedFrame.adjacencyTensor) // TODO: Fix tensor name
+        return getCachedTensor(tensorName: "tuned-adjaecency-matrix-inverse") {
+            computeTunedMatrixInverse(tensorPath: \.normalizedFrame.adjacencyTensor)
+        }   // TODO: Fix tensor name
     }
 
     public var tunedAdjacencyPairsMatrixInverse: Tensor<Float> {
-        return getTunedMatrixInverse(tensorName: "tuned-adjacency-pairs-matrix-inverse", tensorPath: \.normalizedFrame.adjacencyPairsTensor) // TODO: Fix tensor name
+        return getCachedTensor(tensorName: "tuned-adjacency-pairs-matrix-inverse") {
+            computeTunedMatrixInverse(tensorPath: \.normalizedFrame.adjacencyPairsTensor)
+        }   // TODO: Fix tensor name
+    }
+
+    public var adjacencyPairsTensor: Tensor<Int8> {
+        return Tensor<Int8>(
+            getCachedTensor(tensorName: "adjacency-pairs-tensor") {
+                Tensor<Float>(
+                    frame.adjacencyPairsTensor
+                )
+            }
+        )   // TODO: Fix tensor name
     }
 
     var cachePath: URL {

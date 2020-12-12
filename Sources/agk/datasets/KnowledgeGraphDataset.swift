@@ -606,4 +606,38 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
         relationshipId2Index = relationshipNormalizationMappings.forward
         relationshipIndex2Id = relationshipNormalizationMappings.backward
     }
+
+    public func getAdjacencyPairsIndices(labels: LabelFrame<Int32>) -> Tensor<Int32> {
+        let nEntities = Int32(frame.entities.count)
+        let nRelationships = Int32(frame.relationships.count)
+        let offset = nEntities * nRelationships
+        // return Tensor(
+        
+        func getIndex(entityIndex: Int32, relationshipIndex: Int32) -> Int32 {
+            return nEntities * relationshipIndex + offset + entityIndex
+        }
+
+        func getTensor(_ entityIndex: Int32) -> Tensor<Int32> {
+            return Tensor(
+                (0..<nRelationships).map { relationshipIndex in
+                    Tensor<Int32>(
+                        [
+                            Int32(nEntities * relationshipIndex) + entityIndex,
+                            getIndex(entityIndex: entityIndex, relationshipIndex: relationshipIndex)
+                        ],
+                        on: device
+                    )
+                }
+            ).flattened()
+        }
+        
+        return Tensor(
+            labels.indices.unstacked().map { entityIndex in
+                getTensor(entityIndex.scalar!)
+            }
+        )
+        // print(ok)
+        // return Tensor<Int32>(0)
+        // )
+    }
 }

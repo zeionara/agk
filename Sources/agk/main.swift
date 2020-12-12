@@ -142,7 +142,7 @@ struct CrossValidate: ParsableCommand {
     @Option(default: "humorous.txt", help: "Filename containing labels for graph nodes (should be located in the 'data' folder)")
     private var labelsPath: String
 
-    @Option(name: .shortAndLong, default: 50, help: "Number of epochs to execute during model training")
+    @Option(name: .shortAndLong, default: 100, help: "Number of epochs to execute during model training")
     var nEpochs: Int
 
     @Option(default: 3, help: "Number of splits to perform for making the cross-validation")
@@ -166,7 +166,7 @@ struct CrossValidate: ParsableCommand {
     @Flag(help: "Do not retrain embeddings for classifier")
     var readEmbeddings = false
 
-    @Option(default: 0.1, help: "How fast to tweak the weights")
+    @Option(default: 0.01, help: "How fast to tweak the weights")
     var classifierLearningRate: Float
 
     @Option(name: .shortAndLong, default: 200, help: "Number of epochs to execute during model training")
@@ -195,18 +195,24 @@ struct CrossValidate: ParsableCommand {
             // print(dataset_.tunedAdjecencyMatrixInverse.shape)
             // print(dataset_.tunedAdjacencyPairsMatrixInverse.shape)
 
-            var model_ = readEmbeddings ? try VGAE(dataset: dataset, device: device) : VGAE(embeddingDimensionality: embeddingDimensionality, dataset: dataset_, device: device, adjacencyTensorPath: \.frame.adjacencyPairsTensor)
+            var model_ = readEmbeddings ? try VGAE(dataset: dataset, device: device) : VGAE(embeddingDimensionality: embeddingDimensionality, dataset: dataset_, device: device, adjacencyTensorPath: \.adjacencyPairsTensor)
             if !readEmbeddings {
                 let trainer_ = ConvolutionAdjacencyTrainer(nEpochs: nEpochs)
                 var optimizer_ = Adam<VGAE<String, Int32>>(for: model_, learningRate: learningRate_)
-                trainer_.train(dataset: dataset, model: &model_, optimizer: optimizer_,  trainTensorPath: \.tunedAdjacencyPairsMatrixInverse, adjacencyTensorPath: \.frame.adjacencyPairsTensor)
+                trainer_.train(dataset: dataset, model: &model_, optimizer: optimizer_,  trainTensorPath: \.tunedAdjacencyPairsMatrixInverse, adjacencyTensorPath: \.adjacencyPairsTensor)
                 try model_.save()
             }
-            // var classifier = DenseClassifier(graphEmbedder: model_, device: device)
-            // let classificationTrainer = ClassificationTrainer(nEpochs: 50, batchSize: 20)
-            // var classification_optimizer_ = Adam<DenseClassifier<String, Int32>>(for: classifier, learningRate: learningRate_)
-            // classificationTrainer.train(model: &classifier, optimizer: &classification_optimizer_, labels: dataset_.labelFrame!)
-            
+            // print(dataset_.labelFrame!.indices)
+            // let indices = dataset_.getAdjacencyPairsIndices(labels: dataset_.labelFrame!)
+            var classifier = DenseClassifier(graphEmbedder: model_, device: device) { embeddings in
+                embeddings.sum(alongAxes: [1]) // embeddings.mean(alongAxes: [1])
+            }
+            // print(classifier(indices).shape)
+            let classificationTrainer = ClassificationTrainer(nEpochs: classifierNEpochs, batchSize: batchSize)
+            var classification_optimizer_ = Adam<DenseClassifier<String, Int32>>(for: classifier, learningRate: classifierLearningRate_)
+            classificationTrainer.train(model: &classifier, optimizer: &classification_optimizer_, labels: dataset_.labelFrame!) { labels in
+                dataset_.getAdjacencyPairsIndices(labels: labels)
+            }
             // let modelSavingLock = NSLock()
             // var embeddingsWereInitialized: Bool = false
             // try DenseClassifierCVTester<DenseClassifier<String, Int32>, String>(nFolds: nFolds, nEpochs: classifierNEpochs, batchSize: batchSize).test(
