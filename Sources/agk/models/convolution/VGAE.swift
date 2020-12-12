@@ -26,14 +26,15 @@ public struct VGAE<SourceElement, NormalizedElement>: ConvolutionGraphModel wher
                 hiddenLayerSize: Int = 10,
                 activation: @escaping Dense<Float>.Activation = relu,
                 entityEmbeddings: Embedding<Float>? = Optional.none,
-                inputLayer: Dense<Float>? = Optional.none
+                inputLayer: Dense<Float>? = Optional.none,
+                adjacencyTensorPath: KeyPath<KnowledgeGraphDataset<SourceElement, NormalizedElement>, Tensor<Int8>> = \.frame.adjacencyTensor
                 // hiddenLayer: Dense<Float>? = Optional.none,
                 // outputLayer: Tensor<Float>? = Optional.none
                 ) {
         if let entityEmbeddings_ = entityEmbeddings {
             self.entityEmbeddings = entityEmbeddings_
         } else {
-            let nEntities = dataset!.frame.entities.count + dataset!.frame.relationships.count * 2
+            let nEntities = dataset![keyPath: adjacencyTensorPath].shape[0] // dataset!.frame.entities.count + dataset!.frame.relationships.count * 2
             self.entityEmbeddings = initEmbeddings(dimensionality: embeddingDimensionality, nItems: nEntities, device: device_)
         }
         self.inputLayer = inputLayer ?? Dense<Float>(copying: Dense<Float>(inputSize: embeddingDimensionality, outputSize: hiddenLayerSize, activation: activation), to: device_)

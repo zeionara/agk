@@ -1,5 +1,6 @@
 import Foundation
 import TensorFlow
+import Logging
 
 public func makePairs<Element>(entities: [Element], relationships: [Element]) -> [[Element]] {
     var pairs: [[Element]] = []
@@ -55,14 +56,22 @@ extension TripleFrame {
         return Tensor(stacking: t1.unstacked(alongAxis: 1) + t2.unstacked(alongAxis: 1)).transposed()
     }
 
+
     public var adjacencyPairsTensor: Tensor<Int8> {
+        var logger = Logger(label: "dataset")
+        // logger[metadataKey: "name"] = "\(name)"
+        logger[metadataKey: "method"] = "adjacencyPairsTensor"
+        logger.logLevel = .debug
+
         let pairs = makePairs(entities: entities, relationships: relationships)
         let nPairs = pairs.count
+        logger.debug("Number of entity-relation pairs: \(nPairs). Number of entities: \(entities.count). Number of relationships: \(relationships.count).")
         let identityQuarter = Tensor<Int8>((0...nPairs - 1).map { i in
             Tensor<Int8>((0...nPairs - 1).map { j in
                 Tensor<Int8>(i == j ? 1 : 0, on: device)
             })
         })
+
         let quarter = Tensor<Int8>(
                 pairs.map { outcomingPair in
                     Tensor<Int8>(
@@ -75,6 +84,7 @@ extension TripleFrame {
                     )
                 }
         )
+
         return Tensor(
                 stacking: [
                     Tensor(

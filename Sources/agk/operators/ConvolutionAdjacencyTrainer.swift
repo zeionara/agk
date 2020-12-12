@@ -12,14 +12,19 @@ public struct ConvolutionAdjacencyTrainer {
     }
 
     public func train<Model, SourceElement, NormalizedElement>(
-            dataset: KnowledgeGraphDataset<SourceElement, NormalizedElement>, model: inout Model, optimizer: Adam<Model>
+            dataset: KnowledgeGraphDataset<SourceElement, NormalizedElement>,
+            model: inout Model,
+            optimizer: Adam<Model>,
+            trainTensorPath: KeyPath<KnowledgeGraphDataset<SourceElement, NormalizedElement>,  Tensor<Float>> = \.tunedAdjecencyMatrixInverse,
+            adjacencyTensorPath: KeyPath<KnowledgeGraphDataset<SourceElement, NormalizedElement>,  Tensor<Int8>> = \.frame.adjacencyTensor
     ) where Model: ConvolutionGraphModel, Model.Scalar == Float {
         for i in 1...nEpochs {
             var losses: [Float] = []
             // for batch in dataset.frame.batched(size: batchSize) {
-            let expectedAdjacencyMatrix = Tensor<Float>(dataset.frame.adjacencyTensor - dataset.frame.adjacencyTensor.diagonalPart().diagonal())
+            let adjacencyTensor = dataset[keyPath: adjacencyTensorPath]
+            let expectedAdjacencyMatrix = Tensor<Float>(adjacencyTensor - adjacencyTensor.diagonalPart().diagonal())
             let (loss, grad) = valueWithGradient(at: model) { model -> Tensor<Float> in
-                let generatedAdjacencyMatrix = model(dataset.tunedAdjecencyMatrixInverse)
+                let generatedAdjacencyMatrix = model(dataset[keyPath: trainTensorPath])
                 // print(generatedAdjacencyMatrix.unstacked())
                 // print(expectedAdjacencyMatrix.unstacked())
                 return sigmoidCrossEntropy(logits: generatedAdjacencyMatrix + epsilon, labels: expectedAdjacencyMatrix + epsilon)

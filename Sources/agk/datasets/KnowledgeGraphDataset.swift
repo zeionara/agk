@@ -1,5 +1,6 @@
 import Foundation
 import TensorFlow
+import Logging
 
 public typealias CVSplit<Element> = (train: TripleFrame<Element>, test: TripleFrame<Element>) where Element: Hashable
 public typealias LabelCVSplit<Element> = (train: LabelFrame<Element>, test: LabelFrame<Element>) where Element: Hashable
@@ -525,6 +526,7 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
     public let device: Device
     public let path: String
     public let name: String
+    public let verbosity: Logger.Level
 
     static func readData<Element>(path: String, stringToSourceElement: (String) -> Element) throws -> [[Element]] {
         let dir = URL(fileURLWithPath: #file.replacingOccurrences(of: "Sources/agk/datasets/KnowledgeGraphDataset.swift", with: ""))
@@ -553,9 +555,11 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
     public init(
             path: String, classes: String? = Optional.none, device: Device = Device.default,
             intToNormalizedElement: (Int) -> NormalizedElement, stringToNormalizedElement: (String) -> NormalizedElement, stringToSourceElement: (String) -> SourceElement,
-            sourceToNormalizedElement: (SourceElement) -> NormalizedElement
+            sourceToNormalizedElement: (SourceElement) -> NormalizedElement,
+            verbosity: Logger.Level = .debug
     ) {
         self.path = path
+        self.verbosity = verbosity
         self.name = path.components(separatedBy: "/").last!.components(separatedBy: ".").first!
 //        print("Loading frame...")
         let frame_ = TripleFrame(data: try! KnowledgeGraphDataset.readData(path: path, stringToSourceElement: stringToSourceElement), device: device)
