@@ -21,6 +21,7 @@ public struct DenseClassifierCVTester<Model, SourceElement> where Model: Generic
         splitIndex i: Int,
         dataset: KnowledgeGraphDataset<String, Int32>,
         initModel: @escaping ModelInitizlizationClosure,
+        getEntityIndices: (LabelFrame<Int32>) -> Tensor<Int32> = { $0.indices },
         lockScoresArray: Optional<() -> Void> = Optional.none,
         unlockScoresArray: Optional<() -> Void> = Optional.none
     ) throws {
@@ -30,7 +31,7 @@ public struct DenseClassifierCVTester<Model, SourceElement> where Model: Generic
         // let evaluation_start_timestamp = DispatchTime.now().uptimeNanoseconds
         for metric in metrics {
             // print("Computing \(metric.name)")
-            let logits = model(testLabels.indices).flattened()
+            let logits = model(getEntityIndices(testLabels)).flattened()
             let value = metric.compute(model: model, labels: testLabels.labels.unstacked().map{$0.scalar!}.map{Int32($0)}, logits: logits.unstacked().map{$0.scalar!}, dataset: dataset)
             // print("Computed \(metric.name)")
             lockScoresArray?()
@@ -46,8 +47,9 @@ public struct DenseClassifierCVTester<Model, SourceElement> where Model: Generic
     public func test(
             dataset: KnowledgeGraphDataset<String, Int32>,
             metrics: [ClassificationMetric],
-            initModel: @escaping ModelInitizlizationClosure,
-            enableParallelism: Bool = true
+            enableParallelism: Bool = true,
+            getEntityIndices: @escaping (LabelFrame<Int32>) -> Tensor<Int32> = { $0.indices },
+            initModel: @escaping ModelInitizlizationClosure
     ) throws {
         var scores: [String: [Float]] = metrics.toDict { (metric: ClassificationMetric) -> (key: String, value: [Float]) in
             (metric.name, [Float]())
@@ -68,7 +70,8 @@ public struct DenseClassifierCVTester<Model, SourceElement> where Model: Generic
                             scores: &scores,
                             splitIndex: i,
                             dataset: dataset.copy(),
-                            initModel: initModel
+                            initModel: initModel,
+                            getEntityIndices: getEntityIndices
                         ) {
                             lock?.lock()
                         } unlockScoresArray: {
@@ -88,7 +91,8 @@ public struct DenseClassifierCVTester<Model, SourceElement> where Model: Generic
                     scores: &scores,
                     splitIndex: i,
                     dataset: dataset.copy(),
-                    initModel: initModel
+                    initModel: initModel,
+                    getEntityIndices: getEntityIndices
                 )
                 dataset.normalizedNegativeFrame.data.resetHistory()
                 dataset.negativeFrame.data.resetHistory()

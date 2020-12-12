@@ -133,8 +133,24 @@ struct CrossValidate: ParsableCommand {
         case vgae
     }
 
+    private enum GraphRepresentation: String, ExpressibleByArgument {
+        case adjacencyMatrix
+        case adjacencyPairsMatrix
+    }
+
+    private enum EmbeddingsDimensionalityReducer: String, ExpressibleByArgument {
+        case sum
+        case avg
+    }
+
     @Option(name: .shortAndLong, help: "Model name which to use")
     private var model: Model
+
+    @Option(default: .adjacencyMatrix, help: "Approach for representing graph as a tensor to use")
+    private var graphRepresentation: GraphRepresentation
+
+    @Option(default: .sum, help: "Approach for reducing embeddings dimensionality")
+    private var embeddingsDimensionalityReducer: EmbeddingsDimensionalityReducer
 
     @Option(name: .shortAndLong, help: "Dataset filename (should be located in the 'data' folder)")
     private var datasetPath: String
@@ -142,7 +158,7 @@ struct CrossValidate: ParsableCommand {
     @Option(default: "humorous.txt", help: "Filename containing labels for graph nodes (should be located in the 'data' folder)")
     private var labelsPath: String
 
-    @Option(name: .shortAndLong, default: 100, help: "Number of epochs to execute during model training")
+    @Option(name: .shortAndLong, default: 200, help: "Number of epochs to execute during model training")
     var nEpochs: Int
 
     @Option(default: 3, help: "Number of splits to perform for making the cross-validation")
@@ -166,13 +182,33 @@ struct CrossValidate: ParsableCommand {
     @Flag(help: "Do not retrain embeddings for classifier")
     var readEmbeddings = false
 
-    @Option(default: 0.01, help: "How fast to tweak the weights")
+    @Option(default: 0.05, help: "How fast to tweak the weights")
     var classifierLearningRate: Float
 
     @Option(name: .shortAndLong, default: 200, help: "Number of epochs to execute during model training")
     var classifierNEpochs: Int
 
     mutating func run() throws {
+        
+        let embeddingsTensorDimensionalityReducers: [EmbeddingsDimensionalityReducer: (Tensor<Float>) -> Tensor<Float>]  = [
+            .sum: { embeddings in
+                embeddings.sum(alongAxes: [1]) // embeddings.mean(alongAxes: [1])
+            },
+            .avg : { embeddings in
+                embeddings.mean(alongAxes: [1]) // embeddings.mean(alongAxes: [1])
+            }
+        ]
+
+        let trainTensorPaths: [GraphRepresentation: KeyPath<KnowledgeGraphDataset<String, Int32>, Tensor<Float>>]  = [
+            .adjacencyMatrix: \.tunedAdjecencyMatrixInverse,
+            .adjacencyPairsMatrix : \.tunedAdjacencyPairsMatrixInverse
+        ]
+
+        let adjacencyTensorPaths: [GraphRepresentation: KeyPath<KnowledgeGraphDataset<String, Int32>, Tensor<Int8>>]  = [
+            .adjacencyMatrix: \.frame.adjacencyTensor,
+            .adjacencyPairsMatrix : \.adjacencyPairsTensor
+        ]
+
         let device = gpu ? Device.defaultXLA : Device.default
         let dataset = KnowledgeGraphDataset<String, Int32>(path: datasetPath, device: device)
         let learningRate_ = learningRate
@@ -191,15 +227,30 @@ struct CrossValidate: ParsableCommand {
             let classifierLearningRate_ = classifierLearningRate
             let readEmbeddings_ = readEmbeddings
             let dataset_ = KnowledgeGraphDataset<String, Int32>(path: datasetPath, classes: labelsPath, device: device)
+
+            let entityIndicesGetters: [GraphRepresentation: (LabelFrame<Int32>) -> Tensor<Int32>]  = [
+                .adjacencyMatrix: { labels in
+                    labels.indices
+                },
+                .adjacencyPairsMatrix : { labels in
+                    dataset_.getAdjacencyPairsIndices(labels: labels)
+                }
+            ]
             
             // print(dataset_.tunedAdjecencyMatrixInverse.shape)
             // print(dataset_.tunedAdjacencyPairsMatrixInverse.shape)
 
-            var model_ = readEmbeddings ? try VGAE(dataset: dataset, device: device) : VGAE(embeddingDimensionality: embeddingDimensionality, dataset: dataset_, device: device, adjacencyTensorPath: \.adjacencyPairsTensor)
+            //
+            //
+            //
+            
+            var model_ = readEmbeddings ? try VGAE(dataset: dataset, device: device) :
+                VGAE(embeddingDimensionality: embeddingDimensionality, dataset: dataset_, device: device, adjacencyTensorPath: adjacencyTensorPaths[graphRepresentation]!)
+            print(model_.entityEmbeddings.embeddings.shape)
             if !readEmbeddings {
                 let trainer_ = ConvolutionAdjacencyTrainer(nEpochs: nEpochs)
                 var optimizer_ = Adam<VGAE<String, Int32>>(for: model_, learningRate: learningRate_)
-                trainer_.train(dataset: dataset, model: &model_, optimizer: optimizer_,  trainTensorPath: \.tunedAdjacencyPairsMatrixInverse, adjacencyTensorPath: \.adjacencyPairsTensor)
+                trainer_.train(dataset: dataset, model: &model_, optimizer: optimizer_,  trainTensorPath: trainTensorPaths[graphRepresentation]!, adjacencyTensorPath: adjacencyTensorPaths[graphRepresentation]!)
                 try model_.save()
             }
             // print(dataset_.labelFrame!.indices)
@@ -213,37 +264,47 @@ struct CrossValidate: ParsableCommand {
             classificationTrainer.train(model: &classifier, optimizer: &classification_optimizer_, labels: dataset_.labelFrame!) { labels in
                 dataset_.getAdjacencyPairsIndices(labels: labels)
             }
-            // let modelSavingLock = NSLock()
-            // var embeddingsWereInitialized: Bool = false
-            // try DenseClassifierCVTester<DenseClassifier<String, Int32>, String>(nFolds: nFolds, nEpochs: classifierNEpochs, batchSize: batchSize).test(
-            //     dataset: dataset_,
-            //     metrics: classificationMetrics,
-            //     enableParallelism: false
-            // ) { trainer, labels in
+            let embeddingsDimensionalityReducer_ = embeddingsDimensionalityReducer
+            let graphRepresentation_ = graphRepresentation
+            
+            //
+            //
+            //
 
-            //     // 1. Train the base model with node encodings if necessary
+            let modelSavingLock = NSLock()
+            var embeddingsWereInitialized: Bool = false
+            try DenseClassifierCVTester<DenseClassifier<String, Int32>, String>(nFolds: nFolds, nEpochs: classifierNEpochs, batchSize: batchSize).test(
+                dataset: dataset_,
+                metrics: classificationMetrics,
+                enableParallelism: false,
+                getEntityIndices: entityIndicesGetters[graphRepresentation]!
+            ) { trainer, labels in
 
-            //     let shouldInitializeEmbeddings = !embeddingsWereInitialized && !readEmbeddings_
-            //     var model_ = !shouldInitializeEmbeddings ? 
-            //         try VGAE(dataset: dataset, device: device) : 
-            //         VGAE(embeddingDimensionality: embeddingDimensionality_, dataset: dataset_, device: device, hiddenLayerSize: 120)
-            //     if shouldInitializeEmbeddings {
-            //         let trainer_ = ConvolutionAdjacencyTrainer(nEpochs: nEpochs_)
-            //         let optimizer_ = Adam<VGAE<String, Int32>>(for: model_, learningRate: learningRate_)
-            //         trainer_.train(dataset: dataset, model: &model_, optimizer: optimizer_)
-            //         modelSavingLock.lock()
-            //         try model_.save()
-            //         modelSavingLock.unlock()
-            //         embeddingsWereInitialized = true
-            //     }
+                // 1. Train the base model with node encodings if necessary
 
-            //     // 2. Train classification block
+                let shouldInitializeEmbeddings = !embeddingsWereInitialized && !readEmbeddings_
+                var model_ = !shouldInitializeEmbeddings ? try VGAE(dataset: dataset, device: device) : VGAE(
+                    embeddingDimensionality: embeddingDimensionality_,
+                    dataset: dataset_,
+                    device: device
+                )
+                if shouldInitializeEmbeddings {
+                    let trainer_ = ConvolutionAdjacencyTrainer(nEpochs: nEpochs_)
+                    let optimizer_ = Adam<VGAE<String, Int32>>(for: model_, learningRate: learningRate_)
+                    trainer_.train(dataset: dataset, model: &model_, optimizer: optimizer_)
+                    modelSavingLock.lock()
+                    try model_.save()
+                    modelSavingLock.unlock()
+                    embeddingsWereInitialized = true
+                }
 
-            //     var classifier = DenseClassifier(graphEmbedder: model_, device: device)
-            //     var classification_optimizer_ = Adam<DenseClassifier<String, Int32>>(for: classifier, learningRate: classifierLearningRate_)
-            //     trainer.train(model: &classifier, optimizer: &classification_optimizer_, labels: labels)
-            //     return classifier
-            // }
+                // 2. Train classification block
+
+                var classifier = DenseClassifier(graphEmbedder: model_, device: device, reduceEmbeddingsTensorDimensionality: embeddingsTensorDimensionalityReducers[embeddingsDimensionalityReducer_]!) 
+                var classification_optimizer_ = Adam<DenseClassifier<String, Int32>>(for: classifier, learningRate: classifierLearningRate_)
+                trainer.train(model: &classifier, optimizer: &classification_optimizer_, labels: labels, getEntityIndices: entityIndicesGetters[graphRepresentation_]!)
+                return classifier
+            }
         }
         else if (model == .gcn) {
             if openke {
