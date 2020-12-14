@@ -159,7 +159,7 @@ struct CrossValidate: ParsableCommand {
     @Option(default: "humorous.txt", help: "Filename containing labels for graph nodes (should be located in the 'data' folder)")
     private var labelsPath: String
 
-    @Option(name: .shortAndLong, default: 200, help: "Number of epochs to execute during model training")
+    @Option(name: .shortAndLong, default: 10, help: "Number of epochs to execute during model training")
     var nEpochs: Int
 
     @Option(default: 3, help: "Number of splits to perform for making the cross-validation")
@@ -186,7 +186,7 @@ struct CrossValidate: ParsableCommand {
     @Option(default: 0.05, help: "How fast to tweak the weights")
     var classifierLearningRate: Float
 
-    @Option(name: .shortAndLong, default: 200, help: "Number of epochs to execute during model training")
+    @Option(name: .shortAndLong, default: 10, help: "Number of epochs to execute during model training")
     var classifierNEpochs: Int
 
     mutating func run() throws {
@@ -222,16 +222,27 @@ struct CrossValidate: ParsableCommand {
         let readEmbeddings_ = readEmbeddings
         let dataset_ = KnowledgeGraphDataset<String, Int32>(path: datasetPath, classes: labelsPath, device: device)
         let batchSize_ = batchSize
+
+        let graphRepresentation_ = graphRepresentation
+
+        let entityIndicesGetters: [GraphRepresentation: (LabelFrame<Int32>) -> Tensor<Int32>]  = [
+            .adjacencyMatrix: { labels in
+                labels.indices
+            },
+            .adjacencyPairsMatrix : { labels in
+                dataset_.getAdjacencyPairsIndices(labels: labels)
+            }
+        ]
         
         if (model == .conve) {
             let dataset_ = KnowledgeGraphDataset<String, Int32>(path: datasetPath, classes: labelsPath, device: device)
             let modelSavingLock = NSLock()
             var embeddingsWereInitialized: Bool = false
-            try DenseClassifierCVTester<DenseClassifier<ConvE<String, Int32>>, String, ConvE<String, Int32>>(nFolds: nFolds, nEpochs: classifierNEpochs, batchSize: batchSize).test(
+            try GenericCVTester<DenseClassifier<ConvE<String, Int32>>, LabelFrame<Int32>, ClassificationTrainer>(nFolds: nFolds, nEpochs: classifierNEpochs, batchSize: batchSize).test(
                 dataset: dataset_,
                 metrics: classificationMetrics,
                 enableParallelism: false
-            ) { trainer, labels in
+            ) { trainer, labels -> DenseClassifier<ConvE<String, Int32>> in
             
                 // 1. Train the base model with node encodings if necessary
                 
@@ -255,6 +266,8 @@ struct CrossValidate: ParsableCommand {
                         optimizer: optimizer_
                     )
                     try model_.save()
+                    modelSavingLock.unlock()
+                    embeddingsWereInitialized = true
                 }
 
                 // 2. Train classification block
@@ -263,26 +276,17 @@ struct CrossValidate: ParsableCommand {
                 var classification_optimizer_ = Adam<DenseClassifier>(for: classifier, learningRate: classifierLearningRate_)
                 trainer.train(model: &classifier, optimizer: &classification_optimizer_, labels: dataset_.labelFrame!)
                 return classifier
+            } computeMetric: { model, metric, trainLabels, testLabels -> Float in
+                let logits = model(entityIndicesGetters[graphRepresentation_]!(testLabels)).flattened()
+                return (metric as! ClassificationMetric).compute(model: model, labels: testLabels.labels.unstacked().map{$0.scalar!}.map{Int32($0)}, logits: logits.unstacked().map{$0.scalar!}, dataset: dataset)
+            } getSamplesList: { dataset in
+                dataset.labelFrame!
             }
         } else if (model == .vgae) {
             if openke {
                 let model_name = model.rawValue
                 throw ModelError.unsupportedModel(message: "Model \(model_name) is not implemented in the OpenKE library!")
             }
-            // logger[metadataKey: "foo"] = "bar"
-            // logger.debug("ok")
-
-            let entityIndicesGetters: [GraphRepresentation: (LabelFrame<Int32>) -> Tensor<Int32>]  = [
-                .adjacencyMatrix: { labels in
-                    labels.indices
-                },
-                .adjacencyPairsMatrix : { labels in
-                    dataset_.getAdjacencyPairsIndices(labels: labels)
-                }
-            ]
-            
-            // print(dataset_.tunedAdjecencyMatrixInverse.shape)
-            // print(dataset_.tunedAdjacencyPairsMatrixInverse.shape)
 
             //
             //
@@ -317,12 +321,11 @@ struct CrossValidate: ParsableCommand {
 
             let modelSavingLock = NSLock()
             var embeddingsWereInitialized: Bool = false
-            try DenseClassifierCVTester<DenseClassifier<VGAE<String, Int32>>, String, VGAE<String, Int32>>(nFolds: nFolds, nEpochs: classifierNEpochs, batchSize: batchSize).test(
+            try GenericCVTester<DenseClassifier<VGAE<String, Int32>>, LabelFrame<Int32>, ClassificationTrainer>(nFolds: nFolds, nEpochs: classifierNEpochs, batchSize: batchSize).test(
                 dataset: dataset_,
                 metrics: classificationMetrics,
-                enableParallelism: false,
-                getEntityIndices: entityIndicesGetters[graphRepresentation]!
-            ) { trainer, labels in
+                enableParallelism: false
+            ) { trainer, labels -> DenseClassifier<VGAE<String, Int32>> in
 
                 // 1. Train the base model with node encodings if necessary
 
@@ -348,6 +351,11 @@ struct CrossValidate: ParsableCommand {
                 var classification_optimizer_ = Adam<DenseClassifier>(for: classifier, learningRate: classifierLearningRate_)
                 trainer.train(model: &classifier, optimizer: &classification_optimizer_, labels: labels, getEntityIndices: entityIndicesGetters[graphRepresentation_]!)
                 return classifier
+            }  computeMetric: { model, metric, trainLabels, testLabels -> Float in
+                let logits = model(entityIndicesGetters[graphRepresentation_]!(testLabels)).flattened()
+                return (metric as! ClassificationMetric).compute(model: model, labels: testLabels.labels.unstacked().map{$0.scalar!}.map{Int32($0)}, logits: logits.unstacked().map{$0.scalar!}, dataset: dataset)
+            } getSamplesList: { dataset in
+                dataset.labelFrame!
             }
         } else if (model == .gcn) {
             if openke {

@@ -21,7 +21,12 @@ func getRandomNumbers(maxNumber: Int, listSize: Int) -> Set<Int> {
     return randomNumbers
 }
 
-public struct LabelFrame<Element> where Element: Hashable {
+public protocol DataFrame where Element: Hashable{
+    associatedtype Element
+    func cv(nFolds: Int) -> [(train: Self, test: Self)]
+}
+
+public struct LabelFrame<Element>: DataFrame where Element: Hashable {
     let data: [[Element]]
     let device: Device
 
@@ -78,7 +83,7 @@ public struct LabelFrame<Element> where Element: Hashable {
     }
 }
 
-public struct TripleFrame<Element> where Element: Hashable {
+public struct TripleFrame<Element>: DataFrame where Element: Hashable {
     public let data: [[Element]]
     let device: Device
     var entities_: [Element]?

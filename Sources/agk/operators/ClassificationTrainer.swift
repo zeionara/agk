@@ -2,7 +2,7 @@ import Foundation
 import TensorFlow
 import Checkpoints
 
-public struct ClassificationTrainer {
+public struct ClassificationTrainer: Trainer {
     public let nEpochs: Int
     public let batchSize: Int
 
