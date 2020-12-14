@@ -99,6 +99,25 @@
             // "env": {
             //     "CUDA_VISIBLE_DEVICES": "-1"
             // }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "swift-build",
+            "name": "Cross-validate conve",
+            "program": "${workspaceFolder}/.build/debug/agk",
+            "args": [
+                "cross-validate",
+                "-m",
+                "conve",
+                "-d",
+                "deduplicated-dataset.txt"
+                // "--read-embeddings"
+            ],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": [
+                "swift"
+            ]
         }
     ]
 }

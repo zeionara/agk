@@ -1,5 +1,6 @@
 import Foundation
 import TensorFlow
+import Checkpoints
 
 //typealias ComplexNumber = (real: Tensor<Float>, imaginary: Tensor<Float>)
 //
@@ -29,15 +30,24 @@ import TensorFlow
 //    (real: cos(embeddings), imaginary: sin(embeddings))
 //}
 
+private let MODEL_NAME = "conve"
+
+private let ENTITY_EMBEDDINGS_TENSOR_KEY = "entity-embeddings"
+private let RELATIONSHIP_EMBEDDINGS_TENSOR_KEY = "relationships-embeddings"
+private let CONVOLUTION_FILTERS_KEY = "convolution-filters"
+private let STACKED_EMBEDDINGS_WIDTH_KEY = "stacked-embeddings-width"
+private let STACKED_EMBEDDINGS_HEIGHT_KEY = "stacked-embeddings-height"
+private let DENSE_LAYER_KEY = "dense"
+
 public struct ConvE<SourceElement, NormalizedElement>: ConvolutionGraphModel where SourceElement: Hashable, NormalizedElement: Hashable, NormalizedElement: Comparable {
     public var entityEmbeddings: Embedding<Float>
     public var relationshipEmbeddings: Embedding<Float>
     public var convolutionFilters: DepthwiseConv2D<Float>
-    @noDerivative
-    public let device: Device
-    public let stackedEmbeddingsWidth: Int
-    public let stackedEmbeddingsHeight: Int
-    public let denseLayer: Dense<Float>
+    @noDerivative public let device: Device
+    @noDerivative public let stackedEmbeddingsWidth: Int
+    @noDerivative public let stackedEmbeddingsHeight: Int
+    @noDerivative public let dataset: KnowledgeGraphDataset<SourceElement, NormalizedElement>?
+    public var denseLayer: Dense<Float>
 
     public init(embeddingDimensionality: Int = 100, stackedEmbeddingsWidth: Int = 25, stackedEmbeddingsHeight: Int = 4, filterWidth: Int = 5, filterHeight: Int = 2,
                 nConvolutionalFilters: Int = 3, dataset: KnowledgeGraphDataset<SourceElement, NormalizedElement>? = Optional.none, device device_: Device = Device.default,
@@ -63,7 +73,48 @@ public struct ConvE<SourceElement, NormalizedElement>: ConvolutionGraphModel whe
                 outputSize: embeddingDimensionality,
                 activation: activation
         )
+        self.dataset = dataset
         device = device_
+    }
+
+    public init(
+        dataset: KnowledgeGraphDataset<SourceElement, NormalizedElement>,
+        device: Device = Device.default,
+        activation: @escaping Dense<Float>.Activation = relu
+    ) throws {
+         let checkpointOperator = try CheckpointReader(
+            checkpointLocation: getModelsCacheRoot().appendingPathComponent("\(MODEL_NAME)-\(dataset.name)"),
+            modelName: "\(MODEL_NAME)-\(dataset.name)"
+        )
+
+        self.dataset = dataset
+        self.entityEmbeddings = Embedding(
+            copying: Embedding(
+                embeddings: Tensor<Float>(checkpointOperator.loadTensor(named: ENTITY_EMBEDDINGS_TENSOR_KEY))
+            ), to: device
+        )
+        self.relationshipEmbeddings = Embedding(
+            copying: Embedding(
+                embeddings: Tensor<Float>(checkpointOperator.loadTensor(named: RELATIONSHIP_EMBEDDINGS_TENSOR_KEY))
+            ), to: device
+        )
+        self.convolutionFilters = DepthwiseConv2D(
+            copying: DepthwiseConv2D(
+                filter: Tensor<Float>(checkpointOperator.loadTensor(named: CONVOLUTION_FILTERS_KEY)),
+                activation: activation
+            ),
+            to: device
+        )
+        self.stackedEmbeddingsWidth = Int(Tensor<Float>(checkpointOperator.loadTensor(named: STACKED_EMBEDDINGS_WIDTH_KEY)).scalar!)
+        self.stackedEmbeddingsHeight = Int(Tensor<Float>(checkpointOperator.loadTensor(named: STACKED_EMBEDDINGS_HEIGHT_KEY)).scalar!)
+        self.denseLayer = Dense<Float>(
+            copying: Dense<Float>(
+            weight: Tensor<Float>(checkpointOperator.loadTensor(named: DENSE_LAYER_KEY)),
+                activation: activation
+            ),
+            to: device
+        )
+        self.device = device
     }
 
     public var filterWidth: Int {
@@ -105,5 +156,21 @@ public struct ConvE<SourceElement, NormalizedElement>: ConvolutionGraphModel whe
         let convolutionResult = convolutionFilters(stackedEmbeddings)
         let multiplicationResult = denseLayer(convolutionResult.reshaped(to: [convolutionResult.shape[0], -1]))
         return softmax(matmul(multiplicationResult, entityEmbeddings.embeddings.transposed()))
+    }
+
+    public func save() throws {
+        try CheckpointWriter(
+            tensors: [
+                    ENTITY_EMBEDDINGS_TENSOR_KEY: entityEmbeddings.embeddings,
+                    RELATIONSHIP_EMBEDDINGS_TENSOR_KEY: relationshipEmbeddings.embeddings,
+                    CONVOLUTION_FILTERS_KEY: convolutionFilters.filter,
+                    STACKED_EMBEDDINGS_HEIGHT_KEY: Tensor<Float>(Float(stackedEmbeddingsHeight)),
+                    STACKED_EMBEDDINGS_WIDTH_KEY: Tensor<Float>(Float(stackedEmbeddingsWidth)),
+                    DENSE_LAYER_KEY: denseLayer.weight
+                ]
+        ).write(
+            to: getModelsCacheRoot(),
+            name: "\(MODEL_NAME)-\(dataset?.name ?? "none")"
+        )
     }
 }

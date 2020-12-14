@@ -11,9 +11,9 @@ public struct ClassificationTrainer {
         self.batchSize = batchSize
     }
 
-    public func train<OptimizerType>(
-        model: inout DenseClassifier<String, Int32>, optimizer: inout OptimizerType, labels: LabelFrame<Int32>, getEntityIndices: (LabelFrame<Int32>) -> Tensor<Int32> = { $0.indices }
-    ) where OptimizerType: Optimizer, OptimizerType.Model == DenseClassifier<String, Int32> {
+    public func train<OptimizerType, GraphModelType>(
+        model: inout DenseClassifier<GraphModelType>, optimizer: inout OptimizerType, labels: LabelFrame<Int32>, getEntityIndices: (LabelFrame<Int32>) -> Tensor<Int32> = { $0.indices }
+    ) where OptimizerType: Optimizer, OptimizerType.Model == DenseClassifier<GraphModelType> {
         for i in 1...nEpochs{
             var losses: [Float] = []
             for batch in labels.batched(size: batchSize) {

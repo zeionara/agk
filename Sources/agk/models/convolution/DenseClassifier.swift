@@ -2,8 +2,8 @@ import Foundation
 import TensorFlow
 import Checkpoints
 
-public struct DenseClassifier<SourceElement, NormalizedElement>: GenericModel, Module where SourceElement: Hashable, NormalizedElement: Hashable, NormalizedElement: Comparable {
-    @noDerivative public var graphEmbedder: VGAE<SourceElement, NormalizedElement>
+public struct DenseClassifier<GraphEmbedderType>: GenericModel, Module where GraphEmbedderType: ConvolutionGraphModel {
+    @noDerivative public var graphEmbedder: GraphEmbedderType
     private var layer: Dense<Float>
     private var inputLayer: Dense<Float>
     private var dropout: GaussianDropout<Float>
@@ -11,7 +11,7 @@ public struct DenseClassifier<SourceElement, NormalizedElement>: GenericModel, M
     @noDerivative public let device: Device
 
     public init(
-        graphEmbedder: VGAE<SourceElement, NormalizedElement>,
+        graphEmbedder: GraphEmbedderType,
         device: Device = Device.default,
         activation: @escaping Dense<Float>.Activation = relu,
         reduceEmbeddingsTensorDimensionality: @escaping (Tensor<Float>) -> Tensor<Float> = { $0.sum(alongAxes: [1]) }

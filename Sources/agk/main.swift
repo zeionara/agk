@@ -131,6 +131,7 @@ struct CrossValidate: ParsableCommand {
         case transd
         case gcn
         case vgae
+        case conve
     }
 
     private enum GraphRepresentation: String, ExpressibleByArgument {
@@ -216,17 +217,60 @@ struct CrossValidate: ParsableCommand {
         var logger = Logger(label: "root")
         logger.logLevel = .trace
 
-        if (model == .vgae) {
+        let nEpochs_ = nEpochs
+        let classifierLearningRate_ = classifierLearningRate
+        let readEmbeddings_ = readEmbeddings
+        let dataset_ = KnowledgeGraphDataset<String, Int32>(path: datasetPath, classes: labelsPath, device: device)
+        let batchSize_ = batchSize
+        
+        if (model == .conve) {
+            let dataset_ = KnowledgeGraphDataset<String, Int32>(path: datasetPath, classes: labelsPath, device: device)
+            let modelSavingLock = NSLock()
+            var embeddingsWereInitialized: Bool = false
+            try DenseClassifierCVTester<DenseClassifier<ConvE<String, Int32>>, String, ConvE<String, Int32>>(nFolds: nFolds, nEpochs: classifierNEpochs, batchSize: batchSize).test(
+                dataset: dataset_,
+                metrics: classificationMetrics,
+                enableParallelism: false
+            ) { trainer, labels in
+            
+                // 1. Train the base model with node encodings if necessary
+                
+                let shouldInitializeEmbeddings = !embeddingsWereInitialized && !readEmbeddings_
+                var model_ = !shouldInitializeEmbeddings ? try ConvE(dataset: dataset_, device: device) : ConvE(
+                    embeddingDimensionality: embeddingDimensionality_,
+                    stackedEmbeddingsWidth: 5,
+                    stackedEmbeddingsHeight: 2,
+                    filterWidth: 5,
+                    filterHeight: 2,
+                    nConvolutionalFilters: 2,
+                    dataset: dataset_,
+                    device: device
+                )
+                if shouldInitializeEmbeddings {
+                    let trainer_ = ConvolutionAdjacencySequenceTrainer(nEpochs: nEpochs_, batchSize: batchSize_)
+                    let optimizer_ = Adam<ConvE<String, Int32>>(for: model_, learningRate: learningRate_)
+                    trainer_.train(
+                        dataset: dataset_,
+                        model: &model_,
+                        optimizer: optimizer_
+                    )
+                    try model_.save()
+                }
+
+                // 2. Train classification block
+
+                var classifier = DenseClassifier(graphEmbedder: model_, device: device)
+                var classification_optimizer_ = Adam<DenseClassifier>(for: classifier, learningRate: classifierLearningRate_)
+                trainer.train(model: &classifier, optimizer: &classification_optimizer_, labels: dataset_.labelFrame!)
+                return classifier
+            }
+        } else if (model == .vgae) {
             if openke {
                 let model_name = model.rawValue
                 throw ModelError.unsupportedModel(message: "Model \(model_name) is not implemented in the OpenKE library!")
             }
             // logger[metadataKey: "foo"] = "bar"
             // logger.debug("ok")
-            let nEpochs_ = nEpochs
-            let classifierLearningRate_ = classifierLearningRate
-            let readEmbeddings_ = readEmbeddings
-            let dataset_ = KnowledgeGraphDataset<String, Int32>(path: datasetPath, classes: labelsPath, device: device)
 
             let entityIndicesGetters: [GraphRepresentation: (LabelFrame<Int32>) -> Tensor<Int32>]  = [
                 .adjacencyMatrix: { labels in
@@ -244,26 +288,26 @@ struct CrossValidate: ParsableCommand {
             //
             //
             
-            var model_ = readEmbeddings ? try VGAE(dataset: dataset, device: device) :
-                VGAE(embeddingDimensionality: embeddingDimensionality, dataset: dataset_, device: device, adjacencyTensorPath: adjacencyTensorPaths[graphRepresentation]!)
-            print(model_.entityEmbeddings.embeddings.shape)
-            if !readEmbeddings {
-                let trainer_ = ConvolutionAdjacencyTrainer(nEpochs: nEpochs)
-                var optimizer_ = Adam<VGAE<String, Int32>>(for: model_, learningRate: learningRate_)
-                trainer_.train(dataset: dataset, model: &model_, optimizer: optimizer_,  trainTensorPath: trainTensorPaths[graphRepresentation]!, adjacencyTensorPath: adjacencyTensorPaths[graphRepresentation]!)
-                try model_.save()
-            }
-            // print(dataset_.labelFrame!.indices)
-            // let indices = dataset_.getAdjacencyPairsIndices(labels: dataset_.labelFrame!)
-            var classifier = DenseClassifier(graphEmbedder: model_, device: device) { embeddings in
-                embeddings.sum(alongAxes: [1]) // embeddings.mean(alongAxes: [1])
-            }
-            // print(classifier(indices).shape)
-            let classificationTrainer = ClassificationTrainer(nEpochs: classifierNEpochs, batchSize: batchSize)
-            var classification_optimizer_ = Adam<DenseClassifier<String, Int32>>(for: classifier, learningRate: classifierLearningRate_)
-            classificationTrainer.train(model: &classifier, optimizer: &classification_optimizer_, labels: dataset_.labelFrame!) { labels in
-                dataset_.getAdjacencyPairsIndices(labels: labels)
-            }
+            // var model_ = readEmbeddings ? try VGAE(dataset: dataset, device: device) :
+            //     VGAE(embeddingDimensionality: embeddingDimensionality, dataset: dataset_, device: device, adjacencyTensorPath: adjacencyTensorPaths[graphRepresentation]!)
+            // print(model_.entityEmbeddings.embeddings.shape)
+            // if !readEmbeddings {
+            //     let trainer_ = ConvolutionAdjacencyTrainer(nEpochs: nEpochs)
+            //     var optimizer_ = Adam<VGAE<String, Int32>>(for: model_, learningRate: learningRate_)
+            //     trainer_.train(dataset: dataset, model: &model_, optimizer: optimizer_,  trainTensorPath: trainTensorPaths[graphRepresentation]!, adjacencyTensorPath: adjacencyTensorPaths[graphRepresentation]!)
+            //     try model_.save()
+            // }
+            // // print(dataset_.labelFrame!.indices)
+            // // let indices = dataset_.getAdjacencyPairsIndices(labels: dataset_.labelFrame!)
+            // var classifier = DenseClassifier(graphEmbedder: model_, device: device) { embeddings in
+            //     embeddings.sum(alongAxes: [1]) // embeddings.mean(alongAxes: [1])
+            // }
+            // // print(classifier(indices).shape)
+            // let classificationTrainer = ClassificationTrainer(nEpochs: classifierNEpochs, batchSize: batchSize)
+            // var classification_optimizer_ = Adam<DenseClassifier<String, Int32>>(for: classifier, learningRate: classifierLearningRate_)
+            // classificationTrainer.train(model: &classifier, optimizer: &classification_optimizer_, labels: dataset_.labelFrame!) { labels in
+            //     dataset_.getAdjacencyPairsIndices(labels: labels)
+            // }
             let embeddingsDimensionalityReducer_ = embeddingsDimensionalityReducer
             let graphRepresentation_ = graphRepresentation
             
@@ -273,7 +317,7 @@ struct CrossValidate: ParsableCommand {
 
             let modelSavingLock = NSLock()
             var embeddingsWereInitialized: Bool = false
-            try DenseClassifierCVTester<DenseClassifier<String, Int32>, String>(nFolds: nFolds, nEpochs: classifierNEpochs, batchSize: batchSize).test(
+            try DenseClassifierCVTester<DenseClassifier<VGAE<String, Int32>>, String, VGAE<String, Int32>>(nFolds: nFolds, nEpochs: classifierNEpochs, batchSize: batchSize).test(
                 dataset: dataset_,
                 metrics: classificationMetrics,
                 enableParallelism: false,
@@ -301,12 +345,11 @@ struct CrossValidate: ParsableCommand {
                 // 2. Train classification block
 
                 var classifier = DenseClassifier(graphEmbedder: model_, device: device, reduceEmbeddingsTensorDimensionality: embeddingsTensorDimensionalityReducers[embeddingsDimensionalityReducer_]!) 
-                var classification_optimizer_ = Adam<DenseClassifier<String, Int32>>(for: classifier, learningRate: classifierLearningRate_)
+                var classification_optimizer_ = Adam<DenseClassifier>(for: classifier, learningRate: classifierLearningRate_)
                 trainer.train(model: &classifier, optimizer: &classification_optimizer_, labels: labels, getEntityIndices: entityIndicesGetters[graphRepresentation_]!)
                 return classifier
             }
-        }
-        else if (model == .gcn) {
+        } else if (model == .gcn) {
             if openke {
                 let model_name = model.rawValue
                 throw ModelError.unsupportedModel(message: "Model \(model_name) is not implemented in the OpenKE library!")

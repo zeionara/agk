@@ -14,10 +14,10 @@ public struct ConvolutionAdjacencySequenceTrainer {
     public func train<Model, SourceElement>(dataset: KnowledgeGraphDataset<SourceElement, Int32>, model: inout Model, optimizer: Adam<Model>) where Model: ConvolutionGraphModel, Model.Scalar == Int32 {
         for i in 1...nEpochs {
             var losses: [Float] = []
-            for batch in dataset.frame.batched(size: batchSize) {
-                let expectedAdjacencySequence = dataset.normalizedFrame.adjacencySequence
+            for batch in dataset.normalizedFrame.batched(size: batchSize) {
+                let expectedAdjacencySequence = batch.adjacencySequence
                 let (loss, grad) = valueWithGradient(at: model) { model -> Tensor<Float> in
-                    let generatedAdjacencySequence = model(Tensor<Int32>(dataset.normalizedFrame.tensor))
+                    let generatedAdjacencySequence = model(Tensor<Int32>(batch.tensor))
                     return sigmoidCrossEntropy(logits: generatedAdjacencySequence, labels: expectedAdjacencySequence)
                 }
                 optimizer.update(&model, along: grad)

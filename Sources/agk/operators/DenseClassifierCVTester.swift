@@ -2,10 +2,10 @@ import Foundation
 import TensorFlow
 import Checkpoints
 
-public struct DenseClassifierCVTester<Model, SourceElement> where Model: GenericModel, SourceElement: Hashable, Model.Scalar == Int32 {
+public struct DenseClassifierCVTester<Model, SourceElement, GraphModelType> where Model: GenericModel, SourceElement: Hashable, Model.Scalar == Int32, GraphModelType: ConvolutionGraphModel {
     public let trainer: ClassificationTrainer
     public let nFolds: Int
-    public typealias ModelInitizlizationClosure = (_ trainer: ClassificationTrainer, _ labels: LabelFrame<Int32>) throws -> DenseClassifier<SourceElement, Int32>
+    public typealias ModelInitizlizationClosure = (_ trainer: ClassificationTrainer, _ labels: LabelFrame<Int32>) throws -> DenseClassifier<GraphModelType>
 
     public init(nFolds: Int, nEpochs: Int, batchSize: Int) {
         trainer = ClassificationTrainer(nEpochs: nEpochs, batchSize: batchSize)

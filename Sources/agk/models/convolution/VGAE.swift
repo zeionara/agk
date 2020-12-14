@@ -10,8 +10,8 @@ private func normalizeWithL2_(tensor: Tensor<Float>) -> Tensor<Float> {
     tensor / computeL2Norm_(data: tensor)
 }
 
-let ENTITY_EMBEDDINGS_TENSOR_KEY = "entity-embeddings"
-let INPUT_LAYER_TENSOR_KEY = "input-layer-tensor-key"
+private let ENTITY_EMBEDDINGS_TENSOR_KEY = "entity-embeddings"
+private let INPUT_LAYER_TENSOR_KEY = "input-layer-tensor-key"
 
 public struct VGAE<SourceElement, NormalizedElement>: ConvolutionGraphModel where SourceElement: Hashable, NormalizedElement: Hashable, NormalizedElement: Comparable {
     public var entityEmbeddings: Embedding<Float>
