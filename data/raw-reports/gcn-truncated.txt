@@ -1,13 +1,13 @@
 
 gcn-truncated(epochs: 10, learning-rate: 0.01)
 
-Precision@0.000: 0.5082621
-Precision@0.200: 0.5082621
-Precision@0.400: 0.5082621
+Precision@0.000: 0.3719984
+Precision@0.200: 0.3719984
+Precision@0.400: 0.3719984
 Precision@0.600: nan
 Precision@0.800: nan
 Precision@1.000: nan
-Precision@0.000 (reversed): 0.49173787
+Precision@0.000 (reversed): 0.6280017
 Recall@0.000: 1.0
 Recall@0.200: 1.0
 Recall@0.400: 1.0
@@ -15,61 +15,61 @@ Recall@0.600: 0.0
 Recall@0.800: 0.0
 Recall@1.000: 0.0
 Recall@0.000 (reversed): 1.0
-F1Score@0.000: 0.67137116
-F1Score@0.200: 0.67137116
-F1Score@0.400: 0.67137116
+F1Score@0.000: 0.5380357
+F1Score@0.200: 0.5380357
+F1Score@0.400: 0.5380357
 F1Score@0.600: nan
 F1Score@0.800: nan
 F1Score@1.000: nan
-F1Score@0.000 (reversed): 0.65675664
-Accuracy@0.000: 0.5082621
-Accuracy@0.200: 0.5082621
-Accuracy@0.400: 0.5082621
-Accuracy@0.600: 0.4866097
-Accuracy@0.800: 0.49173787
-Accuracy@1.000: 0.49173787
-Accuracy@0.000 (reversed): 0.49173787
+F1Score@0.000 (reversed): 0.7691304
+Accuracy@0.000: 0.3719984
+Accuracy@0.200: 0.3719984
+Accuracy@0.400: 0.3719984
+Accuracy@0.600: 0.6280017
+Accuracy@0.800: 0.6280017
+Accuracy@1.000: 0.6280017
+Accuracy@0.000 (reversed): 0.6280017
 
 gcn-truncated(epochs: 10, learning-rate: 0.015)
 
-Precision@0.000: 0.5077737
-Precision@0.200: 0.5077737
-Precision@0.400: 0.5077737
+Precision@0.000: 0.3728124
+Precision@0.200: 0.3728124
+Precision@0.400: 0.3728124
 Precision@0.600: nan
 Precision@0.800: nan
 Precision@1.000: nan
-Precision@0.000 (reversed): 0.49222633
+Precision@0.000 (reversed): 0.62718767
 Recall@0.000: 1.0
 Recall@0.200: 1.0
 Recall@0.400: 1.0
-Recall@0.600: 0.06375
+Recall@0.600: 0.0
 Recall@0.800: 0.0
 Recall@1.000: 0.0
 Recall@0.000 (reversed): 1.0
-F1Score@0.000: 0.66760826
-F1Score@0.200: 0.66760826
-F1Score@0.400: 0.66760826
+F1Score@0.000: 0.5424436
+F1Score@0.200: 0.5424436
+F1Score@0.400: 0.5424436
 F1Score@0.600: nan
 F1Score@0.800: nan
 F1Score@1.000: nan
-F1Score@0.000 (reversed): 0.6536017
-Accuracy@0.000: 0.5077737
-Accuracy@0.200: 0.5077737
-Accuracy@0.400: 0.5077737
-Accuracy@0.600: 0.4869353
-Accuracy@0.800: 0.49222633
-Accuracy@1.000: 0.49222633
-Accuracy@0.000 (reversed): 0.49222633
+F1Score@0.000 (reversed): 0.77045745
+Accuracy@0.000: 0.3728124
+Accuracy@0.200: 0.3728124
+Accuracy@0.400: 0.3728124
+Accuracy@0.600: 0.62718767
+Accuracy@0.800: 0.62718767
+Accuracy@1.000: 0.62718767
+Accuracy@0.000 (reversed): 0.62718767
 
 gcn-truncated(epochs: 10, learning-rate: 0.3)
 
-Precision@0.000: 0.5085877
-Precision@0.200: 0.5085877
-Precision@0.400: 0.5085877
+Precision@0.000: 0.3728124
+Precision@0.200: 0.3728124
+Precision@0.400: 0.3728124
 Precision@0.600: nan
 Precision@0.800: nan
 Precision@1.000: nan
-Precision@0.000 (reversed): 0.49141228
+Precision@0.000 (reversed): 0.62718767
 Recall@0.000: 1.0
 Recall@0.200: 1.0
 Recall@0.400: 1.0
@@ -77,185 +77,185 @@ Recall@0.600: 0.0
 Recall@0.800: 0.0
 Recall@1.000: 0.0
 Recall@0.000 (reversed): 1.0
-F1Score@0.000: 0.67247075
-F1Score@0.200: 0.67247075
-F1Score@0.400: 0.67247075
+F1Score@0.000: 0.5410135
+F1Score@0.200: 0.5410135
+F1Score@0.400: 0.5410135
 F1Score@0.600: nan
 F1Score@0.800: nan
 F1Score@1.000: nan
-F1Score@0.000 (reversed): 0.65704614
-Accuracy@0.000: 0.5085877
-Accuracy@0.200: 0.5085877
-Accuracy@0.400: 0.5085877
-Accuracy@0.600: 0.49141228
-Accuracy@0.800: 0.49141228
-Accuracy@1.000: 0.49141228
-Accuracy@0.000 (reversed): 0.49141228
+F1Score@0.000 (reversed): 0.7695575
+Accuracy@0.000: 0.3728124
+Accuracy@0.200: 0.3728124
+Accuracy@0.400: 0.3728124
+Accuracy@0.600: 0.62718767
+Accuracy@0.800: 0.62718767
+Accuracy@1.000: 0.62718767
+Accuracy@0.000 (reversed): 0.62718767
 
 gcn-truncated(epochs: 50, learning-rate: 0.01)
 
-Precision@0.000: 0.50793654
-Precision@0.200: 0.50793654
-Precision@0.400: 0.50793654
-Precision@0.600: 0.571024
-Precision@0.800: 0.5751026
+Precision@0.000: 0.3729752
+Precision@0.200: 0.3729752
+Precision@0.400: 0.3729752
+Precision@0.600: 0.42015395
+Precision@0.800: nan
 Precision@1.000: nan
-Precision@0.000 (reversed): 0.4920635
+Precision@0.000 (reversed): 0.6270248
 Recall@0.000: 1.0
 Recall@0.200: 1.0
 Recall@0.400: 1.0
-Recall@0.600: 0.8802309
-Recall@0.800: 0.64704186
+Recall@0.600: 0.56055725
+Recall@0.800: 0.17852437
 Recall@1.000: 0.0
 Recall@0.000 (reversed): 1.0
-F1Score@0.000: 0.6730263
-F1Score@0.200: 0.6730263
-F1Score@0.400: 0.6730263
-F1Score@0.600: 0.68887967
-F1Score@0.800: 0.59880954
+F1Score@0.000: 0.5425291
+F1Score@0.200: 0.5425291
+F1Score@0.400: 0.5425291
+F1Score@0.600: 0.45929232
+F1Score@0.800: nan
 F1Score@1.000: nan
-F1Score@0.000 (reversed): 0.65891343
-Accuracy@0.000: 0.50793654
-Accuracy@0.200: 0.50793654
-Accuracy@0.400: 0.50793654
-Accuracy@0.600: 0.5957672
-Accuracy@0.800: 0.55954415
-Accuracy@1.000: 0.4920635
-Accuracy@0.000 (reversed): 0.4920635
+F1Score@0.000 (reversed): 0.7702865
+Accuracy@0.000: 0.3729752
+Accuracy@0.200: 0.3729752
+Accuracy@0.400: 0.3729752
+Accuracy@0.600: 0.5486366
+Accuracy@0.800: 0.60089546
+Accuracy@1.000: 0.6270248
+Accuracy@0.000 (reversed): 0.6270248
 
 gcn-truncated(epochs: 50, learning-rate: 0.015)
 
-Precision@0.000: 0.5072853
-Precision@0.200: 0.5072853
-Precision@0.400: 0.5072853
-Precision@0.600: 0.5642676
-Precision@0.800: 0.55427
+Precision@0.000: 0.3729752
+Precision@0.200: 0.3729752
+Precision@0.400: 0.3729752
+Precision@0.600: 0.4085145
+Precision@0.800: 0.37621084
 Precision@1.000: nan
-Precision@0.000 (reversed): 0.49271473
+Precision@0.000 (reversed): 0.6270248
 Recall@0.000: 1.0
 Recall@0.200: 1.0
 Recall@0.400: 1.0
-Recall@0.600: 0.94857687
-Recall@0.800: 0.7978701
+Recall@0.600: 0.7689786
+Recall@0.800: 0.5125949
 Recall@1.000: 0.0
 Recall@0.000 (reversed): 1.0
-F1Score@0.000: 0.6719063
-F1Score@0.200: 0.6719063
-F1Score@0.400: 0.6719063
-F1Score@0.600: 0.7057387
-F1Score@0.800: 0.65214825
+F1Score@0.000: 0.5418021
+F1Score@0.200: 0.5418021
+F1Score@0.400: 0.5418021
+F1Score@0.600: 0.5298998
+F1Score@0.800: 0.4267629
 F1Score@1.000: nan
-F1Score@0.000 (reversed): 0.65888363
-Accuracy@0.000: 0.5072853
-Accuracy@0.200: 0.5072853
-Accuracy@0.400: 0.5072853
-Accuracy@0.600: 0.6007326
-Accuracy@0.800: 0.5701262
-Accuracy@1.000: 0.49271473
-Accuracy@0.000 (reversed): 0.49271473
+F1Score@0.000 (reversed): 0.7698429
+Accuracy@0.000: 0.3729752
+Accuracy@0.200: 0.3729752
+Accuracy@0.400: 0.3729752
+Accuracy@0.600: 0.49076107
+Accuracy@0.800: 0.49654052
+Accuracy@1.000: 0.6270248
+Accuracy@0.000 (reversed): 0.6270248
 
 gcn-truncated(epochs: 50, learning-rate: 0.3)
 
-Precision@0.000: 0.5080993
-Precision@0.200: 0.5080993
-Precision@0.400: 0.5080993
+Precision@0.000: 0.37362638
+Precision@0.200: 0.37362638
+Precision@0.400: 0.37362638
 Precision@0.600: nan
 Precision@0.800: nan
 Precision@1.000: nan
-Precision@0.000 (reversed): 0.4919007
+Precision@0.000 (reversed): 0.6263736
 Recall@0.000: 1.0
 Recall@0.200: 1.0
 Recall@0.400: 1.0
-Recall@0.600: 0.22580646
-Recall@0.800: 0.22580646
-Recall@1.000: 0.010752688
+Recall@0.600: 0.0
+Recall@0.800: 0.0
+Recall@1.000: 0.0
 Recall@0.000 (reversed): 1.0
-F1Score@0.000: 0.67344457
-F1Score@0.200: 0.67344457
-F1Score@0.400: 0.67344457
+F1Score@0.000: 0.5389282
+F1Score@0.200: 0.5389282
+F1Score@0.400: 0.5389282
 F1Score@0.600: nan
 F1Score@0.800: nan
 F1Score@1.000: nan
-F1Score@0.000 (reversed): 0.6590324
-Accuracy@0.000: 0.5080993
-Accuracy@0.200: 0.5080993
-Accuracy@0.400: 0.5080993
-Accuracy@0.600: 0.5175417
-Accuracy@0.800: 0.52267
-Accuracy@1.000: 0.4765161
-Accuracy@0.000 (reversed): 0.4919007
+F1Score@0.000 (reversed): 0.76744014
+Accuracy@0.000: 0.37362638
+Accuracy@0.200: 0.37362638
+Accuracy@0.400: 0.37362638
+Accuracy@0.600: 0.6263736
+Accuracy@0.800: 0.6263736
+Accuracy@1.000: 0.6263736
+Accuracy@0.000 (reversed): 0.6263736
 
 gcn-truncated(epochs: 100, learning-rate: 0.01)
 
-Precision@0.000: 0.5072853
-Precision@0.200: 0.5072853
-Precision@0.400: 0.5072853
-Precision@0.600: 0.58872
-Precision@0.800: 0.62549406
+Precision@0.000: 0.3734636
+Precision@0.200: 0.3734636
+Precision@0.400: 0.3734636
+Precision@0.600: 0.41204563
+Precision@0.800: 0.42175305
 Precision@1.000: nan
-Precision@0.000 (reversed): 0.49271473
+Precision@0.000 (reversed): 0.6265364
 Recall@0.000: 1.0
 Recall@0.200: 1.0
 Recall@0.400: 1.0
-Recall@0.600: 0.97924644
-Recall@0.800: 0.8703995
+Recall@0.600: 0.8279915
+Recall@0.800: 0.7013404
 Recall@1.000: 0.0
 Recall@0.000 (reversed): 1.0
-F1Score@0.000: 0.67225856
-F1Score@0.200: 0.67225856
-F1Score@0.400: 0.67225856
-F1Score@0.600: 0.7343367
-F1Score@0.800: 0.7259423
+F1Score@0.000: 0.54311424
+F1Score@0.200: 0.54311424
+F1Score@0.400: 0.54311424
+F1Score@0.600: 0.5455425
+F1Score@0.800: 0.52237856
 F1Score@1.000: nan
-F1Score@0.000 (reversed): 0.659282
-Accuracy@0.000: 0.5072853
-Accuracy@0.200: 0.5072853
-Accuracy@0.400: 0.5072853
-Accuracy@0.600: 0.64175826
-Accuracy@0.800: 0.66805047
-Accuracy@1.000: 0.49271473
-Accuracy@0.000 (reversed): 0.49271473
+F1Score@0.000 (reversed): 0.7699604
+Accuracy@0.000: 0.3734636
+Accuracy@0.200: 0.3734636
+Accuracy@0.400: 0.3734636
+Accuracy@0.600: 0.4923891
+Accuracy@0.800: 0.5282865
+Accuracy@1.000: 0.6265364
+Accuracy@0.000 (reversed): 0.6265364
 
 gcn-truncated(epochs: 100, learning-rate: 0.015)
 
-Precision@0.000: 0.50793654
-Precision@0.200: 0.50793654
-Precision@0.400: 0.50793654
-Precision@0.600: 0.5560797
-Precision@0.800: 0.5669002
+Precision@0.000: 0.372324
+Precision@0.200: 0.372324
+Precision@0.400: 0.372324
+Precision@0.600: 0.3825641
+Precision@0.800: 0.41977692
 Precision@1.000: nan
-Precision@0.000 (reversed): 0.4920635
+Precision@0.000 (reversed): 0.627676
 Recall@0.000: 1.0
 Recall@0.200: 1.0
 Recall@0.400: 1.0
-Recall@0.600: 0.979798
-Recall@0.800: 0.90877527
+Recall@0.600: 0.80147475
+Recall@0.800: 0.70744985
 Recall@1.000: 0.0
 Recall@0.000 (reversed): 1.0
-F1Score@0.000: 0.6735878
-F1Score@0.200: 0.6735878
-F1Score@0.400: 0.6735878
-F1Score@0.600: 0.7087533
-F1Score@0.800: 0.6957431
+F1Score@0.000: 0.5392403
+F1Score@0.200: 0.5392403
+F1Score@0.400: 0.5392403
+F1Score@0.600: 0.5130201
+F1Score@0.800: 0.5242166
 F1Score@1.000: nan
-F1Score@0.000 (reversed): 0.65947485
-Accuracy@0.000: 0.50793654
-Accuracy@0.200: 0.50793654
-Accuracy@0.400: 0.50793654
-Accuracy@0.600: 0.5904762
-Accuracy@0.800: 0.601221
-Accuracy@1.000: 0.4920635
-Accuracy@0.000 (reversed): 0.4920635
+F1Score@0.000 (reversed): 0.7691589
+Accuracy@0.000: 0.372324
+Accuracy@0.200: 0.372324
+Accuracy@0.400: 0.372324
+Accuracy@0.600: 0.43980464
+Accuracy@0.800: 0.5287749
+Accuracy@1.000: 0.627676
+Accuracy@0.000 (reversed): 0.627676
 
 gcn-truncated(epochs: 100, learning-rate: 0.3)
 
-Precision@0.000: 0.5076109
-Precision@0.200: 0.5076109
-Precision@0.400: 0.5076109
+Precision@0.000: 0.37264958
+Precision@0.200: 0.37264958
+Precision@0.400: 0.37264958
 Precision@0.600: nan
 Precision@0.800: nan
 Precision@1.000: nan
-Precision@0.000 (reversed): 0.4923891
+Precision@0.000 (reversed): 0.6273505
 Recall@0.000: 1.0
 Recall@0.200: 1.0
 Recall@0.400: 1.0
@@ -263,185 +263,185 @@ Recall@0.600: 0.0
 Recall@0.800: 0.0
 Recall@1.000: 0.0
 Recall@0.000 (reversed): 1.0
-F1Score@0.000: 0.6714866
-F1Score@0.200: 0.6714866
-F1Score@0.400: 0.6714866
+F1Score@0.000: 0.54232806
+F1Score@0.200: 0.54232806
+F1Score@0.400: 0.54232806
 F1Score@0.600: nan
 F1Score@0.800: nan
 F1Score@1.000: nan
-F1Score@0.000 (reversed): 0.65783733
-Accuracy@0.000: 0.5076109
-Accuracy@0.200: 0.5076109
-Accuracy@0.400: 0.5076109
-Accuracy@0.600: 0.4923891
-Accuracy@0.800: 0.4923891
-Accuracy@1.000: 0.4923891
-Accuracy@0.000 (reversed): 0.4923891
+F1Score@0.000 (reversed): 0.77063495
+Accuracy@0.000: 0.37264958
+Accuracy@0.200: 0.37264958
+Accuracy@0.400: 0.37264958
+Accuracy@0.600: 0.6273505
+Accuracy@0.800: 0.6273505
+Accuracy@1.000: 0.6273505
+Accuracy@0.000 (reversed): 0.6273505
 
 gcn-truncated(epochs: 500, learning-rate: 0.01)
 
-Precision@0.000: 0.5087505
-Precision@0.200: 0.5087505
-Precision@0.400: 0.5087505
-Precision@0.600: 0.57354873
-Precision@0.800: 0.5588236
+Precision@0.000: 0.37264958
+Precision@0.200: 0.37264958
+Precision@0.400: 0.37264958
+Precision@0.600: 0.36932626
+Precision@0.800: 0.37712288
 Precision@1.000: nan
-Precision@0.000 (reversed): 0.49124953
+Precision@0.000 (reversed): 0.6273505
 Recall@0.000: 1.0
 Recall@0.200: 1.0
 Recall@0.400: 1.0
-Recall@0.600: 0.89066416
-Recall@0.800: 0.772713
+Recall@0.600: 0.6979718
+Recall@0.800: 0.55401236
 Recall@1.000: 0.0
 Recall@0.000 (reversed): 1.0
-F1Score@0.000: 0.6714732
-F1Score@0.200: 0.6714732
-F1Score@0.400: 0.6714732
-F1Score@0.600: 0.69254446
-F1Score@0.800: 0.6411508
+F1Score@0.000: 0.5420941
+F1Score@0.200: 0.5420941
+F1Score@0.400: 0.5420941
+F1Score@0.600: 0.4790134
+F1Score@0.800: 0.43886742
 F1Score@1.000: nan
-F1Score@0.000 (reversed): 0.6557138
-Accuracy@0.000: 0.5087505
-Accuracy@0.200: 0.5087505
-Accuracy@0.400: 0.5087505
-Accuracy@0.600: 0.60203505
-Accuracy@0.800: 0.5651608
-Accuracy@1.000: 0.49124953
-Accuracy@0.000 (reversed): 0.49124953
+F1Score@0.000 (reversed): 0.770483
+Accuracy@0.000: 0.37264958
+Accuracy@0.200: 0.37264958
+Accuracy@0.400: 0.37264958
+Accuracy@0.600: 0.43435085
+Accuracy@0.800: 0.4862841
+Accuracy@1.000: 0.6273505
+Accuracy@0.000 (reversed): 0.6273505
 
 gcn-truncated(epochs: 500, learning-rate: 0.015)
 
-Precision@0.000: 0.5080993
-Precision@0.200: 0.5080993
-Precision@0.400: 0.5080993
-Precision@0.600: 0.56075376
-Precision@0.800: 0.5820336
+Precision@0.000: 0.3734636
+Precision@0.200: 0.3734636
+Precision@0.400: 0.3734636
+Precision@0.600: 0.40969816
+Precision@0.800: 0.4258686
 Precision@1.000: nan
-Precision@0.000 (reversed): 0.4919007
+Precision@0.000 (reversed): 0.6265364
 Recall@0.000: 1.0
 Recall@0.200: 1.0
 Recall@0.400: 1.0
-Recall@0.600: 0.9593741
-Recall@0.800: 0.84447986
+Recall@0.600: 0.7750183
+Recall@0.800: 0.6356044
 Recall@1.000: 0.0
 Recall@0.000 (reversed): 1.0
-F1Score@0.000: 0.67268413
-F1Score@0.200: 0.67268413
-F1Score@0.400: 0.67268413
-F1Score@0.600: 0.7061682
-F1Score@0.800: 0.68699723
+F1Score@0.000: 0.5427325
+F1Score@0.200: 0.5427325
+F1Score@0.400: 0.5427325
+F1Score@0.600: 0.5343374
+F1Score@0.800: 0.5086048
 F1Score@1.000: nan
-F1Score@0.000 (reversed): 0.658295
-Accuracy@0.000: 0.5080993
-Accuracy@0.200: 0.5080993
-Accuracy@0.400: 0.5080993
-Accuracy@0.600: 0.5956044
-Accuracy@0.800: 0.6116402
-Accuracy@1.000: 0.4919007
-Accuracy@0.000 (reversed): 0.4919007
+F1Score@0.000 (reversed): 0.76974815
+Accuracy@0.000: 0.3734636
+Accuracy@0.200: 0.3734636
+Accuracy@0.400: 0.3734636
+Accuracy@0.600: 0.49751735
+Accuracy@0.800: 0.5441596
+Accuracy@1.000: 0.6265364
+Accuracy@0.000 (reversed): 0.6265364
 
 gcn-truncated(epochs: 500, learning-rate: 0.3)
 
-Precision@0.000: 0.5077737
-Precision@0.200: 0.5077737
-Precision@0.400: 0.5077737
+Precision@0.000: 0.3729752
+Precision@0.200: 0.3729752
+Precision@0.400: 0.3729752
 Precision@0.600: nan
 Precision@0.800: nan
 Precision@1.000: nan
-Precision@0.000 (reversed): 0.49222633
+Precision@0.000 (reversed): 0.6270248
 Recall@0.000: 1.0
 Recall@0.200: 1.0
 Recall@0.400: 1.0
-Recall@0.600: 0.16666667
-Recall@0.800: 0.15625
-Recall@1.000: 0.010416667
+Recall@0.600: 0.0
+Recall@0.800: 0.0
+Recall@1.000: 0.0
 Recall@0.000 (reversed): 1.0
-F1Score@0.000: 0.6731725
-F1Score@0.200: 0.6731725
-F1Score@0.400: 0.6731725
+F1Score@0.000: 0.5425291
+F1Score@0.200: 0.5425291
+F1Score@0.400: 0.5425291
 F1Score@0.600: nan
 F1Score@0.800: nan
 F1Score@1.000: nan
-F1Score@0.000 (reversed): 0.6593407
-Accuracy@0.000: 0.5077737
-Accuracy@0.200: 0.5077737
-Accuracy@0.400: 0.5077737
-Accuracy@0.600: 0.51868135
-Accuracy@0.800: 0.51868135
-Accuracy@1.000: 0.49222633
-Accuracy@0.000 (reversed): 0.49222633
+F1Score@0.000 (reversed): 0.7702865
+Accuracy@0.000: 0.3729752
+Accuracy@0.200: 0.3729752
+Accuracy@0.400: 0.3729752
+Accuracy@0.600: 0.6270248
+Accuracy@0.800: 0.6270248
+Accuracy@1.000: 0.6270248
+Accuracy@0.000 (reversed): 0.6270248
 
 gcn-truncated(epochs: 1000, learning-rate: 0.01)
 
-Precision@0.000: 0.5071225
-Precision@0.200: 0.5071225
-Precision@0.400: 0.5071225
-Precision@0.600: 0.5416515
-Precision@0.800: 0.5668092
+Precision@0.000: 0.373952
+Precision@0.200: 0.373952
+Precision@0.400: 0.373952
+Precision@0.600: 0.43240094
+Precision@0.800: 0.45813355
 Precision@1.000: nan
-Precision@0.000 (reversed): 0.4928775
+Precision@0.000 (reversed): 0.6260481
 Recall@0.000: 1.0
 Recall@0.200: 1.0
 Recall@0.400: 1.0
-Recall@0.600: 0.92896825
-Recall@0.800: 0.8773809
+Recall@0.600: 0.8970115
+Recall@0.800: 0.8155045
 Recall@1.000: 0.0
 Recall@0.000 (reversed): 1.0
-F1Score@0.000: 0.66962284
-F1Score@0.200: 0.66962284
-F1Score@0.400: 0.66962284
-F1Score@0.600: 0.68044776
-F1Score@0.800: 0.6864516
+F1Score@0.000: 0.5399084
+F1Score@0.200: 0.5399084
+F1Score@0.400: 0.5399084
+F1Score@0.600: 0.5772257
+F1Score@0.800: 0.577362
 F1Score@1.000: nan
-F1Score@0.000 (reversed): 0.65661377
-Accuracy@0.000: 0.5071225
-Accuracy@0.200: 0.5071225
-Accuracy@0.400: 0.5071225
-Accuracy@0.600: 0.5643468
-Accuracy@0.800: 0.6007326
-Accuracy@1.000: 0.4928775
-Accuracy@0.000 (reversed): 0.4928775
+F1Score@0.000 (reversed): 0.7674072
+Accuracy@0.000: 0.373952
+Accuracy@0.200: 0.373952
+Accuracy@0.400: 0.373952
+Accuracy@0.600: 0.5238095
+Accuracy@0.800: 0.5704518
+Accuracy@1.000: 0.6260481
+Accuracy@0.000 (reversed): 0.6260481
 
 gcn-truncated(epochs: 1000, learning-rate: 0.015)
 
-Precision@0.000: 0.5085877
-Precision@0.200: 0.5085877
-Precision@0.400: 0.5085877
+Precision@0.000: 0.3728124
+Precision@0.200: 0.3728124
+Precision@0.400: 0.3728124
 Precision@0.600: nan
 Precision@0.800: nan
 Precision@1.000: nan
-Precision@0.000 (reversed): 0.49141228
+Precision@0.000 (reversed): 0.62718767
 Recall@0.000: 1.0
 Recall@0.200: 1.0
 Recall@0.400: 1.0
-Recall@0.600: 0.6327562
-Recall@0.800: 0.54473305
+Recall@0.600: 0.56439394
+Recall@0.800: 0.489899
 Recall@1.000: 0.0
 Recall@0.000 (reversed): 1.0
-F1Score@0.000: 0.67187333
-F1Score@0.200: 0.67187333
-F1Score@0.400: 0.67187333
+F1Score@0.000: 0.5428005
+F1Score@0.200: 0.5428005
+F1Score@0.400: 0.5428005
 F1Score@0.600: nan
 F1Score@0.800: nan
 F1Score@1.000: nan
-F1Score@0.000 (reversed): 0.6565179
-Accuracy@0.000: 0.5085877
-Accuracy@0.200: 0.5085877
-Accuracy@0.400: 0.5085877
-Accuracy@0.600: 0.5375661
-Accuracy@0.800: 0.5170533
-Accuracy@1.000: 0.49141228
-Accuracy@0.000 (reversed): 0.49141228
+F1Score@0.000 (reversed): 0.77068216
+Accuracy@0.000: 0.3728124
+Accuracy@0.200: 0.3728124
+Accuracy@0.400: 0.3728124
+Accuracy@0.600: 0.53406596
+Accuracy@0.800: 0.554416
+Accuracy@1.000: 0.62718767
+Accuracy@0.000 (reversed): 0.62718767
 
 gcn-truncated(epochs: 1000, learning-rate: 0.3)
 
-Precision@0.000: 0.5077737
-Precision@0.200: 0.5077737
-Precision@0.400: 0.5077737
+Precision@0.000: 0.3737892
+Precision@0.200: 0.3737892
+Precision@0.400: 0.3737892
 Precision@0.600: nan
 Precision@0.800: nan
 Precision@1.000: nan
-Precision@0.000 (reversed): 0.49222633
+Precision@0.000 (reversed): 0.62621087
 Recall@0.000: 1.0
 Recall@0.200: 1.0
 Recall@0.400: 1.0
@@ -449,92 +449,92 @@ Recall@0.600: 0.0
 Recall@0.800: 0.0
 Recall@1.000: 0.0
 Recall@0.000 (reversed): 1.0
-F1Score@0.000: 0.67344886
-F1Score@0.200: 0.67344886
-F1Score@0.400: 0.67344886
+F1Score@0.000: 0.542293
+F1Score@0.200: 0.542293
+F1Score@0.400: 0.542293
 F1Score@0.600: nan
 F1Score@0.800: nan
 F1Score@1.000: nan
-F1Score@0.000 (reversed): 0.65962577
-Accuracy@0.000: 0.5077737
-Accuracy@0.200: 0.5077737
-Accuracy@0.400: 0.5077737
-Accuracy@0.600: 0.49222633
-Accuracy@0.800: 0.49222633
-Accuracy@1.000: 0.49222633
-Accuracy@0.000 (reversed): 0.49222633
+F1Score@0.000 (reversed): 0.76895946
+Accuracy@0.000: 0.3737892
+Accuracy@0.200: 0.3737892
+Accuracy@0.400: 0.3737892
+Accuracy@0.600: 0.62621087
+Accuracy@0.800: 0.62621087
+Accuracy@1.000: 0.62621087
+Accuracy@0.000 (reversed): 0.62621087
 
 gcn-truncated(epochs: 5000, learning-rate: 0.01)
 
-Precision@0.000: 0.50695974
-Precision@0.200: 0.50695974
-Precision@0.400: 0.50695974
-Precision@0.600: 0.6018379
-Precision@0.800: 0.5833333
+Precision@0.000: 0.37362638
+Precision@0.200: 0.37362638
+Precision@0.400: 0.37362638
+Precision@0.600: 0.387277
+Precision@0.800: 0.38612804
 Precision@1.000: nan
-Precision@0.000 (reversed): 0.49304032
+Precision@0.000 (reversed): 0.6263736
 Recall@0.000: 1.0
 Recall@0.200: 1.0
 Recall@0.400: 1.0
-Recall@0.600: 0.84615993
-Recall@0.800: 0.74129033
+Recall@0.600: 0.68782026
+Recall@0.800: 0.5611916
 Recall@1.000: 0.0
 Recall@0.000 (reversed): 1.0
-F1Score@0.000: 0.6707863
-F1Score@0.200: 0.6707863
-F1Score@0.400: 0.6707863
-F1Score@0.600: 0.6933563
-F1Score@0.800: 0.6402288
+F1Score@0.000: 0.54282475
+F1Score@0.200: 0.54282475
+F1Score@0.400: 0.54282475
+F1Score@0.600: 0.49119768
+F1Score@0.800: 0.45323667
 F1Score@1.000: nan
-F1Score@0.000 (reversed): 0.6584189
-Accuracy@0.000: 0.50695974
-Accuracy@0.200: 0.50695974
-Accuracy@0.400: 0.50695974
-Accuracy@0.600: 0.6210826
-Accuracy@0.800: 0.58502245
-Accuracy@1.000: 0.49304032
-Accuracy@0.000 (reversed): 0.49304032
+F1Score@0.000 (reversed): 0.7695386
+Accuracy@0.000: 0.37362638
+Accuracy@0.200: 0.37362638
+Accuracy@0.400: 0.37362638
+Accuracy@0.600: 0.47667888
+Accuracy@0.800: 0.50744814
+Accuracy@1.000: 0.6263736
+Accuracy@0.000 (reversed): 0.6263736
 
 gcn-truncated(epochs: 5000, learning-rate: 0.015)
 
-Precision@0.000: 0.5087505
-Precision@0.200: 0.5087505
-Precision@0.400: 0.5087505
-Precision@0.600: 0.592316
-Precision@0.800: 0.58697885
+Precision@0.000: 0.3724868
+Precision@0.200: 0.3724868
+Precision@0.400: 0.3724868
+Precision@0.600: 0.40462825
+Precision@0.800: 0.41441086
 Precision@1.000: nan
-Precision@0.000 (reversed): 0.49124953
+Precision@0.000 (reversed): 0.62751323
 Recall@0.000: 1.0
 Recall@0.200: 1.0
 Recall@0.400: 1.0
-Recall@0.600: 0.9602092
-Recall@0.800: 0.9069434
+Recall@0.600: 0.7032099
+Recall@0.800: 0.60753083
 Recall@1.000: 0.0
 Recall@0.000 (reversed): 1.0
-F1Score@0.000: 0.6717766
-F1Score@0.200: 0.6717766
-F1Score@0.400: 0.6717766
-F1Score@0.600: 0.7307059
-F1Score@0.800: 0.7106194
+F1Score@0.000: 0.54147995
+F1Score@0.200: 0.54147995
+F1Score@0.400: 0.54147995
+F1Score@0.600: 0.5092399
+F1Score@0.800: 0.49052057
 F1Score@1.000: nan
-F1Score@0.000 (reversed): 0.6559739
-Accuracy@0.000: 0.5087505
-Accuracy@0.200: 0.5087505
-Accuracy@0.400: 0.5087505
-Accuracy@0.600: 0.6425723
-Accuracy@0.800: 0.62718767
-Accuracy@1.000: 0.49124953
-Accuracy@0.000 (reversed): 0.49124953
+F1Score@0.000 (reversed): 0.7703633
+Accuracy@0.000: 0.3724868
+Accuracy@0.200: 0.3724868
+Accuracy@0.400: 0.3724868
+Accuracy@0.600: 0.50166875
+Accuracy@0.800: 0.53357756
+Accuracy@1.000: 0.62751323
+Accuracy@0.000 (reversed): 0.62751323
 
 gcn-truncated(epochs: 5000, learning-rate: 0.3)
 
-Precision@0.000: 0.5067969
-Precision@0.200: 0.5067969
-Precision@0.400: 0.5067969
+Precision@0.000: 0.3734636
+Precision@0.200: 0.3734636
+Precision@0.400: 0.3734636
 Precision@0.600: nan
 Precision@0.800: nan
 Precision@1.000: nan
-Precision@0.000 (reversed): 0.49320307
+Precision@0.000 (reversed): 0.6265364
 Recall@0.000: 1.0
 Recall@0.200: 1.0
 Recall@0.400: 1.0
@@ -542,92 +542,92 @@ Recall@0.600: 0.0
 Recall@0.800: 0.0
 Recall@1.000: 0.0
 Recall@0.000 (reversed): 1.0
-F1Score@0.000: 0.6692464
-F1Score@0.200: 0.6692464
-F1Score@0.400: 0.6692464
+F1Score@0.000: 0.54324144
+F1Score@0.200: 0.54324144
+F1Score@0.400: 0.54324144
 F1Score@0.600: nan
 F1Score@0.800: nan
 F1Score@1.000: nan
-F1Score@0.000 (reversed): 0.65707415
-Accuracy@0.000: 0.5067969
-Accuracy@0.200: 0.5067969
-Accuracy@0.400: 0.5067969
-Accuracy@0.600: 0.49320307
-Accuracy@0.800: 0.49320307
-Accuracy@1.000: 0.49320307
-Accuracy@0.000 (reversed): 0.49320307
+F1Score@0.000 (reversed): 0.77003115
+Accuracy@0.000: 0.3734636
+Accuracy@0.200: 0.3734636
+Accuracy@0.400: 0.3734636
+Accuracy@0.600: 0.6265364
+Accuracy@0.800: 0.6265364
+Accuracy@1.000: 0.6265364
+Accuracy@0.000 (reversed): 0.6265364
 
 gcn-truncated(epochs: 10000, learning-rate: 0.01)
 
-Precision@0.000: 0.5077737
-Precision@0.200: 0.5077737
-Precision@0.400: 0.5077737
-Precision@0.600: 0.5496593
-Precision@0.800: 0.57971543
+Precision@0.000: 0.3734636
+Precision@0.200: 0.3734636
+Precision@0.400: 0.3734636
+Precision@0.600: 0.44062647
+Precision@0.800: 0.47621083
 Precision@1.000: nan
-Precision@0.000 (reversed): 0.49222633
+Precision@0.000 (reversed): 0.6265364
 Recall@0.000: 1.0
 Recall@0.200: 1.0
 Recall@0.400: 1.0
-Recall@0.600: 0.7414215
-Recall@0.800: 0.70098037
+Recall@0.600: 0.59816855
+Recall@0.800: 0.54280835
 Recall@1.000: 0.0
 Recall@0.000 (reversed): 1.0
-F1Score@0.000: 0.67344886
-F1Score@0.200: 0.67344886
-F1Score@0.400: 0.67344886
-F1Score@0.600: 0.6226774
-F1Score@0.800: 0.62303615
+F1Score@0.000: 0.5427325
+F1Score@0.200: 0.5427325
+F1Score@0.400: 0.5427325
+F1Score@0.600: 0.4944174
+F1Score@0.800: 0.49215892
 F1Score@1.000: nan
-F1Score@0.000 (reversed): 0.65962577
-Accuracy@0.000: 0.5077737
-Accuracy@0.200: 0.5077737
-Accuracy@0.400: 0.5077737
-Accuracy@0.600: 0.5754172
-Accuracy@0.800: 0.6068376
-Accuracy@1.000: 0.49222633
-Accuracy@0.000 (reversed): 0.49222633
+F1Score@0.000 (reversed): 0.76974815
+Accuracy@0.000: 0.3734636
+Accuracy@0.200: 0.3734636
+Accuracy@0.400: 0.3734636
+Accuracy@0.600: 0.5598698
+Accuracy@0.800: 0.5960928
+Accuracy@1.000: 0.6265364
+Accuracy@0.000 (reversed): 0.6265364
 
 gcn-truncated(epochs: 10000, learning-rate: 0.015)
 
-Precision@0.000: 0.50695974
-Precision@0.200: 0.50695974
-Precision@0.400: 0.50695974
-Precision@0.600: 0.5717593
-Precision@0.800: 0.60516936
+Precision@0.000: 0.3737892
+Precision@0.200: 0.3737892
+Precision@0.400: 0.3737892
+Precision@0.600: 0.39898992
+Precision@0.800: 0.47575617
 Precision@1.000: nan
-Precision@0.000 (reversed): 0.49304032
+Precision@0.000 (reversed): 0.62621087
 Recall@0.000: 1.0
 Recall@0.200: 1.0
 Recall@0.400: 1.0
-Recall@0.600: 0.70394
-Recall@0.800: 0.6863961
+Recall@0.600: 0.40158728
+Recall@0.800: 0.37103173
 Recall@1.000: 0.0
 Recall@0.000 (reversed): 1.0
-F1Score@0.000: 0.6704445
-F1Score@0.200: 0.6704445
-F1Score@0.400: 0.6704445
-F1Score@0.600: 0.62231135
-F1Score@0.800: 0.6331443
+F1Score@0.000: 0.5417662
+F1Score@0.200: 0.5417662
+F1Score@0.400: 0.5417662
+F1Score@0.600: 0.31447145
+F1Score@0.800: 0.31556204
 F1Score@1.000: nan
-F1Score@0.000 (reversed): 0.6580077
-Accuracy@0.000: 0.50695974
-Accuracy@0.200: 0.50695974
-Accuracy@0.400: 0.50695974
-Accuracy@0.600: 0.58469677
-Accuracy@0.800: 0.61611724
-Accuracy@1.000: 0.49304032
-Accuracy@0.000 (reversed): 0.49304032
+F1Score@0.000 (reversed): 0.76868415
+Accuracy@0.000: 0.3737892
+Accuracy@0.200: 0.3737892
+Accuracy@0.400: 0.3737892
+Accuracy@0.600: 0.51339036
+Accuracy@0.800: 0.5494506
+Accuracy@1.000: 0.62621087
+Accuracy@0.000 (reversed): 0.62621087
 
 gcn-truncated(epochs: 10000, learning-rate: 0.3)
 
-Precision@0.000: 0.5076109
-Precision@0.200: 0.5076109
-Precision@0.400: 0.5076109
+Precision@0.000: 0.3734636
+Precision@0.200: 0.3734636
+Precision@0.400: 0.3734636
 Precision@0.600: nan
 Precision@0.800: nan
 Precision@1.000: nan
-Precision@0.000 (reversed): 0.4923891
+Precision@0.000 (reversed): 0.6265364
 Recall@0.000: 1.0
 Recall@0.200: 1.0
 Recall@0.400: 1.0
@@ -635,17 +635,17 @@ Recall@0.600: 0.0
 Recall@0.800: 0.0
 Recall@1.000: 0.0
 Recall@0.000 (reversed): 1.0
-F1Score@0.000: 0.6727597
-F1Score@0.200: 0.6727597
-F1Score@0.400: 0.6727597
+F1Score@0.000: 0.54324144
+F1Score@0.200: 0.54324144
+F1Score@0.400: 0.54324144
 F1Score@0.600: nan
 F1Score@0.800: nan
 F1Score@1.000: nan
-F1Score@0.000 (reversed): 0.6591914
-Accuracy@0.000: 0.5076109
-Accuracy@0.200: 0.5076109
-Accuracy@0.400: 0.5076109
-Accuracy@0.600: 0.4923891
-Accuracy@0.800: 0.4923891
-Accuracy@1.000: 0.4923891
-Accuracy@0.000 (reversed): 0.4923891
+F1Score@0.000 (reversed): 0.77003115
+Accuracy@0.000: 0.3734636
+Accuracy@0.200: 0.3734636
+Accuracy@0.400: 0.3734636
+Accuracy@0.600: 0.6265364
+Accuracy@0.800: 0.6265364
+Accuracy@1.000: 0.6265364
+Accuracy@0.000 (reversed): 0.6265364
