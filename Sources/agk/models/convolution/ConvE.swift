@@ -39,7 +39,7 @@ private let STACKED_EMBEDDINGS_WIDTH_KEY = "stacked-embeddings-width"
 private let STACKED_EMBEDDINGS_HEIGHT_KEY = "stacked-embeddings-height"
 private let DENSE_LAYER_KEY = "dense"
 
-public struct ConvE<SourceElement, NormalizedElement>: ConvolutionGraphModel where SourceElement: Hashable, NormalizedElement: Hashable, NormalizedElement: Comparable {
+public struct ConvE<SourceElement, NormalizedElement>: ConvolutionGraphModel, SaveableGraphModel where SourceElement: Hashable, NormalizedElement: Hashable, NormalizedElement: Comparable {
     public var entityEmbeddings: Embedding<Float>
     public var relationshipEmbeddings: Embedding<Float>
     public var convolutionFilters: DepthwiseConv2D<Float>

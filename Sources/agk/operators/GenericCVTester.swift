@@ -8,7 +8,7 @@ public class GenericCVTester<Model, DataFrameType, TrainerType> where Model: Gen
     public let nFolds: Int
     
     public typealias ModelInitizlizationClosure = (_ trainer: TrainerType, _ labels: DataFrameType) throws -> Model
-    public typealias MetricComputationClosure = (_ model: Model, _ metric: NamedMetric, _ trainFrame: DataFrameType, _ testFrame: DataFrameType) throws -> Float
+    public typealias MetricComputationClosure = (_ model: Model, _ metric: NamedMetric, _ trainFrame: DataFrameType, _ testFrame: DataFrameType, _ dataset: KnowledgeGraphDataset<String, Int32>) throws -> Float
     public typealias SamplesListGenerationClosure = (_ dataset: KnowledgeGraphDataset<String, Int32>) -> DataFrameType
     
     private var logger: Logger
@@ -39,7 +39,7 @@ public class GenericCVTester<Model, DataFrameType, TrainerType> where Model: Gen
         let evaluation_start_timestamp = DispatchTime.now().uptimeNanoseconds
         for metric in metrics {
             self.logger.trace("Computing \(metric.name)")
-            let value = try computeMetric(model, metric, trainLabels, testLabels)
+            let value = try computeMetric(model, metric, trainLabels, testLabels, dataset)
             self.logger.trace("Computed \(metric.name)")
             lockScoresArray?()
             scores[metric.name]!.append(value)

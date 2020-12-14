@@ -2,7 +2,7 @@ import Foundation
 import TensorFlow
 
 
-public struct ConvolutionAdjacencySequenceTrainer {
+public struct ConvolutionAdjacencySequenceTrainer: ConvolutionTrainer {
     public let nEpochs: Int
     public let batchSize: Int
 
