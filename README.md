@@ -1,4 +1,6 @@
-<img src="images/logo.jpg" alt="drawing" style="width:200px;"/>
+<p align="center">
+  <img src="images/logo.jpg" alt="logo" width="200px"/>
+</p>
 
 # Agk Tool (being reversed stands for "Knowledge Graphs Applications")
 A library for building recommendation systems.
