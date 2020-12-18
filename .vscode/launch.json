@@ -111,7 +111,11 @@
                 "-m",
                 "conve",
                 "-d",
-                "deduplicated-dataset.txt"
+                "deduplicated-dataset.txt",
+                "-n",
+                "100",
+                "-c",
+                "100"
                 // "--read-embeddings"
             ],
             "cwd": "${workspaceFolder}",

@@ -525,6 +525,7 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
     public let normalizedNegativeFrame: NegativeFrame<NormalizedElement>
 //    public let normalizedSampledNegativeFrame: TripleFrame
     public let entityId2Index: [SourceElement: NormalizedElement]
+    public let entityId2Text: [NormalizedElement: String]
     public let entityIndex2Id: [NormalizedElement: SourceElement]
     public let relationshipId2Index: [SourceElement: NormalizedElement]
     public let relationshipIndex2Id: [NormalizedElement: SourceElement]
@@ -532,6 +533,19 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
     public let path: String
     public let name: String
     public let verbosity: Logger.Level
+
+    static func readStringPairs(path: String) throws -> [(String, String)] {
+        let dir = URL(fileURLWithPath: #file.replacingOccurrences(of: "Sources/agk/datasets/KnowledgeGraphDataset.swift", with: ""))
+        let fileContents = try String(
+            contentsOf: dir.appendingPathComponent("data").appendingPathComponent(path),
+            encoding: .utf8
+        )
+        let data: [(String, String)] = fileContents.split(separator: "\n").map {
+            let stringTuple = String($0).components(separatedBy: "\t")
+            return (stringTuple[0], stringTuple[1])
+        }
+        return data
+    }
 
     static func readData<Element>(path: String, stringToSourceElement: (String) -> Element) throws -> [[Element]] {
         let dir = URL(fileURLWithPath: #file.replacingOccurrences(of: "Sources/agk/datasets/KnowledgeGraphDataset.swift", with: ""))
@@ -558,7 +572,7 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
 //    }
 
     public init(
-            path: String, classes: String? = Optional.none, device: Device = Device.default,
+            path: String, classes: String? = Optional.none, texts: String? = Optional.none, device: Device = Device.default,
             intToNormalizedElement: (Int) -> NormalizedElement, stringToNormalizedElement: (String) -> NormalizedElement, stringToSourceElement: (String) -> SourceElement,
             sourceToNormalizedElement: (SourceElement) -> NormalizedElement,
             verbosity: Logger.Level = .debug
@@ -595,6 +609,14 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
         } else {
             labelFrame = Optional.none
         }
+
+        var id2Text = [NormalizedElement: String]()
+        if let texts_ = texts {
+            try! KnowledgeGraphDataset.readStringPairs(path: texts_).map{ row in
+                id2Text[entityNormalizationMappings.forward[stringToSourceElement(row.0)]!] = row.1
+            }
+        }
+
         let normalizedFrame_ = normalize(frame_, entityNormalizationMappings.forward, relationshipNormalizationMappings.forward)
 
         self.device = device
@@ -610,6 +632,7 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
         entityIndex2Id = entityNormalizationMappings.backward
         relationshipId2Index = relationshipNormalizationMappings.forward
         relationshipIndex2Id = relationshipNormalizationMappings.backward
+        entityId2Text = id2Text
     }
 
     public func getAdjacencyPairsIndices(labels: LabelFrame<Int32>) -> Tensor<Int32> {

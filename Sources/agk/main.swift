@@ -3,6 +3,7 @@ import ArgumentParser
 import PythonKit
 import Foundation
 import Logging
+// import TextModels
 
 //testNeuMF(
 //        size: [16, 32, 16, 8],
@@ -159,6 +160,9 @@ struct CrossValidate: ParsableCommand {
     @Option(default: "humorous.txt", help: "Filename containing labels for graph nodes (should be located in the 'data' folder)")
     private var labelsPath: String
 
+    @Option(default: "deduplicated-dataset-texts.txt", help: "Filename containing texts for graph nodes (should be located in the 'data' folder)")
+    private var textsPath: String
+
     @Option(name: .shortAndLong, default: 10, help: "Number of epochs to execute during model training")
     var nEpochs: Int
 
@@ -235,14 +239,17 @@ struct CrossValidate: ParsableCommand {
         ]
         
         if (model == .conve) {
-            let dataset_ = KnowledgeGraphDataset<String, Int32>(path: datasetPath, classes: labelsPath, device: device)
+            // let embeddingsModel = try ELMO(getModelsCacheRoot())
+            // embeddingsModel.test(["категории Б", "врач сказал"])
+            let dataset_ = KnowledgeGraphDataset<String, Int32>(path: datasetPath, classes: labelsPath, texts: textsPath, device: device)
             let modelSavingLock = NSLock()
             var embeddingsWereInitialized: Bool = false
-            try GenericCVTester<DenseClassifier<ConvE<String, Int32>>, LabelFrame<Int32>, ClassificationTrainer>(nFolds: nFolds, nEpochs: classifierNEpochs, batchSize: batchSize).test(
+            
+            try GenericCVTester<DenseClassifier<ConvE<String, Int32>, String, Int32>, LabelFrame<Int32>, ClassificationTrainer>(nFolds: nFolds, nEpochs: classifierNEpochs, batchSize: batchSize).test(
                 dataset: dataset_,
                 metrics: classificationMetrics,
                 enableParallelism: false
-            ) { trainer, labels -> DenseClassifier<ConvE<String, Int32>> in
+            ) { trainer, labels -> DenseClassifier<ConvE<String, Int32>, String, Int32> in
             
                 // 1. Train the base model with node encodings if necessary
                 
@@ -272,7 +279,7 @@ struct CrossValidate: ParsableCommand {
 
                 // 2. Train classification block
 
-                var classifier = DenseClassifier(graphEmbedder: model_, device: device)
+                var classifier = try DenseClassifier(graphEmbedder: model_, dataset: dataset_, device: device)
                 var classification_optimizer_ = Adam<DenseClassifier>(for: classifier, learningRate: classifierLearningRate_)
                 trainer.train(model: &classifier, optimizer: &classification_optimizer_, labels: dataset_.labelFrame!)
                 return classifier
@@ -321,11 +328,11 @@ struct CrossValidate: ParsableCommand {
 
             let modelSavingLock = NSLock()
             var embeddingsWereInitialized: Bool = false
-            try GenericCVTester<DenseClassifier<VGAE<String, Int32>>, LabelFrame<Int32>, ClassificationTrainer>(nFolds: nFolds, nEpochs: classifierNEpochs, batchSize: batchSize).test(
+            try GenericCVTester<DenseClassifier<VGAE<String, Int32>, String, Int32>, LabelFrame<Int32>, ClassificationTrainer>(nFolds: nFolds, nEpochs: classifierNEpochs, batchSize: batchSize).test(
                 dataset: dataset_,
                 metrics: classificationMetrics,
                 enableParallelism: false
-            ) { trainer, labels -> DenseClassifier<VGAE<String, Int32>> in
+            ) { trainer, labels -> DenseClassifier<VGAE<String, Int32>, String, Int32> in
 
                 // 1. Train the base model with node encodings if necessary
 
@@ -347,7 +354,7 @@ struct CrossValidate: ParsableCommand {
 
                 // 2. Train classification block
 
-                var classifier = DenseClassifier(graphEmbedder: model_, device: device, reduceEmbeddingsTensorDimensionality: embeddingsTensorDimensionalityReducers[embeddingsDimensionalityReducer_]!) 
+                var classifier = try DenseClassifier(graphEmbedder: model_, dataset: dataset_, device: device, reduceEmbeddingsTensorDimensionality: embeddingsTensorDimensionalityReducers[embeddingsDimensionalityReducer_]!) 
                 var classification_optimizer_ = Adam<DenseClassifier>(for: classifier, learningRate: classifierLearningRate_)
                 trainer.train(model: &classifier, optimizer: &classification_optimizer_, labels: labels, getEntityIndices: entityIndicesGetters[graphRepresentation_]!)
                 return classifier

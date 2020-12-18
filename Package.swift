@@ -8,7 +8,7 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
-        .package(url: "https://github.com/tensorflow/swift-models.git", .branch("main")),
+        .package(url: "https://github.com/zeionara/swift-models.git", .branch("language-models")),
         .package(url: "https://github.com/apple/swift-argument-parser", from: "0.2.0"),
         .package(url: "https://github.com/apple/swift-log.git", .branch("main")),
     ],
@@ -20,6 +20,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Datasets", package: "swift-models"),
                 .product(name: "Checkpoints", package: "swift-models"),
+                .product(name: "TextModels", package: "swift-models"),
                 .product(name: "RecommendationModels", package: "swift-models"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "Logging", package: "swift-log")

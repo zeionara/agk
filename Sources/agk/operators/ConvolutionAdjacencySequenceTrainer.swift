@@ -18,7 +18,7 @@ public struct ConvolutionAdjacencySequenceTrainer: ConvolutionTrainer {
                 let expectedAdjacencySequence = batch.adjacencySequence
                 let (loss, grad) = valueWithGradient(at: model) { model -> Tensor<Float> in
                     let generatedAdjacencySequence = model(Tensor<Int32>(batch.tensor))
-                    return sigmoidCrossEntropy(logits: generatedAdjacencySequence, labels: expectedAdjacencySequence)
+                    return softmaxCrossEntropy(logits: generatedAdjacencySequence, probabilities: expectedAdjacencySequence)
                 }
                 optimizer.update(&model, along: grad)
 //                model = model.normalizeEmbeddings()
