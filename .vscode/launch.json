@@ -115,8 +115,8 @@
                 "-n",
                 "100",
                 "-c",
-                "100"
-                // "--read-embeddings"
+                "100",
+                "--read-embeddings"
             ],
             "cwd": "${workspaceFolder}",
             "sourceLanguages": [

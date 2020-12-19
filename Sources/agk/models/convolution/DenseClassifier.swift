@@ -98,7 +98,7 @@ public struct DenseClassifier<GraphEmbedderType, SourceElement, NormalizedElemen
                                 entityIds.shape.count == 1 ?
                                 graphEmbedder.entityEmbeddings(entityIds) :
                                 reduceEmbeddingsTensorDimensionality(graphEmbedder.entityEmbeddings(entityIds)).reshaped(to: [entityIds.shape[0], -1])
-                            ) + (
+                            ) + textEmbeddingsReshaper(
                                 entityIds.shape.count == 1 ?
                                 textEmbeddings(entityIds) :
                                 reduceEmbeddingsTensorDimensionality(graphEmbedder.entityEmbeddings(entityIds)).reshaped(to: [entityIds.shape[0], -1]) // FIXME
