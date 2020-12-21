@@ -19,9 +19,9 @@ public struct ConvolutionClassificationTrainer: Trainer {
         for i in 1...nEpochs{
             var losses: [Float] = []
             let (loss, grad) = valueWithGradient(at: model) { model -> Tensor<Float> in
-                print("Computing model labels")
+                // print("Computing model labels")
                 let labels_ = model(dataset[keyPath: getAdjacencyMatrix]) // model(Tensor<Int32>(batch.adjacencyTensor))
-                print("Computing loss")
+                // print("Computing loss")
                 return sigmoidCrossEntropy(
                     logits: labels_.flattened().gathering(atIndices: labels.indices) + 0.001,
                     labels: labels.labels + 0.001

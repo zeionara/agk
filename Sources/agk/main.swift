@@ -98,6 +98,24 @@ struct CrossValidate: ParsableCommand {
     @Option(default: .none, help: "Name of the cached language model to apply inside dense-classification module")
     var languageModelName: String?
 
+    @Option(default: 5, help: "Width of matrix being a result of reshaping an entity embedding")
+    var stackedEmbeddingsWidth: Int
+
+    @Option(default: 2, help: "Height of matrix being a result of reshaping an entity embedding")
+    var stackedEmbeddingsHeight: Int
+
+    @Option(default: 5, help: "Width of a convolution filter")
+    var convolutionFilterWidth: Int
+
+    @Option(default: 1, help: "Height of a convolution filter")
+    var convolutionFilterHeight: Int
+
+    @Option(default: 2, help: "Number of convolution filters")
+    var nConvolutionFilters: Int
+
+    @Option(default: 100, help: "Number of nodes in the hidden layer")
+    var hiddenLayerSize: Int
+
     mutating func run() throws {
         
         // Initialize command-line argument mappings
@@ -144,13 +162,25 @@ struct CrossValidate: ParsableCommand {
                 dataset_.getAdjacencyPairsIndices(labels: labels)
             }
         ]
+
+        let stackedEmbeddingsWidth_ = stackedEmbeddingsWidth
+        let stackedEmbeddingsHeight_ = stackedEmbeddingsHeight
+
+        let convolutionFilterWidth_ = convolutionFilterWidth
+        let convolutionFilterHeight_ = convolutionFilterHeight
+
+        let nConvolutionFilters_ = nConvolutionFilters
+
+        let hiddenLayerSize_ = hiddenLayerSize
         
         if (model == .conve) {
             let dataset_ = KnowledgeGraphDataset<String, Int32>(path: datasetPath, classes: labelsPath, texts: textsPath, device: device)
             let modelSavingLock = NSLock()
             var embeddingsWereInitialized: Bool = false
             
-            try GenericCVTester<DenseClassifier<ConvE<String, Int32>, String, Int32>, LabelFrame<Int32>, ClassificationTrainer>(nFolds: nFolds, nEpochs: classifierNEpochs, batchSize: batchSize).test(
+            try GenericCVTester<DenseClassifier<ConvE<String, Int32>, String, Int32>, LabelFrame<Int32>, ClassificationTrainer>(
+                nFolds: nFolds, nEpochs: classifierNEpochs, batchSize: batchSize
+            ).test(
                 dataset: dataset_,
                 metrics: classificationMetrics,
                 enableParallelism: false
@@ -161,11 +191,11 @@ struct CrossValidate: ParsableCommand {
                 let shouldInitializeEmbeddings = !embeddingsWereInitialized && !readEmbeddings_
                 var model_ = !shouldInitializeEmbeddings ? try ConvE(dataset: dataset_, device: device) : ConvE(
                     embeddingDimensionality: embeddingDimensionality_,
-                    stackedEmbeddingsWidth: 5,
-                    stackedEmbeddingsHeight: 2,
-                    filterWidth: 5,
-                    filterHeight: 2,
-                    nConvolutionalFilters: 2,
+                    stackedEmbeddingsWidth: stackedEmbeddingsWidth_,
+                    stackedEmbeddingsHeight: stackedEmbeddingsHeight_,
+                    filterWidth: convolutionFilterWidth_,
+                    filterHeight: convolutionFilterHeight_,
+                    nConvolutionalFilters: nConvolutionFilters_,
                     dataset: dataset_,
                     device: device
                 )
@@ -257,19 +287,15 @@ struct CrossValidate: ParsableCommand {
                     nEpochs: nEpochs,
                     batchSize: batchSize
             ).test(dataset: dataset_, metrics: classificationMetrics, enableParallelism: false) { trainer, labels in
-                print("a")
                 var model_ = GCN(
                     embeddingDimensionality: embeddingDimensionality_,
                     dataset: dataset_,
                     device: device,
-                    hiddenLayerSize: 100,
+                    hiddenLayerSize: hiddenLayerSize_,
                     adjacencyTensorPath: adjacencyTensorPaths[graphRepresentation_]!
                 )
-                print("b")
                 var optimizer = Adam<GCN<String, Int32>>(for: model_, learningRate: learningRate_)
-                print("c")
-                trainer.train(dataset: dataset_, model: &model_, optimizer: &optimizer, labels: labels, getAdjacencyMatrix: graphAdjacencyMatrixGetter) // loss: computeSigmoidLoss
-                print("d")
+                trainer.train(dataset: dataset_, model: &model_, optimizer: &optimizer, labels: labels, getAdjacencyMatrix: graphAdjacencyMatrixGetter)
                 return model_
             } computeMetric: { model, metric, trainLabels, testLabels, dataset -> Float in
                 let logits = model(dataset[keyPath: graphAdjacencyMatrixGetter]).flattened().gathering(atIndices: testLabels.indices)
