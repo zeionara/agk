@@ -30,7 +30,7 @@ public struct VGAE<SourceElement, NormalizedElement>: ConvolutionGraphModel, Sav
                 adjacencyTensorPath: KeyPath<KnowledgeGraphDataset<SourceElement, NormalizedElement>, Tensor<Int8>> = \.frame.adjacencyTensor
                 // hiddenLayer: Dense<Float>? = Optional.none,
                 // outputLayer: Tensor<Float>? = Optional.none
-                ) {
+    ) {
         if let entityEmbeddings_ = entityEmbeddings {
             self.entityEmbeddings = entityEmbeddings_
         } else {

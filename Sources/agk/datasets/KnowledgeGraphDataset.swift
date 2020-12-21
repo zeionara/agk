@@ -577,6 +577,7 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
             sourceToNormalizedElement: (SourceElement) -> NormalizedElement,
             verbosity: Logger.Level = .debug
     ) {
+        // print("ok")
         self.path = path
         self.verbosity = verbosity
         self.name = path.components(separatedBy: "/").last!.components(separatedBy: ".").first!
@@ -595,6 +596,7 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
             intToNormalizedElement($0)
         })
 
+        // print(classes_)
         if let classes_ = classes {
             labelFrame = LabelFrame(
                     data: (try! KnowledgeGraphDataset.readData(path: classes_) { s in

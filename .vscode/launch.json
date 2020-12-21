@@ -40,33 +40,36 @@
             "type": "lldb",
             "request": "launch",
             "preLaunchTask": "swift-build",
-            "name": "Cross-validate gcn",
+            "name": "Cross-validate gcn using adjacency-matrix as graph representation",
             "program": "${workspaceFolder}/.build/debug/agk",
             "args": [
                 "cross-validate",
                 "-m",
                 "gcn",
                 "-d",
-                "deduplicated-dataset.txt"
+                "deduplicated-dataset.txt",
+                "--graph-representation",
+                "adjacencyMatrix"
             ],
             "cwd": "${workspaceFolder}",
             "sourceLanguages": [
                 "swift"
             ]
-            // "env": {
-            //     "CUDA_VISIBLE_DEVICES": "-1"
-            // }
         },
         {
             "type": "lldb",
             "request": "launch",
             "preLaunchTask": "swift-build",
-            "name": "Generate report",
+            "name": "Cross-validate gcn using adjacency-pairs-matrix as graph representation",
             "program": "${workspaceFolder}/.build/debug/agk",
             "args": [
-                "restructure-report",
-                "raw-reports/vgae-classification.txt",
-                "reports/vgae-classification.txt"
+                "cross-validate",
+                "-m",
+                "gcn",
+                "-d",
+                "deduplicated-dataset.txt",
+                "--graph-representation",
+                "adjacencyPairsMatrix"
             ],
             "cwd": "${workspaceFolder}",
             "sourceLanguages": [
@@ -77,7 +80,7 @@
             "type": "lldb",
             "request": "launch",
             "preLaunchTask": "swift-build",
-            "name": "Cross-validate vgae",
+            "name": "Cross-validate vgae using adjacency-matrix as graph representation",
             "program": "${workspaceFolder}/.build/debug/agk",
             "args": [
                 "cross-validate",
@@ -85,26 +88,83 @@
                 "vgae",
                 "-d",
                 "deduplicated-dataset.txt",
-                "--read-embeddings",
                 "--graph-representation",
-                "adjacencyPairsMatrix"
-                // "adjacencyMatrix"
-                // "--embeddings-dimensionality-reducer",
-                // "avg"
+                "adjacencyMatrix"
             ],
             "cwd": "${workspaceFolder}",
             "sourceLanguages": [
                 "swift"
             ]
-            // "env": {
-            //     "CUDA_VISIBLE_DEVICES": "-1"
-            // }
         },
         {
             "type": "lldb",
             "request": "launch",
             "preLaunchTask": "swift-build",
-            "name": "Cross-validate conve",
+            "name": "Cross-validate vgae using adjacency-pairs-matrix as graph representation",
+            "program": "${workspaceFolder}/.build/debug/agk",
+            "args": [
+                "cross-validate",
+                "-m",
+                "vgae",
+                "-d",
+                "deduplicated-dataset.txt",
+                "--graph-representation",
+                "adjacencyPairsMatrix"
+            ],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": [
+                "swift"
+            ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "swift-build",
+            "name": "Cross-validate vgae + elmo using adjacency-matrix as graph representation",
+            "program": "${workspaceFolder}/.build/debug/agk",
+            "args": [
+                "cross-validate",
+                "-m",
+                "vgae",
+                "-d",
+                "deduplicated-dataset.txt",
+                "--graph-representation",
+                "adjacencyMatrix",
+                "--language-model-name",
+                "elmo"
+            ],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": [
+                "swift"
+            ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "swift-build",
+            "name": "Cross-validate vgae + elmo using adjacency-pairs-matrix as graph representation",
+            "program": "${workspaceFolder}/.build/debug/agk",
+            "args": [
+                "cross-validate",
+                "-m",
+                "vgae",
+                "-d",
+                "deduplicated-dataset.txt",
+                "--graph-representation",
+                "adjacencyPairsMatrix",
+                "--language-model-name",
+                "elmo"
+            ],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": [
+                "swift"
+            ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "swift-build",
+            "name": "Cross-validate conve with precomputed entity embeddings",
             "program": "${workspaceFolder}/.build/debug/agk",
             "args": [
                 "cross-validate",
@@ -117,6 +177,47 @@
                 "-c",
                 "100",
                 "--read-embeddings"
+            ],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": [
+                "swift"
+            ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "swift-build",
+            "name": "Cross-validate conve + elmo with precomputed entity embeddings",
+            "program": "${workspaceFolder}/.build/debug/agk",
+            "args": [
+                "cross-validate",
+                "-m",
+                "conve",
+                "-d",
+                "deduplicated-dataset.txt",
+                "-n",
+                "100",
+                "-c",
+                "100",
+                "--read-embeddings",
+                "--language-model-name",
+                "elmo"
+            ],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": [
+                "swift"
+            ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "swift-build",
+            "name": "Generate report",
+            "program": "${workspaceFolder}/.build/debug/agk",
+            "args": [
+                "restructure-report",
+                "raw-reports/vgae-classification.txt",
+                "reports/vgae-classification.txt"
             ],
             "cwd": "${workspaceFolder}",
             "sourceLanguages": [

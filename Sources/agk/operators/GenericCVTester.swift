@@ -3,7 +3,7 @@ import TensorFlow
 import Checkpoints
 import Logging
 
-public class GenericCVTester<Model, DataFrameType, TrainerType> where Model: GenericModel, Model.Scalar == Int32, DataFrameType: DataFrame, TrainerType: Trainer {
+public class GenericCVTester<Model, DataFrameType, TrainerType> where Model: GenericModel, DataFrameType: DataFrame, TrainerType: Trainer {
     public let trainer: TrainerType
     public let nFolds: Int
     
