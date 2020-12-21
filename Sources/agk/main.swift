@@ -104,10 +104,10 @@ struct CrossValidate: ParsableCommand {
 
         let embeddingsTensorDimensionalityReducers: [EmbeddingsDimensionalityReducer: (Tensor<Float>) -> Tensor<Float>]  = [
             .sum: { embeddings in
-                embeddings.sum(alongAxes: [1]) // embeddings.mean(alongAxes: [1])
+                embeddings.sum(alongAxes: [1])
             },
             .avg : { embeddings in
-                embeddings.mean(alongAxes: [1]) // embeddings.mean(alongAxes: [1])
+                embeddings.mean(alongAxes: [1])
             }
         ]
 
@@ -120,7 +120,6 @@ struct CrossValidate: ParsableCommand {
             .adjacencyMatrix: \.frame.adjacencyTensor,
             .adjacencyPairsMatrix : \.adjacencyPairsTensor
         ]
-
         let device = gpu ? Device.defaultXLA : Device.default
         let dataset = KnowledgeGraphDataset<String, Int32>(path: datasetPath, device: device)
         let learningRate_ = learningRate
@@ -196,16 +195,16 @@ struct CrossValidate: ParsableCommand {
                 dataset.labelFrame!
             }
         } else if (model == .vgae) {
-            // print("a")
+
             if openke {
                 let model_name = model.rawValue
                 throw ModelError.unsupportedModel(message: "Model \(model_name) is not implemented in the OpenKE library!")
             }
-            // print("b")
+
             let embeddingsDimensionalityReducer_ = embeddingsDimensionalityReducer
             let graphRepresentation_ = graphRepresentation
-            // print("c")
             let modelSavingLock = NSLock()
+
             var embeddingsWereInitialized: Bool = false
             try GenericCVTester<DenseClassifier<VGAE<String, Int32>, String, Int32>, LabelFrame<Int32>, ClassificationTrainer>(nFolds: nFolds, nEpochs: classifierNEpochs, batchSize: batchSize).test(
                 dataset: dataset_,
@@ -214,7 +213,7 @@ struct CrossValidate: ParsableCommand {
             ) { trainer, labels -> DenseClassifier<VGAE<String, Int32>, String, Int32> in
 
                 // 1. Train the base model with node encodings if necessary
-                // print("d")
+                
                 let shouldInitializeEmbeddings = !embeddingsWereInitialized && !readEmbeddings_
                 var model_ = !shouldInitializeEmbeddings ? try VGAE(dataset: dataset, device: device) : VGAE(
                     embeddingDimensionality: embeddingDimensionality_,
@@ -222,7 +221,6 @@ struct CrossValidate: ParsableCommand {
                     device: device,
                     adjacencyTensorPath: adjacencyTensorPaths[graphRepresentation_]!
                 )
-                // print("e")
                 if shouldInitializeEmbeddings {
                     let trainer_ = ConvolutionAdjacencyTrainer(nEpochs: nEpochs_)
                     let optimizer_ = Adam<VGAE<String, Int32>>(for: model_, learningRate: learningRate_)
@@ -266,7 +264,7 @@ struct CrossValidate: ParsableCommand {
                     device: device,
                     hiddenLayerSize: 100,
                     adjacencyTensorPath: adjacencyTensorPaths[graphRepresentation_]!
-                ) // :TransE(embeddingDimensionality: embeddingDimensionality, dataset: dataset, device: device)
+                )
                 print("b")
                 var optimizer = Adam<GCN<String, Int32>>(for: model_, learningRate: learningRate_)
                 print("c")
@@ -274,10 +272,7 @@ struct CrossValidate: ParsableCommand {
                 print("d")
                 return model_
             } computeMetric: { model, metric, trainLabels, testLabels, dataset -> Float in
-                // let logits = model(entityIndicesGetters[graphRepresentation_]!(testLabels)).flattened()
-                // print("--a")
                 let logits = model(dataset[keyPath: graphAdjacencyMatrixGetter]).flattened().gathering(atIndices: testLabels.indices)
-                // print("--b")
                 return (metric as! ClassificationMetric).compute(model: model, labels: testLabels.labels.unstacked().map{$0.scalar!}.map{Int32($0)}, logits: logits.unstacked().map{$0.scalar!}, dataset: dataset)
             } getSamplesList: { dataset in
                 dataset.labelFrame!
@@ -287,43 +282,71 @@ struct CrossValidate: ParsableCommand {
                 let model_name = model.rawValue
                 throw ModelError.unsupportedModel(message: "Rotate is not implemented in the OpenKE library!")
             } else {
-                CVTester<RotatE<String, Int32>, LinearTrainer, String>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(dataset: dataset, metrics: metrics) { trainFrame, trainer in
+                try GenericCVTester<RotatE<String, Int32>, TripleFrame<Int32>, LinearTrainer>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(dataset: dataset, metrics: metrics) { trainer, trainFrame in
                     var model_ = RotatE(embeddingDimensionality: embeddingDimensionality_, dataset: dataset, device: device) // :TransE(embeddingDimensionality: embeddingDimensionality, dataset: dataset, device: device)
                     var optimizer = Adam<RotatE>(for: model_, learningRate: learningRate_)
                     trainer.train(frame: trainFrame, model: &model_, optimizer: &optimizer, loss: computeSigmoidLoss)
                     return model_
+                } computeMetric: { model, metric, trainLabels, testLabels, dataset -> Float in
+                    (metric as! Metric).compute(model: model, trainFrame: trainLabels, testFrame: testLabels, dataset: dataset)    
+                } getSamplesList: { dataset in
+                    dataset.normalizedFrame
                 }
             }
         } else if (model == .transe) {
             if openke {
                 let model_name = model.rawValue
-                CVTester<OpenKEModel, OpenKEModelTrainer, String>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(dataset: dataset, metrics: metrics, enableParallelism: false) { trainFrame, trainer in
+                try GenericCVTester<OpenKEModel, TripleFrame<Int32>, OpenKEModelTrainer>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(
+                    dataset: dataset, metrics: metrics, enableParallelism: false
+                ) { trainer, trainFrame in
                     OpenKEModel(
-                            configuration: trainer.train(model: model_name, frame: trainFrame, dataset: dataset)
+                        configuration: trainer.train(model: model_name, frame: trainFrame, dataset: dataset)
                     )
+                } computeMetric: { model, metric, trainLabels, testLabels, dataset -> Float in
+                    (metric as! Metric).compute(model: model, trainFrame: trainLabels, testFrame: testLabels, dataset: dataset)    
+                } getSamplesList: { dataset in
+                    dataset.normalizedFrame
                 }
             } else {
-                CVTester<TransE<String, Int32>, LinearTrainer, String>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(dataset: dataset, metrics: metrics) { trainFrame, trainer in
+                try GenericCVTester<TransE<String, Int32>, TripleFrame<Int32>, LinearTrainer>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(
+                    dataset: dataset, metrics: metrics
+                ) { trainer, trainFrame in
                     var model_ = TransE(embeddingDimensionality: embeddingDimensionality_, dataset: dataset, device: device)
                     var optimizer = Adam<TransE>(for: model_, learningRate: learningRate_)
                     trainer.train(frame: trainFrame, model: &model_, optimizer: &optimizer)
                     return model_
+                } computeMetric: { model, metric, trainLabels, testLabels, dataset -> Float in
+                    (metric as! Metric).compute(model: model, trainFrame: trainLabels, testFrame: testLabels, dataset: dataset)    
+                } getSamplesList: { dataset in
+                    dataset.normalizedFrame
                 }
             }
         } else if (model == .transd) {
             if openke {
                 let model_name = model.rawValue
-                CVTester<OpenKEModel, OpenKEModelTrainer, String>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(dataset: dataset, metrics: metrics, enableParallelism: false) { trainFrame, trainer in
+                try GenericCVTester<OpenKEModel, TripleFrame<Int32>, OpenKEModelTrainer>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(
+                    dataset: dataset, metrics: metrics, enableParallelism: false
+                ) { trainer, trainFrame in
                     OpenKEModel(
-                            configuration: trainer.train(model: model_name, frame: trainFrame, dataset: dataset)
+                        configuration: trainer.train(model: model_name, frame: trainFrame, dataset: dataset)
                     )
+                } computeMetric: { model, metric, trainLabels, testLabels, dataset -> Float in
+                    (metric as! Metric).compute(model: model, trainFrame: trainLabels, testFrame: testLabels, dataset: dataset)    
+                } getSamplesList: { dataset in
+                    dataset.normalizedFrame
                 }
             } else {
-                CVTester<TransD<String, Int32>, LinearTrainer, String>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(dataset: dataset, metrics: metrics) { trainFrame, trainer in
-                    var model_ = TransD(embeddingDimensionality: embeddingDimensionality_, dataset: dataset, device: device) // :TransE(embeddingDimensionality: embeddingDimensionality, dataset: dataset, device: device)
+                try GenericCVTester<TransD<String, Int32>, TripleFrame<Int32>, LinearTrainer>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(
+                    dataset: dataset, metrics: metrics
+                ) { trainer, trainFrame in
+                    var model_ = TransD(embeddingDimensionality: embeddingDimensionality_, dataset: dataset, device: device)
                     var optimizer = Adam<TransD>(for: model_, learningRate: learningRate_)
-                    trainer.train(frame: trainFrame, model: &model_, optimizer: &optimizer, loss: computeSigmoidLoss)
+                    trainer.train(frame: trainFrame, model: &model_, optimizer: &optimizer)
                     return model_
+                } computeMetric: { model, metric, trainLabels, testLabels, dataset -> Float in
+                    (metric as! Metric).compute(model: model, trainFrame: trainLabels, testFrame: testLabels, dataset: dataset)    
+                } getSamplesList: { dataset in
+                    dataset.normalizedFrame
                 }
             }
         } else {
@@ -361,31 +384,19 @@ struct RestructureReport: ParsableCommand {
 
         do {
             while offset < lines.count {
-//                print("a")
                 skipEmptyLines()
-//                print("b")
                 let header = lines[offset]
-//                print("c")
                 offset += 1
-//                print("d")
-//                print(header)
-//                print(offset)
                 if offset >= lines.count {
                     break
                 }
                 skipEmptyLines()
-//                print("e")
                 var metrics = [String: Float]()
-//                print("f")
                 while lines[offset] != "" {
                     let metricWithValue = lines[offset].components(separatedBy: ": ")
                     metrics[metricWithValue[0]] = metricWithValue[1] != "nan" ? Float(metricWithValue[1])! : Float.nan
-                    // print(metrics[metricWithValue[0]])
-                    // print(type(of: metrics[metricWithValue[0]]))
-                    // print(metrics[metricWithValue[0]]!.isNaN)
                     offset += 1
                 }
-//                print(offset)
                 reportEntries.append(ReportEntry(header: header, metrics: metrics))
             }
         } catch {
@@ -413,7 +424,7 @@ struct RestructureReport: ParsableCommand {
 struct Agk: ParsableCommand {
     static var configuration = CommandConfiguration(
             abstract: "A tool for automating operation on the knowledge graph models",
-            subcommands: [CrossValidate.self, RestructureReport.self], // TrainExternally.self
+            subcommands: [CrossValidate.self, RestructureReport.self],
             defaultSubcommand: CrossValidate.self
     )
 }

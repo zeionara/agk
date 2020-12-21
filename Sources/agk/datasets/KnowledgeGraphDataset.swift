@@ -212,36 +212,16 @@ public struct TripleFrame<Element>: DataFrame where Element: Hashable {
             j += 1
             var i = 0
             var corruptedTriples = [[Element]]()
-//            while i < n {
-            // for negativeSample in negativeFrame.generateData(positiveSample: positiveSample, corruptionDegree: corruptionDegree) {
             while true {
                 let negativeSample = negativeFrame.generateSample(positiveSample: positiveSample, corruptionDegree: corruptionDegree)!
-//                if (
-//                           negativeSample[2] == positiveSample[2] && (
-//                                   (
-//                                           (negativeSample[0] != positiveSample[0] && negativeSample[1] != positiveSample[1]) && corruptionDegree == CorruptionDegree.headAndTail
-//                                   ) || (
-//                                           (
-//                                                   (negativeSample[0] == positiveSample[0] && negativeSample[1] != positiveSample[1]) ||
-//                                                           (negativeSample[0] != positiveSample[0] && negativeSample[1] == positiveSample[1])
-//                                           ) &&
-//                                                   corruptionDegree == CorruptionDegree.eitherHeadEitherTail
-//                                   )
-//                           )
-//                   ) || (
-//                        (negativeSample[0] != positiveSample[0] && negativeSample[1] != positiveSample[1] && negativeSample[2] != positiveSample[2]) && corruptionDegree == CorruptionDegree.complete
-//                ) {
                 corruptedTriples.append(negativeSample)
                 i += 1
                 if i >= n {
                     break
                 }
-//                }
             }
-//            }
             return corruptedTriples
         }
-        // print("Generated negative frame in \((DispatchTime.now().uptimeNanoseconds - start_timestamp) / 1_000_000_000) seconds")
         return TripleFrame<Element>(data: negativeSamples.reduce([], +), device: device, entities_: entities, relationships_: relationships)
     }
 
@@ -299,8 +279,6 @@ public class NegativeSampleGenerator<Element>: IteratorProtocol, Sequence where 
     let positiveTriples: [Element: [Element: [Element: Bool]]]
     let entities: [Element]
     let relationships: [Element]
-//    let positiveSample: [Element]?
-//    let corruptionDegree: CorruptionDegree?
     var history: [Element: [Element: [Element: Bool]]]
 
     public init(frame: TripleFrame<Element>, history: [Element: [Element: [Element: Bool]]]? = nil) {
@@ -312,14 +290,9 @@ public class NegativeSampleGenerator<Element>: IteratorProtocol, Sequence where 
         relationships = frame.relationships
         self.history = history ?? [Element: [Element: [Element: Bool]]]()
         positiveTriples = positiveTriples_
-//        self.positiveSample = positiveSample
-//        self.corruptionDegree = corruptionDegree
     }
 
     public func next() -> [Element]? {
-//        if let positiveSample = positiveSample, let corruptionDegree = corruptionDegree {
-        // var secondIteration = false
-//        } else {
         while true {
             let head = entities.randomElement()!
             let tail = entities.randomElement()!
@@ -330,7 +303,6 @@ public class NegativeSampleGenerator<Element>: IteratorProtocol, Sequence where 
                 return triple
             }
         }
-//        }
     }
 
     public func next(positiveSample: [Element], corruptionDegree: CorruptionDegree) -> [Element]? {
@@ -437,68 +409,6 @@ public struct NegativeFrame<Element> where Element: Hashable {
     }
 }
 
-//public func makeNegativeFrame<Element>(frame: TripleFrame<Element>, size: Int? = Optional.none) -> TripleFrame<Element> {
-//    var negativeSamples: [[Element]] = []
-//    var positiveMap = [Element: [Element: [Element: Bool]]]()
-//
-//    for item in frame.data {
-//        let head = item[0]
-//        let tail = item[1]
-//        let relationship = item[2]
-//        if triples[head] == nil {
-//            triples[head] = [Element: [Element: Bool]]()
-//            triples[head]![tail] = [Element: Bool]()
-//            triples[head]![tail]![relationship] = true
-//        } else {
-//            if triples[head]![tail] == nil {
-//                triples[head]![tail] = [Element: Bool]()
-//                triples[head]![tail]![relationship] = true
-//            } else {
-//                if triples[head]![tail]![relationship] == nil {
-//                    triples[head]![tail]![relationship] = true
-//                }
-//            }
-//        }
-//    }
-////    print(triples)
-////    let samples = frame.entities.map { head in
-////        frame.entities.map{ tail in
-////            frame.relationships.map{ (relationship) -> [Element] in
-////                [head, tail, relationship]
-////            }
-////        }.reduce([], +)
-////    }.reduce([], +).filter{ item in
-////        !data.contains(item)
-////    }
-//
-//    let unwrappedSize = size ?? frame.data.count * 10
-//    var triple_counter = 0
-//    var start = DispatchTime.now()
-//    for (i, head) in frame.entities.enumerated() {
-////        print("Handled \(i) / \(frame.entities.count) heads")
-//        for (j, tail) in frame.entities.enumerated() {
-////            print("Handled \(j) / \(frame.entities.count) tails")
-//            for (k, relationship) in frame.relationships.enumerated() {
-////                print("Handled \(k) / \(frame.relationships.count) relationships")
-//                if (triple_counter < unwrappedSize) {
-//                    start = DispatchTime.now()
-//                    if triples[head]?[tail]?[relationship] == nil {
-//                        negativeSamples.append([head, tail, relationship])
-//                        triple_counter += 1
-//                        print(triple_counter)
-//                    }
-//                } else {
-//                    print("Handled in \((DispatchTime.now().uptimeNanoseconds - start.uptimeNanoseconds) / 1_000_000) ms")
-//                    return TripleFrame(data: negativeSamples, device: frame.device, entities_: frame.entities, relationships_: frame.relationships)
-//                }
-//            }
-//        }
-//    }
-//    print("Handled in \((DispatchTime.now().uptimeNanoseconds - start.uptimeNanoseconds) / 1_000_000) ms")
-//    return TripleFrame(data: negativeSamples, device: frame.device, entities_: frame.entities, relationships_: frame.relationships)
-//}
-
-
 private func normalize<SourceElement, NormalizedElement>(
         _ frame: TripleFrame<SourceElement>,
         _ entityNormalizationMapping: [SourceElement: NormalizedElement],
@@ -521,9 +431,7 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
     public let labelFrame: LabelFrame<NormalizedElement>?
     public let normalizedFrame: TripleFrame<NormalizedElement>
     public let negativeFrame: NegativeFrame<SourceElement>
-//    public let sampledNegativeFrame: TripleFrame
     public let normalizedNegativeFrame: NegativeFrame<NormalizedElement>
-//    public let normalizedSampledNegativeFrame: TripleFrame
     public let entityId2Index: [SourceElement: NormalizedElement]
     public let entityId2Text: [NormalizedElement: String]
     public let entityIndex2Id: [NormalizedElement: SourceElement]
@@ -561,6 +469,9 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
         return data
     }
 
+//
+//    These methods should be defined in the extensions using specific source and normalized element types
+//
 //    public static func stringToSourceElement(_ string: String) -> SourceElement? {
 //        print(string)
 //        return Optional.none
@@ -577,26 +488,18 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
             sourceToNormalizedElement: (SourceElement) -> NormalizedElement,
             verbosity: Logger.Level = .debug
     ) {
-        // print("ok")
         self.path = path
         self.verbosity = verbosity
         self.name = path.components(separatedBy: "/").last!.components(separatedBy: ".").first!
-//        print("Loading frame...")
         let frame_ = TripleFrame(data: try! KnowledgeGraphDataset.readData(path: path, stringToSourceElement: stringToSourceElement), device: device)
-//        print("Generating negative frame...")
         let negativeFrame_ = NegativeFrame(frame: frame_)
-//        let sampledNegativeFrame_ = makeSampledNegativeFrame(frame: frame_, negativeFrame: negativeFrame_)
-
-//        print("Building entity normalization mappings...")
         let entityNormalizationMappings = makeNormalizationMappings(source: frame_.entities, destination: Array(0...frame_.entities.count - 1).map {
             intToNormalizedElement($0)
         })
-//        print("Setting up relationship normalization mappings...")
         let relationshipNormalizationMappings = makeNormalizationMappings(source: frame_.relationships, destination: Array(0...frame_.entities.count - 1).map {
             intToNormalizedElement($0)
         })
 
-        // print(classes_)
         if let classes_ = classes {
             labelFrame = LabelFrame(
                     data: (try! KnowledgeGraphDataset.readData(path: classes_) { s in
@@ -625,10 +528,8 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
 
         frame = frame_
         negativeFrame = negativeFrame_
-//        sampledNegativeFrame = sampledNegativeFrame_
         normalizedFrame = normalizedFrame_
         normalizedNegativeFrame = NegativeFrame(frame: normalizedFrame)
-//        normalizedSampledNegativeFrame = normalize(sampledNegativeFrame_, entityNormalizationMappings.forward, relationshipNormalizationMappings.forward)
 
         entityId2Index = entityNormalizationMappings.forward
         entityIndex2Id = entityNormalizationMappings.backward
@@ -641,7 +542,6 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
         let nEntities = Int32(frame.entities.count)
         let nRelationships = Int32(frame.relationships.count)
         let offset = nEntities * nRelationships
-        // return Tensor(
         
         func getIndex(entityIndex: Int32, relationshipIndex: Int32) -> Int32 {
             return nEntities * relationshipIndex + offset + entityIndex
@@ -666,8 +566,5 @@ public struct KnowledgeGraphDataset<SourceElement, NormalizedElement> where Sour
                 getTensor(entityIndex.scalar!)
             }
         )
-        // print(ok)
-        // return Tensor<Int32>(0)
-        // )
     }
 }

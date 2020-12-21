@@ -4,14 +4,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Cross-validate rotate",
+            "preLaunchTask": "swift-build",
+            "name": "Cross-validate transe",
             "program": "${workspaceFolder}/.build/debug/agk",
             "args": [
                 "cross-validate",
                 "-m",
-                "rotate",
+                "transe",
                 "-d",
-                "truncated-dataset-normalized.txt"
+                "deduplicated-dataset.txt"
             ],
             "cwd": "${workspaceFolder}",
             "sourceLanguages": [
@@ -22,14 +23,69 @@
             "type": "lldb",
             "request": "launch",
             "preLaunchTask": "swift-build",
-            "name": "Cross-validate transe",
+            "name": "Cross-validate transe using OpenKE implementation",
             "program": "${workspaceFolder}/.build/debug/agk",
             "args": [
                 "cross-validate",
                 "-m",
                 "transe",
                 "-d",
-                "truncated-dataset-normalized.txt"
+                "deduplicated-dataset.txt",
+                "-o"
+            ],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": [
+                "swift"
+            ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "swift-build",
+            "name": "Cross-validate transd",
+            "program": "${workspaceFolder}/.build/debug/agk",
+            "args": [
+                "cross-validate",
+                "-m",
+                "transd",
+                "-d",
+                "deduplicated-dataset.txt"
+            ],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": [
+                "swift"
+            ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "swift-build",
+            "name": "Cross-validate transd using OpenKE implementation",
+            "program": "${workspaceFolder}/.build/debug/agk",
+            "args": [
+                "cross-validate",
+                "-m",
+                "transd",
+                "-d",
+                "deduplicated-dataset.txt",
+                "-o"
+            ],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": [
+                "swift"
+            ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Cross-validate rotate",
+            "program": "${workspaceFolder}/.build/debug/agk",
+            "args": [
+                "cross-validate",
+                "-m",
+                "rotate",
+                "-d",
+                "deduplicated-dataset.txt"
             ],
             "cwd": "${workspaceFolder}",
             "sourceLanguages": [
