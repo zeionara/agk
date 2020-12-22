@@ -1,0 +1,186 @@
+
+RotatE (500 epochs x 0.01 learning-rate) + dense classifier (100 epochs x 0.001 learning-rate)
+
+Precision@0.000: 0.50793654
+Precision@0.200: 0.5600614
+Precision@0.400: 0.5786672
+Precision@0.600: 0.59273225
+Precision@0.800: nan
+Precision@1.000: nan
+Precision@0.000 (reversed): 0.4920635
+Recall@0.000: 1.0
+Recall@0.200: 1.0
+Recall@0.400: 0.9683936
+Recall@0.600: 0.60150844
+Recall@0.800: 0.0
+Recall@1.000: 0.0
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.67340064
+F1Score@0.200: 0.71788937
+F1Score@0.400: 0.7244403
+F1Score@0.600: 0.5938063
+F1Score@0.800: nan
+F1Score@1.000: nan
+F1Score@0.000 (reversed): 0.65928775
+Accuracy@0.000: 0.50793654
+Accuracy@0.200: 0.601221
+Accuracy@0.400: 0.62686205
+Accuracy@0.600: 0.5855108
+Accuracy@0.800: 0.4920635
+Accuracy@1.000: 0.4920635
+Accuracy@0.000 (reversed): 0.4920635
+
+TransE (50 epochs x 0.01 learning-rate) + dense classifier (100 epochs x 0.001 learning-rate)
+
+Precision@0.000: 0.5077737
+Precision@0.200: 0.5251171
+Precision@0.400: 0.51583177
+Precision@0.600: 0.4219943
+Precision@0.800: 0.5
+Precision@1.000: nan
+Precision@0.000 (reversed): 0.49222633
+Recall@0.000: 1.0
+Recall@0.200: 0.89750385
+Recall@0.400: 0.7191532
+Recall@0.600: 0.27891704
+Recall@0.800: 0.020276496
+Recall@1.000: 0.0
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.6731725
+F1Score@0.200: 0.6615594
+F1Score@0.400: 0.5948865
+F1Score@0.600: 0.32606944
+F1Score@0.800: nan
+F1Score@1.000: nan
+F1Score@0.000 (reversed): 0.6593407
+Accuracy@0.000: 0.5077737
+Accuracy@0.200: 0.53325194
+Accuracy@0.400: 0.50744814
+Accuracy@0.600: 0.43532765
+Accuracy@0.800: 0.4920635
+Accuracy@1.000: 0.49222633
+Accuracy@0.000 (reversed): 0.49222633
+
+TransD (50 epochs x 0.01 learning-rate) + dense classifier (100 epochs x 0.001 learning-rate)
+
+Precision@0.000: 0.50793654
+Precision@0.200: 0.49774906
+Precision@0.400: 0.5024217
+Precision@0.600: 0.45037034
+Precision@0.800: nan
+Precision@1.000: nan
+Precision@0.000 (reversed): 0.4920635
+Recall@0.000: 1.0
+Recall@0.200: 0.81757736
+Recall@0.400: 0.6881167
+Recall@0.600: 0.34657383
+Recall@0.800: 0.0447233
+Recall@1.000: 0.0
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.6717136
+F1Score@0.200: 0.6121582
+F1Score@0.400: 0.57147384
+F1Score@0.600: 0.38377428
+F1Score@0.800: nan
+F1Score@1.000: nan
+F1Score@0.000 (reversed): 0.6576007
+Accuracy@0.000: 0.50793654
+Accuracy@0.200: 0.48196986
+Accuracy@0.400: 0.4875865
+Accuracy@0.600: 0.45584047
+Accuracy@0.800: 0.46642247
+Accuracy@1.000: 0.4920635
+Accuracy@0.000 (reversed): 0.4920635
+
+TransD (50 epochs x 0.01 learning-rate) + elmo + dense classifier (100 epochs x 0.001 learning-rate)
+
+Precision@0.000: 0.50744814
+Precision@0.200: 0.49184474
+Precision@0.400: 0.49803755
+Precision@0.600: 0.43412697
+Precision@0.800: nan
+Precision@1.000: nan
+Precision@0.000 (reversed): 0.49255192
+Recall@0.000: 1.0
+Recall@0.200: 0.86857504
+Recall@0.400: 0.66532016
+Recall@0.600: 0.17899835
+Recall@0.800: 0.021505376
+Recall@1.000: 0.0
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.67216164
+F1Score@0.200: 0.62558216
+F1Score@0.400: 0.56245583
+F1Score@0.600: 0.22943722
+F1Score@0.800: nan
+F1Score@1.000: nan
+F1Score@0.000 (reversed): 0.65883976
+Accuracy@0.000: 0.50744814
+Accuracy@0.200: 0.4765161
+Accuracy@0.400: 0.4760277
+Accuracy@0.600: 0.44542125
+Accuracy@0.800: 0.49255192
+Accuracy@1.000: 0.49255192
+Accuracy@0.000 (reversed): 0.49255192
+
+TransD sigmoid loss (50 epochs x 0.01 learning-rate) + dense classifier (100 epochs x 0.001 learning-rate)
+
+Precision@0.000: 0.5080993
+Precision@0.200: 0.58622235
+Precision@0.400: 0.58896345
+Precision@0.600: 0.56645685
+Precision@0.800: 0.68333334
+Precision@1.000: nan
+Precision@0.000 (reversed): 0.4919007
+Recall@0.000: 1.0
+Recall@0.200: 1.0
+Recall@0.400: 0.93193275
+Recall@0.600: 0.62292093
+Recall@0.800: 0.07928137
+Recall@1.000: 0.0
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.67268413
+F1Score@0.200: 0.7385094
+F1Score@0.400: 0.7191973
+F1Score@0.600: 0.577528
+F1Score@0.800: 0.1411635
+F1Score@1.000: nan
+F1Score@0.000 (reversed): 0.658295
+Accuracy@0.000: 0.5080993
+Accuracy@0.200: 0.64273506
+Accuracy@0.400: 0.6323158
+Accuracy@0.600: 0.554416
+Accuracy@0.800: 0.51803017
+Accuracy@1.000: 0.4919007
+Accuracy@0.000 (reversed): 0.4919007
+
+TransD sigmoid loss (50 epochs x 0.01 learning-rate) + elmo + dense classifier (100 epochs x 0.001 learning-rate)
+
+Precision@0.000: 0.5082621
+Precision@0.200: 0.5896391
+Precision@0.400: 0.5896391
+Precision@0.600: 0.5856474
+Precision@0.800: nan
+Precision@1.000: nan
+Precision@0.000 (reversed): 0.49173787
+Recall@0.000: 1.0
+Recall@0.200: 1.0
+Recall@0.400: 1.0
+Recall@0.600: 0.7404762
+Recall@0.800: 0.011904762
+Recall@1.000: 0.0
+Recall@0.000 (reversed): 1.0
+F1Score@0.000: 0.6721454
+F1Score@0.200: 0.7405247
+F1Score@0.400: 0.7405247
+F1Score@0.600: 0.63492066
+F1Score@0.800: nan
+F1Score@1.000: nan
+F1Score@0.000 (reversed): 0.6574846
+Accuracy@0.000: 0.5082621
+Accuracy@0.200: 0.6477005
+Accuracy@0.400: 0.6477005
+Accuracy@0.600: 0.5855108
+Accuracy@0.800: 0.4763533
+Accuracy@1.000: 0.49173787
+Accuracy@0.000 (reversed): 0.49173787

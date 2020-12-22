@@ -53,8 +53,16 @@
                 "deduplicated-dataset.txt",
                 "-t",
                 "classification",
-                "--language-model-name",
-                "elmo"
+                // "--language-model-name",
+                // "elmo",
+                "-n",
+                "50",
+                "-c",
+                "100",
+                "--classifier-learning-rate",
+                "0.001",
+                "--n-folds",
+                "3"
             ],
             "cwd": "${workspaceFolder}",
             "sourceLanguages": [
@@ -133,7 +141,15 @@
                 "-t",
                 "classification",
                 "--language-model-name",
-                "elmo"
+                "elmo",
+                "-n",
+                "50",
+                "-c",
+                "100",
+                "--classifier-learning-rate",
+                "0.001",
+                "--n-folds",
+                "3"
             ],
             "cwd": "${workspaceFolder}",
             "sourceLanguages": [
@@ -219,7 +235,7 @@
                 "100",
                 "--classifier-learning-rate",
                 "0.001",
-                "--read-embeddings",
+                // "--read-embeddings",
                 "--n-folds",
                 "3"
             ],
@@ -528,6 +544,22 @@
                 "restructure-report",
                 "raw-reports/vgae-adult-audience-oriented.txt",
                 "reports/vgae-adult-audience-oriented.txt"
+            ],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": [
+                "swift"
+            ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "swift-build",
+            "name": "Generate report for linear-embeddings classification",
+            "program": "${workspaceFolder}/.build/debug/agk",
+            "args": [
+                "restructure-report",
+                "raw-reports/linear-embeddings-classification.txt",
+                "reports/linear-embeddings-classification.txt"
             ],
             "cwd": "${workspaceFolder}",
             "sourceLanguages": [

@@ -250,12 +250,18 @@ struct CrossValidate: ParsableCommand {
 
                     // 2. Train classification block
 
-                    var classifier = try DenseClassifier(graphEmbedder: model_, dataset: dataset_, device: device, textEmbeddingModelName: languageModelName_)
-                    var classification_optimizer_ = Adam<DenseClassifier>(for: classifier, learningRate: classifierLearningRate_)
-                    try trainer.train(model: &classifier, optimizer: &classification_optimizer_, labels: dataset_.labelFrame!)
-                    return classifier
+                    return try trainDenseClassifier(
+                        graphEmbedder: model_,
+                        dataset: dataset_,
+                        classifierLearningRate: classifierLearningRate_,
+                        labels: labels,
+                        trainer: trainer,
+                        getEntityIndices: entityIndicesGetters[graphRepresentation_]!,
+                        device: device,
+                        languageModelName: languageModelName_
+                    )
                 } computeMetric: { model, metric, trainLabels, testLabels, dataset -> Float in
-                    let logits = model(entityIndicesGetters[graphRepresentation_]!(testLabels)).flattened()
+                    let logits = getLogits(model: model, getEntityIndices: entityIndicesGetters[graphRepresentation_]!, labels: testLabels)
                     return (metric as! ClassificationMetric).compute(model: model, labels: testLabels.labels.unstacked().map{$0.scalar!}.map{Int32($0)}, logits: logits.unstacked().map{$0.scalar!}, dataset: dataset)
                 } getSamplesList: { dataset in
                     dataset.labelFrame!
@@ -303,15 +309,20 @@ struct CrossValidate: ParsableCommand {
 
                     // 2. Train classification block
 
-                    var classifier = try DenseClassifier(graphEmbedder: model_, dataset: dataset_, device: device,
-                        reduceEmbeddingsTensorDimensionality: embeddingsTensorDimensionalityReducers[embeddingsDimensionalityReducer_]!, textEmbeddingModelName: languageModelName_,
+                    return try trainDenseClassifier(
+                        graphEmbedder: model_,
+                        dataset: dataset_,
+                        classifierLearningRate: classifierLearningRate_,
+                        labels: labels,
+                        trainer: trainer,
+                        getEntityIndices: entityIndicesGetters[graphRepresentation_]!,
+                        device: device,
+                        languageModelName: languageModelName_,
+                        reduceEmbeddingsTensorDimensionality: embeddingsTensorDimensionalityReducers[embeddingsDimensionalityReducer_]!,
                         shouldExpandTextEmbeddings: graphRepresentation_ != .adjacencyMatrix
                     )
-                    var classification_optimizer_ = Adam<DenseClassifier>(for: classifier, learningRate: classifierLearningRate_)
-                    try trainer.train(model: &classifier, optimizer: &classification_optimizer_, labels: labels, getEntityIndices: entityIndicesGetters[graphRepresentation_]!)
-                    return classifier
                 } computeMetric: { model, metric, trainLabels, testLabels, dataset -> Float in
-                    let logits = model(entityIndicesGetters[graphRepresentation_]!(testLabels)).flattened()
+                    let logits = getLogits(model: model, getEntityIndices: entityIndicesGetters[graphRepresentation_]!, labels: testLabels)
                     return (metric as! ClassificationMetric).compute(model: model, labels: testLabels.labels.unstacked().map{$0.scalar!}.map{Int32($0)}, logits: logits.unstacked().map{$0.scalar!}, dataset: dataset)
                 } getSamplesList: { dataset in
                     dataset.labelFrame!
@@ -397,26 +408,19 @@ struct CrossValidate: ParsableCommand {
                         }
 
                         // 2. Train classification block
-                        // var classifierIsTrained = false
-                        while true {// while !classifierIsTrained {
-                            var classifier = try DenseClassifier(graphEmbedder: model_, dataset: dataset_, device: device, textEmbeddingModelName: languageModelName_)
-                            var classification_optimizer_ = Adam<DenseClassifier>(for: classifier, learningRate: classifierLearningRate_)
-                            do {
-                                try trainer.train(model: &classifier, optimizer: &classification_optimizer_, labels: dataset_.labelFrame!)
-                                return classifier
-                            } catch InitializationError.unsuccessfulInitialization {
-                                print("Unlucky initialization. Trying again...")
-                            }
-                        }
-                    } computeMetric: { model, metric, trainLabels, testLabels, dataset -> Float in
-                        let logits = prepareDenseClassifierOutputForMetricsComputation(
-                            model(
-                                entityIndicesGetters[graphRepresentation_]!(
-                                    testLabels
-                                )
-                            )
+                        
+                        return try trainDenseClassifier(
+                            graphEmbedder: model_,
+                            dataset: dataset_,
+                            classifierLearningRate: classifierLearningRate_,
+                            labels: labels,
+                            trainer: trainer,
+                            getEntityIndices: entityIndicesGetters[graphRepresentation_]!,
+                            device: device,
+                            languageModelName: languageModelName_
                         )
-                        // print(model(entityIndicesGetters[graphRepresentation_]!(testLabels)).shape)
+                    } computeMetric: { model, metric, trainLabels, testLabels, dataset -> Float in
+                        let logits = getLogits(model: model, getEntityIndices: entityIndicesGetters[graphRepresentation_]!, labels: testLabels)
                         return (metric as! ClassificationMetric).compute(model: model, labels: testLabels.labels.unstacked().map{$0.scalar!}.map{Int32($0)}, logits: logits.unstacked().map{$0.scalar!}, dataset: dataset)
                     } getSamplesList: { dataset in
                         dataset.labelFrame!
@@ -449,7 +453,7 @@ struct CrossValidate: ParsableCommand {
                     ) { trainer, trainFrame in
                         var model_ = TransE(embeddingDimensionality: embeddingDimensionality_, dataset: dataset, device: device)
                         var optimizer = Adam<TransE>(for: model_, learningRate: learningRate_)
-                        trainer.train(frame: trainFrame, model: &model_, optimizer: &optimizer)
+                        trainer.train(frame: trainFrame, model: &model_, optimizer: &optimizer, loss: computeSigmoidLoss)
                         return model_
                     } computeMetric: { model, metric, trainLabels, testLabels, dataset -> Float in
                         (metric as! Metric).compute(model: model, trainFrame: trainLabels, testFrame: testLabels, dataset: dataset)    
@@ -479,7 +483,7 @@ struct CrossValidate: ParsableCommand {
                         if shouldInitializeEmbeddings {
                             let trainer_ = LinearTrainer(nEpochs: nEpochs_, batchSize: batchSize_)
                             var optimizer = Adam<TransE>(for: model_, learningRate: learningRate_)
-                            trainer_.train(frame: dataset.normalizedFrame, model: &model_, optimizer: &optimizer)
+                            trainer_.train(frame: dataset.normalizedFrame, model: &model_, optimizer: &optimizer, loss: computeSigmoidLoss)
                             modelSavingLock.lock()
                             try model_.save()
                             modelSavingLock.unlock()
@@ -488,12 +492,18 @@ struct CrossValidate: ParsableCommand {
 
                         // 2. Train classification block
 
-                        var classifier = try DenseClassifier(graphEmbedder: model_, dataset: dataset_, device: device, textEmbeddingModelName: languageModelName_)
-                        var classification_optimizer_ = Adam<DenseClassifier>(for: classifier, learningRate: classifierLearningRate_)
-                        try trainer.train(model: &classifier, optimizer: &classification_optimizer_, labels: dataset_.labelFrame!)
-                        return classifier
+                        return try trainDenseClassifier(
+                            graphEmbedder: model_,
+                            dataset: dataset_,
+                            classifierLearningRate: classifierLearningRate_,
+                            labels: labels,
+                            trainer: trainer,
+                            getEntityIndices: entityIndicesGetters[graphRepresentation_]!,
+                            device: device,
+                            languageModelName: languageModelName_
+                        )
                     } computeMetric: { model, metric, trainLabels, testLabels, dataset -> Float in
-                        let logits = model(entityIndicesGetters[graphRepresentation_]!(testLabels)).flattened()
+                        let logits = getLogits(model: model, getEntityIndices: entityIndicesGetters[graphRepresentation_]!, labels: testLabels)
                         return (metric as! ClassificationMetric).compute(model: model, labels: testLabels.labels.unstacked().map{$0.scalar!}.map{Int32($0)}, logits: logits.unstacked().map{$0.scalar!}, dataset: dataset)
                     } getSamplesList: { dataset in
                         dataset.labelFrame!
@@ -526,7 +536,7 @@ struct CrossValidate: ParsableCommand {
                     ) { trainer, trainFrame in
                         var model_ = TransD(embeddingDimensionality: embeddingDimensionality_, dataset: dataset, device: device)
                         var optimizer = Adam<TransD>(for: model_, learningRate: learningRate_)
-                        trainer.train(frame: trainFrame, model: &model_, optimizer: &optimizer)
+                        trainer.train(frame: trainFrame, model: &model_, optimizer: &optimizer, loss: computeSigmoidLoss)
                         return model_
                     } computeMetric: { model, metric, trainLabels, testLabels, dataset -> Float in
                         (metric as! Metric).compute(model: model, trainFrame: trainLabels, testFrame: testLabels, dataset: dataset)    
@@ -556,7 +566,7 @@ struct CrossValidate: ParsableCommand {
                         if shouldInitializeEmbeddings {
                             let trainer_ = LinearTrainer(nEpochs: nEpochs_, batchSize: batchSize_)
                             var optimizer = Adam<TransD>(for: model_, learningRate: learningRate_)
-                            trainer_.train(frame: dataset.normalizedFrame, model: &model_, optimizer: &optimizer)
+                            trainer_.train(frame: dataset.normalizedFrame, model: &model_, optimizer: &optimizer, loss: computeSigmoidLoss)
                             modelSavingLock.lock()
                             try model_.save()
                             modelSavingLock.unlock()
@@ -565,12 +575,18 @@ struct CrossValidate: ParsableCommand {
 
                         // 2. Train classification block
 
-                        var classifier = try DenseClassifier(graphEmbedder: model_, dataset: dataset_, device: device, textEmbeddingModelName: languageModelName_)
-                        var classification_optimizer_ = Adam<DenseClassifier>(for: classifier, learningRate: classifierLearningRate_)
-                        try trainer.train(model: &classifier, optimizer: &classification_optimizer_, labels: dataset_.labelFrame!)
-                        return classifier
+                        return try trainDenseClassifier(
+                            graphEmbedder: model_,
+                            dataset: dataset_,
+                            classifierLearningRate: classifierLearningRate_,
+                            labels: labels,
+                            trainer: trainer,
+                            getEntityIndices: entityIndicesGetters[graphRepresentation_]!,
+                            device: device,
+                            languageModelName: languageModelName_
+                        )
                     } computeMetric: { model, metric, trainLabels, testLabels, dataset -> Float in
-                        let logits = model(entityIndicesGetters[graphRepresentation_]!(testLabels)).flattened()
+                        let logits = getLogits(model: model, getEntityIndices: entityIndicesGetters[graphRepresentation_]!, labels: testLabels)
                         return (metric as! ClassificationMetric).compute(model: model, labels: testLabels.labels.unstacked().map{$0.scalar!}.map{Int32($0)}, logits: logits.unstacked().map{$0.scalar!}, dataset: dataset)
                     } getSamplesList: { dataset in
                         dataset.labelFrame!

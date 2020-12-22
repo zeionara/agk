@@ -7,6 +7,46 @@ public func prepareDenseClassifierOutputForMetricsComputation(_ output: Tensor<F
     return output.reshaped(to: [-1, 2]).transposed().unstacked()[0].replaceNans()
 }
 
+public func trainDenseClassifier<GraphEmbedderType>(
+        graphEmbedder: GraphEmbedderType, dataset: KnowledgeGraphDataset<String, Int32>, classifierLearningRate: Float, labels: LabelFrame<Int32>,
+        trainer: ClassificationTrainer,
+        getEntityIndices: (LabelFrame<Int32>) -> Tensor<Int32> = { $0.indices }, device: Device = .default, languageModelName: String? = Optional.none,
+        reduceEmbeddingsTensorDimensionality: @escaping (Tensor<Float>) -> Tensor<Float> = { $0.sum(alongAxes: [1]) },
+        shouldExpandTextEmbeddings: Bool = false
+) throws -> DenseClassifier<GraphEmbedderType, String, Int32> {
+    while true {
+        var classifier = try DenseClassifier(
+            graphEmbedder: graphEmbedder,
+            dataset: dataset,
+            device: device,
+            reduceEmbeddingsTensorDimensionality: reduceEmbeddingsTensorDimensionality,
+            textEmbeddingModelName: languageModelName,
+            shouldExpandTextEmbeddings: shouldExpandTextEmbeddings
+        )
+        var classificationOptimizer = Adam<DenseClassifier>(for: classifier, learningRate: classifierLearningRate)
+        do {
+            try trainer.train(model: &classifier, optimizer: &classificationOptimizer, labels: labels, getEntityIndices: getEntityIndices)
+            return classifier
+        } catch InitializationError.unsuccessfulInitialization {
+            print("Unlucky initialization. Trying again...")
+        }
+    }
+}
+
+public func getLogits<GraphEmbedderType, SourceElement, NormalizedElement>(
+        model: DenseClassifier<GraphEmbedderType, SourceElement, NormalizedElement>,
+        getEntityIndices: (LabelFrame<Int32>) -> Tensor<Int32> = { $0.indices },
+        labels: LabelFrame<Int32>
+) -> Tensor<Float> {
+    return prepareDenseClassifierOutputForMetricsComputation(
+        model(
+            getEntityIndices(
+                labels
+            )
+        )
+    )
+}
+
 public struct DenseClassifier<GraphEmbedderType, SourceElement, NormalizedElement>: GenericModel, Module where GraphEmbedderType: EntityEmbedder, SourceElement: Hashable, NormalizedElement: Hashable, NormalizedElement: Comparable {
     @noDerivative public var graphEmbedder: GraphEmbedderType
     @noDerivative public var textEmbedder: ELMO?
@@ -29,8 +69,6 @@ public struct DenseClassifier<GraphEmbedderType, SourceElement, NormalizedElemen
         unpackOptionalTensor: (Tensor<Float>?, Int) -> Tensor<Float> = {$0 == Optional.none ? Tensor<Float>(zeros: [$1]) : $0!},
         shouldExpandTextEmbeddings: Bool = false
     ) throws {
-        // print(graphEmbedder.entityEmbeddings.embeddings.shape)
-        // print(dataset.frame.relationships.count)
         self.graphEmbedder = graphEmbedder
         self.layer = Dense<Float>(
             copying: Dense<Float>(
@@ -121,8 +159,6 @@ public struct DenseClassifier<GraphEmbedderType, SourceElement, NormalizedElemen
                 graphEmbedder.entityEmbeddings(entityIds) :
                 reduceEmbeddingsTensorDimensionality(graphEmbedder.entityEmbeddings(entityIds)).reshaped(to: [entityIds.shape[0], -1])
         }
-        // let zero = Tensor<Float>(0.001)
-        // print(layer)
         let classifierOutput = layer(
             dropout(
                 inputLayer(
@@ -130,21 +166,6 @@ public struct DenseClassifier<GraphEmbedderType, SourceElement, NormalizedElemen
                 )
             )
         )
-        // let classifierOutput = Tensor(
-        //     layer(
-        //         dropout(
-        //             inputLayer(
-        //                 entityEmbeddings
-        //             )
-        //         )
-        //     ).unstacked().map{ prediction -> Tensor<Float> in
-        //         if prediction.scalar!.isNaN {
-        //             return zero
-        //         } else {
-        //             return prediction
-        //         }
-        //     }
-        // )
         return softmax(
             Tensor(
                 stacking: [
@@ -153,14 +174,5 @@ public struct DenseClassifier<GraphEmbedderType, SourceElement, NormalizedElemen
                 ]
             ).transposed()
         )
-        // return sigmoid(
-        //     layer(
-        //         dropout(
-        //             inputLayer(
-        //                 entityEmbeddings
-        //             )
-        //         )
-        //     )
-        // )
     }
 }

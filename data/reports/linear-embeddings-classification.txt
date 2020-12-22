@@ -1,0 +1,29 @@
+metric	RotatE (500 epochs x 0.01 learning-rate) + dense classifier (100 epochs x 0.001 learning-rate)	TransE (50 epochs x 0.01 learning-rate) + dense classifier (100 epochs x 0.001 learning-rate)	TransD (50 epochs x 0.01 learning-rate) + dense classifier (100 epochs x 0.001 learning-rate)	TransD (50 epochs x 0.01 learning-rate) + elmo + dense classifier (100 epochs x 0.001 learning-rate)	TransD sigmoid loss (50 epochs x 0.01 learning-rate) + dense classifier (100 epochs x 0.001 learning-rate)	TransD sigmoid loss (50 epochs x 0.01 learning-rate) + elmo + dense classifier (100 epochs x 0.001 learning-rate)
+Accuracy@0.000	0.508	0.508	0.508	0.507	0.508	0.508
+Accuracy@0.000 (reversed)	0.492	0.492	0.492	0.493	0.492	0.492
+Accuracy@0.200	0.601	0.533	0.482	0.477	0.643	0.648
+Accuracy@0.400	0.627	0.507	0.488	0.476	0.632	0.648
+Accuracy@0.600	0.586	0.435	0.456	0.445	0.554	0.586
+Accuracy@0.800	0.492	0.492	0.466	0.493	0.518	0.476
+Accuracy@1.000	0.492	0.492	0.492	0.493	0.492	0.492
+F1Score@0.000	0.673	0.673	0.672	0.672	0.673	0.672
+F1Score@0.000 (reversed)	0.659	0.659	0.658	0.659	0.658	0.657
+F1Score@0.200	0.718	0.662	0.612	0.626	0.739	0.741
+F1Score@0.400	0.724	0.595	0.571	0.562	0.719	0.741
+F1Score@0.600	0.594	0.326	0.384	0.229	0.578	0.635
+F1Score@0.800	-	-	-	-	0.141	-
+F1Score@1.000	-	-	-	-	-	-
+Precision@0.000	0.508	0.508	0.508	0.507	0.508	0.508
+Precision@0.000 (reversed)	0.492	0.492	0.492	0.493	0.492	0.492
+Precision@0.200	0.560	0.525	0.498	0.492	0.586	0.590
+Precision@0.400	0.579	0.516	0.502	0.498	0.589	0.590
+Precision@0.600	0.593	0.422	0.450	0.434	0.566	0.586
+Precision@0.800	-	0.500	-	-	0.683	-
+Precision@1.000	-	-	-	-	-	-
+Recall@0.000	1.000	1.000	1.000	1.000	1.000	1.000
+Recall@0.000 (reversed)	1.000	1.000	1.000	1.000	1.000	1.000
+Recall@0.200	1.000	0.898	0.818	0.869	1.000	1.000
+Recall@0.400	0.968	0.719	0.688	0.665	0.932	1.000
+Recall@0.600	0.602	0.279	0.347	0.179	0.623	0.740
+Recall@0.800	0.000	0.020	0.045	0.022	0.079	0.012
+Recall@1.000	0.000	0.000	0.000	0.000	0.000	0.000
