@@ -15,7 +15,7 @@ public struct ConvolutionClassificationTrainer: Trainer {
         dataset: KnowledgeGraphDataset<SourceElement, Int32>, model: inout Model, optimizer: inout OptimizerType,
         labels: LabelFrame<Int32>,
         getAdjacencyMatrix: KeyPath<KnowledgeGraphDataset<SourceElement, Int32>, Tensor<Float>> = \.tunedAdjecencyMatrixInverse
-    ) where Model: ConvolutionGraphModel, Model.Scalar == Float, OptimizerType: Optimizer, OptimizerType.Model == Model {
+    ) where Model: EntityEmbedder, Model.Scalar == Float, OptimizerType: Optimizer, OptimizerType.Model == Model {
         for i in 1...nEpochs{
             var losses: [Float] = []
             let (loss, grad) = valueWithGradient(at: model) { model -> Tensor<Float> in

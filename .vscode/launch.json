@@ -211,8 +211,17 @@
                 "deduplicated-dataset.txt",
                 "-t",
                 "classification",
-                "--language-model-name",
-                "elmo"
+                // "--language-model-name",
+                // "elmo",
+                "-n",
+                "500",
+                "-c",
+                "100",
+                "--classifier-learning-rate",
+                "0.001",
+                "--read-embeddings",
+                "--n-folds",
+                "3"
             ],
             "cwd": "${workspaceFolder}",
             "sourceLanguages": [

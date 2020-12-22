@@ -17,7 +17,7 @@ public struct ConvolutionAdjacencyTrainer {
             optimizer: Adam<Model>,
             trainTensorPath: KeyPath<KnowledgeGraphDataset<SourceElement, NormalizedElement>,  Tensor<Float>> = \.tunedAdjecencyMatrixInverse,
             adjacencyTensorPath: KeyPath<KnowledgeGraphDataset<SourceElement, NormalizedElement>,  Tensor<Int8>> = \.frame.adjacencyTensor
-    ) where Model: ConvolutionGraphModel, Model.Scalar == Float {
+    ) where Model: EntityEmbedder, Model.Scalar == Float {
         for i in 1...nEpochs {
             var losses: [Float] = []
             // for batch in dataset.frame.batched(size: batchSize) {

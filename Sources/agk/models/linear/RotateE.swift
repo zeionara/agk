@@ -35,7 +35,7 @@ private let MODEL_NAME = "rotate"
 private let ENTITY_EMBEDDINGS_TENSOR_KEY = "entity-embeddings"
 private let RELATIONSHIP_EMBEDDINGS_TENSOR_KEY = "relationship-embeddings"
 
-public struct RotatE<SourceElement, NormalizedElement>: LinearGraphModel, ConvolutionGraphModel where SourceElement: Hashable, NormalizedElement: Hashable, NormalizedElement: Comparable {
+public struct RotatE<SourceElement, NormalizedElement>: LinearGraphModel, EntityEmbedder where SourceElement: Hashable, NormalizedElement: Hashable, NormalizedElement: Comparable {
     public var entityEmbeddings: Embedding<Float>
     public var relationshipEmbeddings: Embedding<Float>
     @noDerivative public let device: Device

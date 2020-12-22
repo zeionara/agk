@@ -17,7 +17,7 @@ private func normalizeWithL2_(tensor: Tensor<Float>, axis: Int = 0) -> Tensor<Fl
 //     }
 // }
 
-public struct GCN<SourceElement, NormalizedElement>: ConvolutionGraphModel where SourceElement: Hashable, NormalizedElement: Hashable, NormalizedElement: Comparable {
+public struct GCN<SourceElement, NormalizedElement>: EntityEmbedder where SourceElement: Hashable, NormalizedElement: Hashable, NormalizedElement: Comparable {
     public var entityEmbeddings: Embedding<Float>
     public var outputLayer: Dense<Float>
     private var inputLayer: Dense<Float>

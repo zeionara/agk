@@ -3,7 +3,11 @@ import TensorFlow
 import Checkpoints
 import TextModels
 
-public struct DenseClassifier<GraphEmbedderType, SourceElement, NormalizedElement>: GenericModel, Module where GraphEmbedderType: ConvolutionGraphModel, SourceElement: Hashable, NormalizedElement: Hashable, NormalizedElement: Comparable {
+public func prepareDenseClassifierOutputForMetricsComputation(_ output: Tensor<Float>) -> Tensor<Float> {
+    return output.reshaped(to: [-1, 2]).transposed().unstacked()[0].replaceNans()
+}
+
+public struct DenseClassifier<GraphEmbedderType, SourceElement, NormalizedElement>: GenericModel, Module where GraphEmbedderType: EntityEmbedder, SourceElement: Hashable, NormalizedElement: Hashable, NormalizedElement: Comparable {
     @noDerivative public var graphEmbedder: GraphEmbedderType
     @noDerivative public var textEmbedder: ELMO?
     private var layer: Dense<Float>
@@ -117,14 +121,46 @@ public struct DenseClassifier<GraphEmbedderType, SourceElement, NormalizedElemen
                 graphEmbedder.entityEmbeddings(entityIds) :
                 reduceEmbeddingsTensorDimensionality(graphEmbedder.entityEmbeddings(entityIds)).reshaped(to: [entityIds.shape[0], -1])
         }
-        return sigmoid(
-            layer(
-                dropout(
-                    inputLayer(
-                        entityEmbeddings
-                    )
+        // let zero = Tensor<Float>(0.001)
+        // print(layer)
+        let classifierOutput = layer(
+            dropout(
+                inputLayer(
+                    entityEmbeddings
                 )
             )
         )
+        // let classifierOutput = Tensor(
+        //     layer(
+        //         dropout(
+        //             inputLayer(
+        //                 entityEmbeddings
+        //             )
+        //         )
+        //     ).unstacked().map{ prediction -> Tensor<Float> in
+        //         if prediction.scalar!.isNaN {
+        //             return zero
+        //         } else {
+        //             return prediction
+        //         }
+        //     }
+        // )
+        return softmax(
+            Tensor(
+                stacking: [
+                    classifierOutput,
+                    1 / classifierOutput
+                ]
+            ).transposed()
+        )
+        // return sigmoid(
+        //     layer(
+        //         dropout(
+        //             inputLayer(
+        //                 entityEmbeddings
+        //             )
+        //         )
+        //     )
+        // )
     }
 }

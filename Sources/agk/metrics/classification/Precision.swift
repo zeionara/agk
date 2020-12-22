@@ -22,10 +22,16 @@ public struct Precision: ClassificationMetric {
         // print("logits: \(logits)")
         // print(logits)
         let testLabels = logits.map{$0 >= threshold ? (!reverse).asInt : reverse.asInt}.map{Int32($0)}
-        // print(testLabels)
+        // print(threshold)
+        // print("Test labels for \(name): \(testLabels)")
+        // print("Train labels for \(name): \(labels)")
         // print("logits: \(testLabels)")
         let divisor = nPositive(testLabels, reverse: reverse)
-        // print(divisor)
-        return divisor > 0 ? nMatching(labels, testLabels, onlyPositive: !reverse, onlyNegative: reverse) / divisor : Float.nan
+        // print("Number of positive labels: \(divisor)")
+        let nMatchingLabels = nMatching(labels, testLabels, onlyPositive: !reverse, onlyNegative: reverse)
+        // print("Number of matching labels: \(nMatchingLabels)")
+        let value = divisor > 0 ? nMatchingLabels / divisor : Float.nan
+        // print("Score: \(value)")
+        return value
     }
 }

@@ -1,7 +1,24 @@
 import Foundation
 import TensorFlow
 import Checkpoints
-// import TextModels
+
+public extension Tensor where Scalar == Float {
+    func replaceNans(with defaultValue: Tensor<Scalar> = Tensor(0.002)) -> Tensor<Scalar> {
+        return Tensor(stacking:
+            self.flattened().unstacked().map{ item -> Tensor<Scalar> in
+                if item.scalar!.isNaN {
+                    return defaultValue
+                } else {
+                    return item
+                }
+            }
+        ).reshaped(to: self.shape)
+    }
+}
+
+enum InitializationError: Error {
+    case unsuccessfulInitialization(message: String)
+}
 
 public struct ClassificationTrainer: Trainer {
     public let nEpochs: Int
@@ -20,7 +37,8 @@ public struct ClassificationTrainer: Trainer {
 
     public func train<OptimizerType, GraphModelType>(
         model: inout DenseClassifier<GraphModelType, String, Int32>, optimizer: inout OptimizerType, labels: LabelFrame<Int32>, getEntityIndices: (LabelFrame<Int32>) -> Tensor<Int32> = { $0.indices }
-    ) where OptimizerType: Optimizer, OptimizerType.Model == DenseClassifier<GraphModelType, String, Int32> {
+    ) throws where OptimizerType: Optimizer, OptimizerType.Model == DenseClassifier<GraphModelType, String, Int32> {
+        var isFirstEpoch = true
         for i in 1...nEpochs{
             var losses: [Float] = []
             for batch in labels.batched(size: batchSize) {
@@ -37,9 +55,22 @@ public struct ClassificationTrainer: Trainer {
                     // print("Computing model labels")
                     let labels_ = model(entityIndices) // model(Tensor<Int32>(batch.adjacencyTensor))
                     // print("Computing loss")
-                    return sigmoidCrossEntropy(
-                        logits: labels_.flattened(),
-                        labels: batch.labels
+                    // print(labels_.reshaped(to: [-1, 2]))
+                    // print(Tensor<Int32>(batch.labels))
+                    let logits = labels_.reshaped(to: [-1, 2]) // .replaceNans()
+                    let probabilities = Tensor(
+                        stacking: [
+                            batch.labels,
+                            1 - batch.labels
+                        ]
+                    ).transposed()
+                    // print("Logits:")
+                    // print(logits)
+                    // print("Probabilities:")
+                    // print(probabilities)
+                    return softmaxCrossEntropy(
+                        logits: logits, //.flattened(),
+                        probabilities: probabilities
                     )
                     //sigmoidCrossEntropy(
                     //    logits: labels_.flattened().gathering(atIndices: batch.indices) + 0.001,
@@ -47,9 +78,20 @@ public struct ClassificationTrainer: Trainer {
                     //)
                 }
                 optimizer.update(&model, along: grad)
-                losses.append(loss.scalarized())
+                // print("Loss")
+                // print(loss)
+                losses.append(loss.replaceNans(with: Tensor(0)).scalarized())
             }
-            print("\(i) / \(nEpochs) Epoch. Loss: \(losses.reduce(0, +) / Float(losses.count))")
+            // print("Losses")
+            // print(losses)
+            let aggregatedLoss = losses.reduce(0, +) / Float(losses.count)
+            if (aggregatedLoss == 0) && isFirstEpoch {
+                throw InitializationError.unsuccessfulInitialization(message: "Unlucky weights selection")
+            }
+            print("\(i) / \(nEpochs) Epoch. Loss: \(aggregatedLoss)")
+            if isFirstEpoch {
+                isFirstEpoch = false
+            }
         }
     }
 }
