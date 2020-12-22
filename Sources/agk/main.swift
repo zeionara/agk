@@ -8,6 +8,10 @@ enum ModelError: Error {
     case unsupportedModel(message: String)
 }
 
+enum TaskError: Error {
+    case unsupportedTask(message: String)
+}
+
 let metrics: [Metric] = [
     MRR(n: 1), MRR(n: 2), MRR(n: 3), MRR(n: 4),
     Hits(n: 1), Hits(n: 2), Hits(n: 3), Hits(n: 4),
@@ -45,6 +49,11 @@ struct CrossValidate: ParsableCommand {
     private enum EmbeddingsDimensionalityReducer: String, ExpressibleByArgument {
         case sum
         case avg
+    }
+
+    private enum Task: String, ExpressibleByArgument {
+        case linkPrediction
+        case classification
     }
 
     @Option(name: .shortAndLong, help: "Model name which to use")
@@ -115,6 +124,9 @@ struct CrossValidate: ParsableCommand {
 
     @Option(default: 100, help: "Number of nodes in the hidden layer")
     var hiddenLayerSize: Int
+
+    @Option(name: .shortAndLong, default: .linkPrediction, help: "Name of task for performing cross validation testing")
+    private var task: Task
 
     mutating func run() throws {
         
@@ -207,6 +219,7 @@ struct CrossValidate: ParsableCommand {
                         model: &model_,
                         optimizer: optimizer_
                     )
+                    modelSavingLock.lock()
                     try model_.save()
                     modelSavingLock.unlock()
                     embeddingsWereInitialized = true
@@ -254,7 +267,9 @@ struct CrossValidate: ParsableCommand {
                 if shouldInitializeEmbeddings {
                     let trainer_ = ConvolutionAdjacencyTrainer(nEpochs: nEpochs_)
                     let optimizer_ = Adam<VGAE<String, Int32>>(for: model_, learningRate: learningRate_)
-                    trainer_.train(dataset: dataset, model: &model_, optimizer: optimizer_)
+                    trainer_.train(dataset: dataset, model: &model_, optimizer: optimizer_,
+                        trainTensorPath: trainTensorPaths[graphRepresentation_]!, adjacencyTensorPath: adjacencyTensorPaths[graphRepresentation_]!
+                    )
                     modelSavingLock.lock()
                     try model_.save()
                     modelSavingLock.unlock()
@@ -264,7 +279,8 @@ struct CrossValidate: ParsableCommand {
                 // 2. Train classification block
 
                 var classifier = try DenseClassifier(graphEmbedder: model_, dataset: dataset_, device: device,
-                    reduceEmbeddingsTensorDimensionality: embeddingsTensorDimensionalityReducers[embeddingsDimensionalityReducer_]!, textEmbeddingModelName: languageModelName_
+                    reduceEmbeddingsTensorDimensionality: embeddingsTensorDimensionalityReducers[embeddingsDimensionalityReducer_]!, textEmbeddingModelName: languageModelName_,
+                    shouldExpandTextEmbeddings: graphRepresentation_ != .adjacencyMatrix
                 )
                 var classification_optimizer_ = Adam<DenseClassifier>(for: classifier, learningRate: classifierLearningRate_)
                 trainer.train(model: &classifier, optimizer: &classification_optimizer_, labels: labels, getEntityIndices: entityIndicesGetters[graphRepresentation_]!)
@@ -334,17 +350,63 @@ struct CrossValidate: ParsableCommand {
                     dataset.normalizedFrame
                 }
             } else {
-                try GenericCVTester<TransE<String, Int32>, TripleFrame<Int32>, LinearTrainer>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(
-                    dataset: dataset, metrics: metrics
-                ) { trainer, trainFrame in
-                    var model_ = TransE(embeddingDimensionality: embeddingDimensionality_, dataset: dataset, device: device)
-                    var optimizer = Adam<TransE>(for: model_, learningRate: learningRate_)
-                    trainer.train(frame: trainFrame, model: &model_, optimizer: &optimizer)
-                    return model_
-                } computeMetric: { model, metric, trainLabels, testLabels, dataset -> Float in
-                    (metric as! Metric).compute(model: model, trainFrame: trainLabels, testFrame: testLabels, dataset: dataset)    
-                } getSamplesList: { dataset in
-                    dataset.normalizedFrame
+                if task == .linkPrediction {
+                    try GenericCVTester<TransE<String, Int32>, TripleFrame<Int32>, LinearTrainer>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(
+                        dataset: dataset, metrics: metrics
+                    ) { trainer, trainFrame in
+                        var model_ = TransE(embeddingDimensionality: embeddingDimensionality_, dataset: dataset, device: device)
+                        var optimizer = Adam<TransE>(for: model_, learningRate: learningRate_)
+                        trainer.train(frame: trainFrame, model: &model_, optimizer: &optimizer)
+                        return model_
+                    } computeMetric: { model, metric, trainLabels, testLabels, dataset -> Float in
+                        (metric as! Metric).compute(model: model, trainFrame: trainLabels, testFrame: testLabels, dataset: dataset)    
+                    } getSamplesList: { dataset in
+                        dataset.normalizedFrame
+                    }
+                } else if task == .classification {
+                    let modelSavingLock = NSLock()
+                    var embeddingsWereInitialized: Bool = false
+
+                    try GenericCVTester<DenseClassifier<TransE<String, Int32>, String, Int32>, LabelFrame<Int32>, ClassificationTrainer>(
+                        nFolds: nFolds, nEpochs: classifierNEpochs, batchSize: batchSize
+                    ).test(
+                        dataset: dataset_,
+                        metrics: classificationMetrics,
+                        enableParallelism: false
+                    ) { trainer, labels -> DenseClassifier<TransE<String, Int32>, String, Int32> in
+                    
+                        // 1. Train the base model with node encodings if necessary
+                        
+                        let shouldInitializeEmbeddings = !embeddingsWereInitialized && !readEmbeddings_
+                        var model_ = !shouldInitializeEmbeddings ? try TransE(dataset: dataset_, device: device) : TransE(
+                            embeddingDimensionality: embeddingDimensionality_,
+                            dataset: dataset,
+                            device: device
+                        )
+                        if shouldInitializeEmbeddings {
+                            let trainer_ = LinearTrainer(nEpochs: nEpochs_, batchSize: batchSize_)
+                            var optimizer = Adam<TransE>(for: model_, learningRate: learningRate_)
+                            trainer_.train(frame: dataset.normalizedFrame, model: &model_, optimizer: &optimizer)
+                            modelSavingLock.lock()
+                            try model_.save()
+                            modelSavingLock.unlock()
+                            embeddingsWereInitialized = true
+                        }
+
+                        // 2. Train classification block
+
+                        var classifier = try DenseClassifier(graphEmbedder: model_, dataset: dataset_, device: device, textEmbeddingModelName: languageModelName_)
+                        var classification_optimizer_ = Adam<DenseClassifier>(for: classifier, learningRate: classifierLearningRate_)
+                        trainer.train(model: &classifier, optimizer: &classification_optimizer_, labels: dataset_.labelFrame!)
+                        return classifier
+                    } computeMetric: { model, metric, trainLabels, testLabels, dataset -> Float in
+                        let logits = model(entityIndicesGetters[graphRepresentation_]!(testLabels)).flattened()
+                        return (metric as! ClassificationMetric).compute(model: model, labels: testLabels.labels.unstacked().map{$0.scalar!}.map{Int32($0)}, logits: logits.unstacked().map{$0.scalar!}, dataset: dataset)
+                    } getSamplesList: { dataset in
+                        dataset.labelFrame!
+                    }
+                } else {
+                    throw TaskError.unsupportedTask(message: "Unknown task: \(task)")
                 }
             }
         } else if (model == .transd) {

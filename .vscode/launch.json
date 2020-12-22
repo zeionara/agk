@@ -23,6 +23,48 @@
             "type": "lldb",
             "request": "launch",
             "preLaunchTask": "swift-build",
+            "name": "Cross-validate transe on classification",
+            "program": "${workspaceFolder}/.build/debug/agk",
+            "args": [
+                "cross-validate",
+                "-m",
+                "transe",
+                "-d",
+                "deduplicated-dataset.txt",
+                "-t",
+                "classification"
+            ],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": [
+                "swift"
+            ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "swift-build",
+            "name": "Cross-validate transe + elmo on classification",
+            "program": "${workspaceFolder}/.build/debug/agk",
+            "args": [
+                "cross-validate",
+                "-m",
+                "transe",
+                "-d",
+                "deduplicated-dataset.txt",
+                "-t",
+                "classification",
+                "--language-model-name",
+                "elmo"
+            ],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": [
+                "swift"
+            ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "swift-build",
             "name": "Cross-validate transe using OpenKE implementation",
             "program": "${workspaceFolder}/.build/debug/agk",
             "args": [
@@ -187,7 +229,43 @@
                 "--graph-representation",
                 "adjacencyMatrix",
                 "--language-model-name",
-                "elmo"
+                "elmo",
+                "-n",
+                "100",
+                "-c",
+                "1000",
+                "--classifier-learning-rate",
+                "0.001"
+            ],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": [
+                "swift"
+            ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "swift-build",
+            "name": "Cross-validate vgae + elmo using adjacency-matrix as graph representation on adult-audience-oriented labels",
+            "program": "${workspaceFolder}/.build/debug/agk",
+            "args": [
+                "cross-validate",
+                "-m",
+                "vgae",
+                "-d",
+                "deduplicated-dataset.txt",
+                "--graph-representation",
+                "adjacencyMatrix",
+                "--language-model-name",
+                "elmo",
+                "-n",
+                "100",
+                "-c",
+                "1000",
+                "--classifier-learning-rate",
+                "0.001",
+                "--labels-path",
+                "adult-audience-oriented.txt"
             ],
             "cwd": "${workspaceFolder}",
             "sourceLanguages": [
@@ -209,7 +287,73 @@
                 "--graph-representation",
                 "adjacencyPairsMatrix",
                 "--language-model-name",
-                "elmo"
+                "elmo",
+                "-n",
+                "100",
+                "-c",
+                "1000",
+                "--classifier-learning-rate",
+                "0.001"
+                // "--read-embeddings"
+            ],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": [
+                "swift"
+            ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "swift-build",
+            "name": "Cross-validate vgae + elmo using adjacency-pairs-matrix as graph representation on adult-audience-oriented labels",
+            "program": "${workspaceFolder}/.build/debug/agk",
+            "args": [
+                "cross-validate",
+                "-m",
+                "vgae",
+                "-d",
+                "deduplicated-dataset.txt",
+                "--graph-representation",
+                "adjacencyPairsMatrix",
+                "--language-model-name",
+                "elmo",
+                "-n",
+                "100",
+                "-c",
+                "1000",
+                "--classifier-learning-rate",
+                "0.001",
+                "--labels-path",
+                "adult-audience-oriented.txt"
+                // "--read-embeddings"
+            ],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": [
+                "swift"
+            ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "swift-build",
+            "name": "Cross-validate vgae using adjacency-pairs-matrix as graph representation on adult-audience-oriented labels",
+            "program": "${workspaceFolder}/.build/debug/agk",
+            "args": [
+                "cross-validate",
+                "-m",
+                "vgae",
+                "-d",
+                "deduplicated-dataset.txt",
+                "--graph-representation",
+                "adjacencyPairsMatrix",
+                "-n",
+                "100",
+                "-c",
+                "1000",
+                "--classifier-learning-rate",
+                "0.001",
+                "--labels-path",
+                "adult-audience-oriented.txt"
             ],
             "cwd": "${workspaceFolder}",
             "sourceLanguages": [
@@ -272,8 +416,24 @@
             "program": "${workspaceFolder}/.build/debug/agk",
             "args": [
                 "restructure-report",
-                "raw-reports/vgae-classification.txt",
-                "reports/vgae-classification.txt"
+                "raw-reports/vgae+elmo-humorous.txt",
+                "reports/vgae+elmo-humorous.txt"
+            ],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": [
+                "swift"
+            ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "swift-build",
+            "name": "Generate report for adult-audience-oriented data",
+            "program": "${workspaceFolder}/.build/debug/agk",
+            "args": [
+                "restructure-report",
+                "raw-reports/vgae-adult-audience-oriented.txt",
+                "reports/vgae-adult-audience-oriented.txt"
             ],
             "cwd": "${workspaceFolder}",
             "sourceLanguages": [

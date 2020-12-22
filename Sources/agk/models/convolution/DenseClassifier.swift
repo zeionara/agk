@@ -22,8 +22,11 @@ public struct DenseClassifier<GraphEmbedderType, SourceElement, NormalizedElemen
         activation: @escaping Dense<Float>.Activation = relu,
         reduceEmbeddingsTensorDimensionality: @escaping (Tensor<Float>) -> Tensor<Float> = { $0.sum(alongAxes: [1]) },
         textEmbeddingModelName: String? = Optional.none,
-        unpackOptionalTensor: (Tensor<Float>?, Int) -> Tensor<Float> = {$0 == Optional.none ? Tensor<Float>(zeros: [$1]) : $0!}
+        unpackOptionalTensor: (Tensor<Float>?, Int) -> Tensor<Float> = {$0 == Optional.none ? Tensor<Float>(zeros: [$1]) : $0!},
+        shouldExpandTextEmbeddings: Bool = false
     ) throws {
+        // print(graphEmbedder.entityEmbeddings.embeddings.shape)
+        // print(dataset.frame.relationships.count)
         self.graphEmbedder = graphEmbedder
         self.layer = Dense<Float>(
             copying: Dense<Float>(
@@ -47,7 +50,7 @@ public struct DenseClassifier<GraphEmbedderType, SourceElement, NormalizedElemen
         self.dataset = dataset
         if let textEmbeddingModelName_ = textEmbeddingModelName {
             let textEmbedder_ = try ELMO(getModelsCacheRoot(), textEmbeddingModelName_)
-            textEmbeddings = Embedding<Float>(
+            let textEmbeddings_ = Embedding<Float>(
                 embeddings: Tensor(
                     stacking: textEmbedder_.embed(
                         dataset.normalizedFrame.entities.sorted().map{dataset.entityId2Text[$0]}
@@ -65,6 +68,19 @@ public struct DenseClassifier<GraphEmbedderType, SourceElement, NormalizedElemen
                 ),
                 to: device
             )
+            if shouldExpandTextEmbeddings {
+                let expandedEmbeddings = Tensor(
+                    stacking: Array(
+                        repeating: textEmbeddings_.embeddings,
+                        count: graphEmbedder.entityEmbeddings.embeddings.shape[0] / textEmbeddings_.embeddings.shape[0] 
+                    )
+                ).transposed(permutation: [1, 0, 2]).reshaped(to: [-1, textEmbeddings_.embeddings.shape[1]])
+                textEmbeddings = Embedding<Float>(
+                    embeddings: expandedEmbeddings
+                )
+            } else {
+                textEmbeddings = textEmbeddings_
+            }
         } else {
             textEmbeddings = Optional.none
             textEmbedder = Optional.none

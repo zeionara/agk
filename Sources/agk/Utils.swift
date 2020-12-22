@@ -2,6 +2,7 @@ import Foundation
 
 public func readLines(path: String) throws -> [String] {
     let dir = URL(fileURLWithPath: #file.replacingOccurrences(of: "Sources/agk/Utils.swift", with: ""))
+    // print(dir.appendingPathComponent("data").appendingPathComponent(path))
     let fileContents = try String(
             contentsOf: dir.appendingPathComponent("data").appendingPathComponent(path),
             encoding: .utf8
