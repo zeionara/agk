@@ -102,6 +102,48 @@
             "type": "lldb",
             "request": "launch",
             "preLaunchTask": "swift-build",
+            "name": "Cross-validate transd on classification",
+            "program": "${workspaceFolder}/.build/debug/agk",
+            "args": [
+                "cross-validate",
+                "-m",
+                "transd",
+                "-d",
+                "deduplicated-dataset.txt",
+                "-t",
+                "classification"
+            ],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": [
+                "swift"
+            ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "swift-build",
+            "name": "Cross-validate transd + elmo on classification",
+            "program": "${workspaceFolder}/.build/debug/agk",
+            "args": [
+                "cross-validate",
+                "-m",
+                "transd",
+                "-d",
+                "deduplicated-dataset.txt",
+                "-t",
+                "classification",
+                "--language-model-name",
+                "elmo"
+            ],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": [
+                "swift"
+            ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "swift-build",
             "name": "Cross-validate transd using OpenKE implementation",
             "program": "${workspaceFolder}/.build/debug/agk",
             "args": [
@@ -120,6 +162,7 @@
         {
             "type": "lldb",
             "request": "launch",
+            "preLaunchTask": "swift-build",
             "name": "Cross-validate rotate",
             "program": "${workspaceFolder}/.build/debug/agk",
             "args": [
@@ -128,6 +171,48 @@
                 "rotate",
                 "-d",
                 "deduplicated-dataset.txt"
+            ],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": [
+                "swift"
+            ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "swift-build",
+            "name": "Cross-validate rotate on classification",
+            "program": "${workspaceFolder}/.build/debug/agk",
+            "args": [
+                "cross-validate",
+                "-m",
+                "rotate",
+                "-d",
+                "deduplicated-dataset.txt",
+                "-t",
+                "classification"
+            ],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": [
+                "swift"
+            ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "swift-build",
+            "name": "Cross-validate rotate + elmo on classification",
+            "program": "${workspaceFolder}/.build/debug/agk",
+            "args": [
+                "cross-validate",
+                "-m",
+                "rotate",
+                "-d",
+                "deduplicated-dataset.txt",
+                "-t",
+                "classification",
+                "--language-model-name",
+                "elmo"
             ],
             "cwd": "${workspaceFolder}",
             "sourceLanguages": [
