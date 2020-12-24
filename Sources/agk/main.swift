@@ -775,7 +775,7 @@ struct RestructureReport: ParsableCommand {
 struct Agk: ParsableCommand {
     static var configuration = CommandConfiguration(
             abstract: "A tool for automating operation on the knowledge graph models",
-            subcommands: [CrossValidate.self, RestructureReport.self],
+            subcommands: [CrossValidate.self, RestructureReport.self, StartServer.self],
             defaultSubcommand: CrossValidate.self
     )
 }

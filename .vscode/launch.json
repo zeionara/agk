@@ -565,6 +565,20 @@
             "sourceLanguages": [
                 "swift"
             ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "swift-build",
+            "name": "Start rest api server",
+            "program": "${workspaceFolder}/.build/debug/agk",
+            "args": [
+                "start-server"
+            ],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": [
+                "swift"
+            ]
         }
     ]
 }
