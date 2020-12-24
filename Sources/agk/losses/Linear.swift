@@ -1,6 +1,7 @@
 import Foundation
 import TensorFlow
 
+public typealias LinearModelLossImpl = (Tensor<Float>, Tensor<Float>, Float) -> Tensor<Float>
 
 @differentiable
 public func computeSumLoss(_ positiveScores: Tensor<Float>, _ negativeScores: Tensor<Float>, _ margin: Float = 2.0) -> Tensor<Float> {

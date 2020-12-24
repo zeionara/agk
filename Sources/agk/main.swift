@@ -8,8 +8,16 @@ enum ModelError: Error {
     case unsupportedModel(message: String)
 }
 
+enum LossError: Error {
+    case unsupportedLoss(message: String)
+}
+
 enum TaskError: Error {
     case unsupportedTask(message: String)
+}
+
+enum OptimizerError: Error {
+    case unsupportedOptimizer(message: String)
 }
 
 let metrics: [Metric] = [
@@ -29,6 +37,36 @@ let classificationMetrics: [ClassificationMetric] = [
     Accuracy(0), Accuracy(0.2), Accuracy(0.4), Accuracy(0.6), Accuracy(0.8), Accuracy(1),
     Accuracy(0, reverse: true) // Accuracy(0.2, reverse: true), Accuracy(0.4, reverse: true), Accuracy(0.6, reverse: true), Accuracy(0.8, reverse: true), Accuracy(1, reverse: true)
 ]
+
+var trainLogger = Logger(label: "trainer")
+trainLogger.logLevel = .trace
+
+func trainLinearModel<Model, OptimizerType>(
+    trainer: LinearTrainer, trainFrame: TripleFrame<Int32>, model: inout Model, optimizer: inout OptimizerType,
+    modelName: String = "unknown", loss: CrossValidate.LinearModelLoss, lossName: String = "unknown", margin: Float
+) throws where Model: LinearGraphModel, OptimizerType: Optimizer, OptimizerType.Model == Model, Model.Scalar == Int32 {
+    if loss == .sum {
+        trainer.train(
+            frame: trainFrame,
+            model: &model,
+            optimizer: &optimizer,
+            logger: trainLogger,
+            margin: margin,
+            loss: computeSumLoss
+        )
+    } else if loss == .sigmoid {
+        trainer.train(
+            frame: trainFrame,
+            model: &model,
+            optimizer: &optimizer,
+            logger: trainLogger,
+            margin: margin,
+            loss: computeSigmoidLoss
+        )
+    } else {
+        throw LossError.unsupportedLoss(message: "Loss \(lossName) is not supported for model \(modelName)")
+    }
+}
 
 struct CrossValidate: ParsableCommand {
 
@@ -57,6 +95,18 @@ struct CrossValidate: ParsableCommand {
         case defaultTask
     }
 
+    public enum LinearModelLoss: String, ExpressibleByArgument {
+        case sum
+        case sigmoid
+        case defaultLoss
+    }
+
+    public enum Optimizer: String, ExpressibleByArgument {
+        case sgd
+        case adam
+        case defaultOptimizer
+    }
+
     @Option(name: .shortAndLong, help: "Model name which to use")
     private var model: Model
 
@@ -69,11 +119,11 @@ struct CrossValidate: ParsableCommand {
     @Option(name: .shortAndLong, help: "Dataset filename (should be located in the 'data' folder)")
     private var datasetPath: String
 
-    @Option(default: "humorous.txt", help: "Filename containing labels for graph nodes (should be located in the 'data' folder)")
-    private var labelsPath: String
+    @Option(help: "Filename containing labels for graph nodes (should be located in the 'data' folder)")
+    private var labelsPath: String = "humorous.txt"
 
-    @Option(default: "deduplicated-dataset-texts.txt", help: "Filename containing texts for graph nodes (should be located in the 'data' folder)")
-    private var textsPath: String
+    @Option(help: "Filename containing texts for graph nodes (should be located in the 'data' folder)")
+    private var textsPath: String = "deduplicated-dataset-texts.txt"
 
     @Option(name: .shortAndLong, default: 10, help: "Number of epochs to execute during model training")
     var nEpochs: Int
@@ -129,7 +179,35 @@ struct CrossValidate: ParsableCommand {
     @Option(name: .shortAndLong, default: .defaultTask, help: "Name of task for performing cross validation testing")
     private var task: Task
 
+    @Option(help: "Target distance between embeddings of the positive and negative triples")
+    var margin: Float = 2.0
+
+    @Option(help: "Name of loss for using during linear model training")
+    private var linearModelLoss: LinearModelLoss = .defaultLoss
+
+    @Option(help: "Type of optimizer to use for model training")
+    private var optimizer: Optimizer = .defaultOptimizer
+
     mutating func run() throws {
+
+        func trainLinearModelUsingOptimizer<Model>(model: inout Model, trainer: LinearTrainer, trainFrame: TripleFrame<Int32>) throws
+        where Model: LinearGraphModel, Model.TangentVector.VectorSpaceScalar == Float, Model.Scalar == Int32 {
+            if optimizer_ == .adam {
+                var optimizer = Adam<Model>(for: model, learningRate: learningRate_)
+                try trainLinearModel(
+                    trainer: trainer, trainFrame: trainFrame, model: &model, optimizer: &optimizer,
+                    modelName: modelName, loss: linearModelLoss_, lossName: linearModelLossName, margin: margin_
+                )
+            } else if optimizer_ == .sgd {
+                var optimizer = SGD<Model>(for: model, learningRate: learningRate_)
+                try trainLinearModel(
+                    trainer: trainer, trainFrame: trainFrame, model: &model, optimizer: &optimizer,
+                    modelName: modelName, loss: linearModelLoss_, lossName: linearModelLossName, margin: margin_
+                )
+            } else {
+                throw OptimizerError.unsupportedOptimizer(message: "Optimizer \(optimizerName) is not supported for model \(modelName)")
+            }
+        }
         
         // Initialize command-line argument mappings
 
@@ -161,9 +239,41 @@ struct CrossValidate: ParsableCommand {
             .conve: .classification
         ]
 
+        let defaultLosses: [Model: LinearModelLoss]  = [
+            .transe: .sum,
+            .transd : .sum,
+            .rotate: .sigmoid
+        ]
+
+        let defaultOptimizers: [Model: Optimizer]  = [
+            .transe: .adam,
+            .transd : .adam,
+            .rotate: .adam,
+            .gcn: .adam,
+            .vgae: .adam,
+            .conve: .adam
+        ]
+
+        // let lossFunctions: [LinearModelLoss: (Tensor<Float>, Tensor<Float>, Float) -> Tensor<Float>]  = [
+        //     .sum: computeSumLoss,
+        //     .sigmoid: computeSigmoidLoss
+        // ]
+
         if task == .defaultTask {
             task = defaultTasks[model]!
         }
+
+        if linearModelLoss == .defaultLoss {
+            linearModelLoss = defaultLosses[model]!
+        }
+
+        if optimizer == .defaultOptimizer {
+            optimizer = defaultOptimizers[model]!
+        }
+
+        let linearModelLoss_ = linearModelLoss
+        let margin_ = margin
+        let optimizer_ = optimizer
 
         let device = gpu ? Device.defaultXLA : Device.default
         let dataset = KnowledgeGraphDataset<String, Int32>(path: datasetPath, device: device)
@@ -200,13 +310,15 @@ struct CrossValidate: ParsableCommand {
 
         let hiddenLayerSize_ = hiddenLayerSize
 
-        let model_name = model.rawValue
-        let task_name = task.rawValue
+        let modelName = model.rawValue
+        let taskName = task.rawValue
+        let linearModelLossName = linearModelLoss.rawValue
+        let optimizerName = optimizer.rawValue
         
         if (model == .conve) {
             if openke {
-                let model_name = model.rawValue
-                throw ModelError.unsupportedModel(message: "Model \(model_name) is not implemented in the OpenKE library!")
+                let modelName = model.rawValue
+                throw ModelError.unsupportedModel(message: "Model \(modelName) is not implemented in the OpenKE library!")
             }
             if task == .classification {
                 let dataset_ = KnowledgeGraphDataset<String, Int32>(path: datasetPath, classes: labelsPath, texts: textsPath, device: device)
@@ -267,12 +379,12 @@ struct CrossValidate: ParsableCommand {
                     dataset.labelFrame!
                 }
             } else {
-                throw TaskError.unsupportedTask(message: "Task \(task_name) is not implemented for model \(model_name)")
+                throw TaskError.unsupportedTask(message: "Task \(taskName) is not implemented for model \(modelName)")
             }
         } else if (model == .vgae) {
             if openke {
-                let model_name = model.rawValue
-                throw ModelError.unsupportedModel(message: "Model \(model_name) is not implemented in the OpenKE library!")
+                let modelName = model.rawValue
+                throw ModelError.unsupportedModel(message: "Model \(modelName) is not implemented in the OpenKE library!")
             }
             if task == .classification {
                 let embeddingsDimensionalityReducer_ = embeddingsDimensionalityReducer
@@ -328,12 +440,12 @@ struct CrossValidate: ParsableCommand {
                     dataset.labelFrame!
                 }
             } else {
-                throw TaskError.unsupportedTask(message: "Task \(task_name) is not implemented for model \(model_name)")
+                throw TaskError.unsupportedTask(message: "Task \(taskName) is not implemented for model \(modelName)")
             }
         } else if (model == .gcn) {
             if openke {
-                let model_name = model.rawValue
-                throw ModelError.unsupportedModel(message: "Model \(model_name) is not implemented in the OpenKE library!")
+                let modelName = model.rawValue
+                throw ModelError.unsupportedModel(message: "Model \(modelName) is not implemented in the OpenKE library!")
             }
             if task == .classification {
                 let dataset_ = KnowledgeGraphDataset<String, Int32>(path: datasetPath, classes: labelsPath, device: device)
@@ -360,17 +472,18 @@ struct CrossValidate: ParsableCommand {
                     dataset.labelFrame!
                 }
             } else {
-                throw TaskError.unsupportedTask(message: "Task \(task_name) is not implemented for model \(model_name)")
+                throw TaskError.unsupportedTask(message: "Task \(taskName) is not implemented for model \(modelName)")
             }
         } else if (model == .rotate) {
             if openke {
-                throw ModelError.unsupportedModel(message: "Model \(model_name) is not implemented in the OpenKE library!")
+                throw ModelError.unsupportedModel(message: "Model \(modelName) is not implemented in the OpenKE library!")
             } else {
                 if task == .linkPrediction {
-                    try GenericCVTester<RotatE<String, Int32>, TripleFrame<Int32>, LinearTrainer>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(dataset: dataset, metrics: metrics) { trainer, trainFrame in
+                    try GenericCVTester<RotatE<String, Int32>, TripleFrame<Int32>, LinearTrainer>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(
+                        dataset: dataset, metrics: metrics, enableParallelism: false
+                    ) { trainer, trainFrame in
                         var model_ = RotatE(embeddingDimensionality: embeddingDimensionality_, dataset: dataset, device: device)
-                        var optimizer = Adam<RotatE>(for: model_, learningRate: learningRate_)
-                        trainer.train(frame: trainFrame, model: &model_, optimizer: &optimizer, loss: computeSigmoidLoss)
+                        try trainLinearModelUsingOptimizer(model: &model_, trainer: trainer, trainFrame: trainFrame)
                         return model_
                     } computeMetric: { model, metric, trainLabels, testLabels, dataset -> Float in
                         (metric as! Metric).compute(model: model, trainFrame: trainLabels, testFrame: testLabels, dataset: dataset)    
@@ -399,8 +512,7 @@ struct CrossValidate: ParsableCommand {
                         )
                         if shouldInitializeEmbeddings {
                             let trainer_ = LinearTrainer(nEpochs: nEpochs_, batchSize: batchSize_)
-                            var optimizer = Adam<RotatE>(for: model_, learningRate: learningRate_)
-                            trainer_.train(frame: dataset.normalizedFrame, model: &model_, optimizer: &optimizer, loss: computeSigmoidLoss)
+                            try trainLinearModelUsingOptimizer(model: &model_, trainer: trainer_, trainFrame: dataset.normalizedFrame)
                             modelSavingLock.lock()
                             try model_.save()
                             modelSavingLock.unlock()
@@ -426,7 +538,7 @@ struct CrossValidate: ParsableCommand {
                         dataset.labelFrame!
                     }
                 } else {
-                    throw TaskError.unsupportedTask(message: "Task \(task_name) is not implemented for model \(model_name)")
+                    throw TaskError.unsupportedTask(message: "Task \(taskName) is not implemented for model \(modelName)")
                 }
             }
         } else if (model == .transe) {
@@ -436,7 +548,7 @@ struct CrossValidate: ParsableCommand {
                         dataset: dataset, metrics: metrics, enableParallelism: false
                     ) { trainer, trainFrame in
                         OpenKEModel(
-                            configuration: trainer.train(model: model_name, frame: trainFrame, dataset: dataset)
+                            configuration: trainer.train(model: modelName, frame: trainFrame, dataset: dataset)
                         )
                     } computeMetric: { model, metric, trainLabels, testLabels, dataset -> Float in
                         (metric as! Metric).compute(model: model, trainFrame: trainLabels, testFrame: testLabels, dataset: dataset)    
@@ -444,16 +556,15 @@ struct CrossValidate: ParsableCommand {
                         dataset.normalizedFrame
                     }
                 } else {
-                    throw TaskError.unsupportedTask(message: "OpenKE models do not support task \(task_name)")
+                    throw TaskError.unsupportedTask(message: "OpenKE models do not support task \(taskName)")
                 }
             } else {
                 if task == .linkPrediction {
                     try GenericCVTester<TransE<String, Int32>, TripleFrame<Int32>, LinearTrainer>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(
-                        dataset: dataset, metrics: metrics
+                        dataset: dataset, metrics: metrics, enableParallelism: false
                     ) { trainer, trainFrame in
                         var model_ = TransE(embeddingDimensionality: embeddingDimensionality_, dataset: dataset, device: device)
-                        var optimizer = Adam<TransE>(for: model_, learningRate: learningRate_)
-                        trainer.train(frame: trainFrame, model: &model_, optimizer: &optimizer, loss: computeSigmoidLoss)
+                        try trainLinearModelUsingOptimizer(model: &model_, trainer: trainer, trainFrame: trainFrame)
                         return model_
                     } computeMetric: { model, metric, trainLabels, testLabels, dataset -> Float in
                         (metric as! Metric).compute(model: model, trainFrame: trainLabels, testFrame: testLabels, dataset: dataset)    
@@ -482,8 +593,7 @@ struct CrossValidate: ParsableCommand {
                         )
                         if shouldInitializeEmbeddings {
                             let trainer_ = LinearTrainer(nEpochs: nEpochs_, batchSize: batchSize_)
-                            var optimizer = Adam<TransE>(for: model_, learningRate: learningRate_)
-                            trainer_.train(frame: dataset.normalizedFrame, model: &model_, optimizer: &optimizer, loss: computeSigmoidLoss)
+                            try trainLinearModelUsingOptimizer(model: &model_, trainer: trainer_, trainFrame: dataset.normalizedFrame)
                             modelSavingLock.lock()
                             try model_.save()
                             modelSavingLock.unlock()
@@ -509,7 +619,7 @@ struct CrossValidate: ParsableCommand {
                         dataset.labelFrame!
                     }
                 } else {
-                    throw TaskError.unsupportedTask(message: "Task \(task_name) is not implemented for model \(model_name)")
+                    throw TaskError.unsupportedTask(message: "Task \(taskName) is not implemented for model \(modelName)")
                 }
             }
         } else if (model == .transd) {
@@ -519,7 +629,7 @@ struct CrossValidate: ParsableCommand {
                         dataset: dataset, metrics: metrics, enableParallelism: false
                     ) { trainer, trainFrame in
                         OpenKEModel(
-                            configuration: trainer.train(model: model_name, frame: trainFrame, dataset: dataset)
+                            configuration: trainer.train(model: modelName, frame: trainFrame, dataset: dataset)
                         )
                     } computeMetric: { model, metric, trainLabels, testLabels, dataset -> Float in
                         (metric as! Metric).compute(model: model, trainFrame: trainLabels, testFrame: testLabels, dataset: dataset)    
@@ -527,16 +637,15 @@ struct CrossValidate: ParsableCommand {
                         dataset.normalizedFrame
                     }
                 } else {
-                    throw TaskError.unsupportedTask(message: "OpenKE models do not support task \(task_name)")
+                    throw TaskError.unsupportedTask(message: "OpenKE models do not support task \(taskName)")
                 }
             } else {
                 if task == .linkPrediction {
                     try GenericCVTester<TransD<String, Int32>, TripleFrame<Int32>, LinearTrainer>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(
-                        dataset: dataset, metrics: metrics
+                        dataset: dataset, metrics: metrics, enableParallelism: false
                     ) { trainer, trainFrame in
                         var model_ = TransD(embeddingDimensionality: embeddingDimensionality_, dataset: dataset, device: device)
-                        var optimizer = Adam<TransD>(for: model_, learningRate: learningRate_)
-                        trainer.train(frame: trainFrame, model: &model_, optimizer: &optimizer, loss: computeSigmoidLoss)
+                        try trainLinearModelUsingOptimizer(model: &model_, trainer: trainer, trainFrame: trainFrame)
                         return model_
                     } computeMetric: { model, metric, trainLabels, testLabels, dataset -> Float in
                         (metric as! Metric).compute(model: model, trainFrame: trainLabels, testFrame: testLabels, dataset: dataset)    
@@ -565,8 +674,7 @@ struct CrossValidate: ParsableCommand {
                         )
                         if shouldInitializeEmbeddings {
                             let trainer_ = LinearTrainer(nEpochs: nEpochs_, batchSize: batchSize_)
-                            var optimizer = Adam<TransD>(for: model_, learningRate: learningRate_)
-                            trainer_.train(frame: dataset.normalizedFrame, model: &model_, optimizer: &optimizer, loss: computeSigmoidLoss)
+                            try trainLinearModelUsingOptimizer(model: &model_, trainer: trainer_, trainFrame: dataset.normalizedFrame)
                             modelSavingLock.lock()
                             try model_.save()
                             modelSavingLock.unlock()
@@ -592,11 +700,11 @@ struct CrossValidate: ParsableCommand {
                         dataset.labelFrame!
                     }
                 } else {
-                    throw TaskError.unsupportedTask(message: "Task \(task_name) is not implemented for model \(model_name)")
+                    throw TaskError.unsupportedTask(message: "Task \(taskName) is not implemented for model \(modelName)")
                 }
             }
         } else {
-            throw ModelError.unsupportedModel(message: "Model \(model_name) is not supported yet!")
+            throw ModelError.unsupportedModel(message: "Model \(modelName) is not supported yet!")
         }
     }
 }
