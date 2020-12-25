@@ -58,12 +58,13 @@ public class GenericCVTester<Model, DataFrameType, TrainerType> where Model: Gen
             initModel: @escaping ModelInitizlizationClosure,
             computeMetric: @escaping MetricComputationClosure,
             getSamplesList: SamplesListGenerationClosure
-    ) throws {
+    ) throws -> [String: Float] {
         var scores: [String: [Float]] = metrics.toDict { (metric: NamedMetric) -> (key: String, value: [Float]) in
             (metric.name, [Float]())
         }
         let group = enableParallelism ? DispatchGroup() : Optional.none
         let lock = enableParallelism ? NSLock() : Optional.none
+        var result = [String: Float]()
 
         for (i, (trainLabels, testLabels)) in getSamplesList(dataset).cv(nFolds: nFolds).enumerated() {
             if enableParallelism {
@@ -109,7 +110,9 @@ public class GenericCVTester<Model, DataFrameType, TrainerType> where Model: Gen
 
         group?.wait()
         for metric in metrics {
-            self.logger.info("\(metric.name): \(metric.aggregate(scores: scores[metric.name]!))")
+            result[metric.name] = metric.aggregate(scores: scores[metric.name]!)
+            self.logger.info("\(metric.name): \(result[metric.name]!)")
         }
+        return result
     }
 }

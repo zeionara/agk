@@ -32,9 +32,26 @@ struct StartServer: ParsableCommand {
     @Option(help: "Password for accessing the service")
     private var password: String = ""
 
+    func parseRequestParameter(request: HTTPRequest, paramName: String, flag: String) -> [String] {
+        if let paramValue = request.param(name: paramName) {
+            return [flag, paramValue]
+        } else {
+            return []
+        }
+    }
+
     func handler(request: HTTPRequest, response: HTTPResponse) {
         response.setHeader(.contentType, value: "text/html")
-        response.appendBody(string: "<html><title>Hello, world!</title><body>Hello, world!</body></html>")
+        do {
+            // var command = CrossValidate(model: "transe", dataset: "deduplicated-dataset.txt")
+            let params = parseRequestParameter(request: request, paramName: "model", flag: "-m") + parseRequestParameter(request: request, paramName: "dataset", flag: "-d")
+            print(params)
+            var command = try CrossValidate.parse(params)
+            let result = try command.run()
+            response.appendBody(string: "<html><title>Completed!</title><body>\(result)</body></html>")
+        } catch {
+            response.appendBody(string: "<html><title>Exception!</title><body>\(error)</body></html>")
+        }
         response.completed()
     }
 

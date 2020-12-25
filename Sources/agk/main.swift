@@ -188,7 +188,14 @@ struct CrossValidate: ParsableCommand {
     @Option(help: "Type of optimizer to use for model training")
     private var optimizer: Optimizer = .defaultOptimizer
 
-    mutating func run() throws {
+    public init(model: String, dataset: String) {
+        self.model = Model.init(rawValue: model)!
+        datasetPath = dataset
+    }
+
+    public init() { }
+
+    mutating func run() throws -> [String: Float] {
 
         func trainLinearModelUsingOptimizer<Model>(model: inout Model, trainer: LinearTrainer, trainFrame: TripleFrame<Int32>) throws
         where Model: LinearGraphModel, Model.TangentVector.VectorSpaceScalar == Float, Model.Scalar == Int32 {
@@ -314,6 +321,8 @@ struct CrossValidate: ParsableCommand {
         let taskName = task.rawValue
         let linearModelLossName = linearModelLoss.rawValue
         let optimizerName = optimizer.rawValue
+
+        var result = [String: Float]()
         
         if (model == .conve) {
             if openke {
@@ -325,7 +334,7 @@ struct CrossValidate: ParsableCommand {
                 let modelSavingLock = NSLock()
                 var embeddingsWereInitialized: Bool = false
                 
-                try GenericCVTester<DenseClassifier<ConvE<String, Int32>, String, Int32>, LabelFrame<Int32>, ClassificationTrainer>(
+                result = try GenericCVTester<DenseClassifier<ConvE<String, Int32>, String, Int32>, LabelFrame<Int32>, ClassificationTrainer>(
                     nFolds: nFolds, nEpochs: classifierNEpochs, batchSize: batchSize
                 ).test(
                     dataset: dataset_,
@@ -392,7 +401,7 @@ struct CrossValidate: ParsableCommand {
                 let modelSavingLock = NSLock()
 
                 var embeddingsWereInitialized: Bool = false
-                try GenericCVTester<DenseClassifier<VGAE<String, Int32>, String, Int32>, LabelFrame<Int32>, ClassificationTrainer>(nFolds: nFolds, nEpochs: classifierNEpochs, batchSize: batchSize).test(
+                result = try GenericCVTester<DenseClassifier<VGAE<String, Int32>, String, Int32>, LabelFrame<Int32>, ClassificationTrainer>(nFolds: nFolds, nEpochs: classifierNEpochs, batchSize: batchSize).test(
                     dataset: dataset_,
                     metrics: classificationMetrics,
                     enableParallelism: false
@@ -450,7 +459,7 @@ struct CrossValidate: ParsableCommand {
             if task == .classification {
                 let dataset_ = KnowledgeGraphDataset<String, Int32>(path: datasetPath, classes: labelsPath, device: device)
                 let graphAdjacencyMatrixGetter = trainTensorPaths[graphRepresentation_]!
-                try GenericCVTester<GCN<String, Int32>, LabelFrame<Int32>, ConvolutionClassificationTrainer>(
+                result = try GenericCVTester<GCN<String, Int32>, LabelFrame<Int32>, ConvolutionClassificationTrainer>(
                         nFolds: nFolds,
                         nEpochs: nEpochs,
                         batchSize: batchSize
@@ -479,7 +488,7 @@ struct CrossValidate: ParsableCommand {
                 throw ModelError.unsupportedModel(message: "Model \(modelName) is not implemented in the OpenKE library!")
             } else {
                 if task == .linkPrediction {
-                    try GenericCVTester<RotatE<String, Int32>, TripleFrame<Int32>, LinearTrainer>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(
+                    result = try GenericCVTester<RotatE<String, Int32>, TripleFrame<Int32>, LinearTrainer>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(
                         dataset: dataset, metrics: metrics, enableParallelism: false
                     ) { trainer, trainFrame in
                         var model_ = RotatE(embeddingDimensionality: embeddingDimensionality_, dataset: dataset, device: device)
@@ -494,7 +503,7 @@ struct CrossValidate: ParsableCommand {
                     let modelSavingLock = NSLock()
                     var embeddingsWereInitialized: Bool = false
 
-                    try GenericCVTester<DenseClassifier<RotatE<String, Int32>, String, Int32>, LabelFrame<Int32>, ClassificationTrainer>(
+                    result = try GenericCVTester<DenseClassifier<RotatE<String, Int32>, String, Int32>, LabelFrame<Int32>, ClassificationTrainer>(
                         nFolds: nFolds, nEpochs: classifierNEpochs, batchSize: batchSize
                     ).test(
                         dataset: dataset_,
@@ -544,7 +553,7 @@ struct CrossValidate: ParsableCommand {
         } else if (model == .transe) {
             if openke {
                 if task == .linkPrediction{
-                    try GenericCVTester<OpenKEModel, TripleFrame<Int32>, OpenKEModelTrainer>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(
+                    result = try GenericCVTester<OpenKEModel, TripleFrame<Int32>, OpenKEModelTrainer>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(
                         dataset: dataset, metrics: metrics, enableParallelism: false
                     ) { trainer, trainFrame in
                         OpenKEModel(
@@ -560,7 +569,7 @@ struct CrossValidate: ParsableCommand {
                 }
             } else {
                 if task == .linkPrediction {
-                    try GenericCVTester<TransE<String, Int32>, TripleFrame<Int32>, LinearTrainer>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(
+                    result = try GenericCVTester<TransE<String, Int32>, TripleFrame<Int32>, LinearTrainer>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(
                         dataset: dataset, metrics: metrics, enableParallelism: false
                     ) { trainer, trainFrame in
                         var model_ = TransE(embeddingDimensionality: embeddingDimensionality_, dataset: dataset, device: device)
@@ -575,7 +584,7 @@ struct CrossValidate: ParsableCommand {
                     let modelSavingLock = NSLock()
                     var embeddingsWereInitialized: Bool = false
 
-                    try GenericCVTester<DenseClassifier<TransE<String, Int32>, String, Int32>, LabelFrame<Int32>, ClassificationTrainer>(
+                    result = try GenericCVTester<DenseClassifier<TransE<String, Int32>, String, Int32>, LabelFrame<Int32>, ClassificationTrainer>(
                         nFolds: nFolds, nEpochs: classifierNEpochs, batchSize: batchSize
                     ).test(
                         dataset: dataset_,
@@ -625,7 +634,7 @@ struct CrossValidate: ParsableCommand {
         } else if (model == .transd) {
             if openke {
                 if task == .linkPrediction {
-                    try GenericCVTester<OpenKEModel, TripleFrame<Int32>, OpenKEModelTrainer>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(
+                    result = try GenericCVTester<OpenKEModel, TripleFrame<Int32>, OpenKEModelTrainer>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(
                         dataset: dataset, metrics: metrics, enableParallelism: false
                     ) { trainer, trainFrame in
                         OpenKEModel(
@@ -641,7 +650,7 @@ struct CrossValidate: ParsableCommand {
                 }
             } else {
                 if task == .linkPrediction {
-                    try GenericCVTester<TransD<String, Int32>, TripleFrame<Int32>, LinearTrainer>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(
+                    result = try GenericCVTester<TransD<String, Int32>, TripleFrame<Int32>, LinearTrainer>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(
                         dataset: dataset, metrics: metrics, enableParallelism: false
                     ) { trainer, trainFrame in
                         var model_ = TransD(embeddingDimensionality: embeddingDimensionality_, dataset: dataset, device: device)
@@ -656,7 +665,7 @@ struct CrossValidate: ParsableCommand {
                     let modelSavingLock = NSLock()
                     var embeddingsWereInitialized: Bool = false
 
-                    try GenericCVTester<DenseClassifier<TransD<String, Int32>, String, Int32>, LabelFrame<Int32>, ClassificationTrainer>(
+                    result = try GenericCVTester<DenseClassifier<TransD<String, Int32>, String, Int32>, LabelFrame<Int32>, ClassificationTrainer>(
                         nFolds: nFolds, nEpochs: classifierNEpochs, batchSize: batchSize
                     ).test(
                         dataset: dataset_,
@@ -706,6 +715,7 @@ struct CrossValidate: ParsableCommand {
         } else {
             throw ModelError.unsupportedModel(message: "Model \(modelName) is not supported yet!")
         }
+        return result
     }
 }
 
