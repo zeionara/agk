@@ -1,14 +1,23 @@
 import StORM
 import MongoDBStORM
+import Foundation
 
 class Experiment: MongoDBStORM {
-	var id				: String = ""
-	var isCompleted		: Bool = false
-	// var startTimestamp	: Date = Date()
-    // var finishTimestamp	: Date = Date()
-	// var progress		: Float = 0.0
-	var metrics			: [String: Float] = [String: Float]()
+	var id					: String = ""
+	var isCompleted			: Bool = false
+	var startTimestamp		: Double = NSDate().timeIntervalSince1970
+    var completionTimestamp	: Double = NSDate().timeIntervalSince1970
+	var progress			: Float = 0.0
+	var metrics				: [String: Float] = [String: Float]()
+	var params				: [String: Any] = [String: Any]()
 
+	var startedAt: NSDate {
+		NSDate(timeIntervalSince1970: startTimestamp)
+	}
+
+	var completedAt: NSDate {
+		NSDate(timeIntervalSince1970: completionTimestamp)
+	}
 
 	// The name of the database table
 	override init() {
@@ -20,12 +29,13 @@ class Experiment: MongoDBStORM {
 	// The mapping that translates the database info back to the object
 	// This is where you would do any validation or transformation as needed
 	override func to(_ this: StORMRow) {
-		id				= this.data["_id"] as? String			?? ""
-        isCompleted		= this.data["isCompleted"] as? Bool	?? false
-		// firstname		= this.data["firstname"] as? String		?? ""
-		// lastname		= this.data["lastname"] as? String		?? ""
-		// email			= this.data["email"] as? String			?? ""
-		metrics 		= this.data["metrics"] as? [String: Float] ?? [String: Float]()
+		id				= this.data["_id"] as? String					??	""
+        isCompleted		= this.data["isCompleted"] as? Bool				??	false
+		startTimestamp	= this.data["startTimestamp"] as? Double		??	NSDate().timeIntervalSince1970
+		startTimestamp	= this.data["completionTimestamp"] as? Double	??	NSDate().timeIntervalSince1970
+		progress		= this.data["progress"] as? Float				??	0.0
+		metrics 		= this.data["metrics"] as? [String: Float]		?? [String: Float]()
+		params	 		= this.data["metrics"] as? [String: Any]		?? [String: Any]()
 	}
 
 	// A simple iteration.

@@ -68,7 +68,68 @@ func trainLinearModel<Model, OptimizerType>(
     }
 }
 
-struct CrossValidate: ParsableCommand {
+struct CrossValidate: ParsableCommand, Encodable {
+
+    enum CodingKeys: String, CodingKey {
+        case model
+        case datasetPath // = "dataset"
+        case graphRepresentation // = "graph-representation"
+        case embeddingsDimensionalityReducer //  = "embedding-dimensionality-reducer"
+        case labelsPath // = "labels"
+        case textsPath // = "texts"
+        case nEpochs // = "n-epochs"
+        case nFolds // = "n-folds"
+        case batchSize // = "batch-size"
+        case embeddingDimensionality // = "embedding-dimensionality"
+        case learningRate // = "learning-rate"
+        case openke // = "open-ke-implementation"
+        case gpu // = "gpu-enabled"
+        case readEmbeddings // = "precomputed-graph-embeddings"
+        case classifierLearningRate // = "classifier-learning-rate"
+        case classifierNEpochs // = "classifier-n-epochs"
+        case languageModelName // = "language-model"
+        case stackedEmbeddingsWidth // = "stacked-embeddings-width"
+        case stackedEmbeddingsHeight // = "stacked-embeddings-height"
+        case convolutionFilterWidth // = "convolution-filter-width"
+        case convolutionFilterHeight // = "convolution-filter-height"
+        case nConvolutionFilters // = "convolution-filters"
+        case hiddenLayerSize // = "hidden-layer-size"
+        case task // = "task"
+        case margin // = "margin"
+        case linearModelLoss // = "loss"
+        case optimizer // = "optimizer"
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(model.rawValue, forKey: .model)
+        try container.encode(datasetPath, forKey: .datasetPath)
+        try container.encode(graphRepresentation.rawValue, forKey: .graphRepresentation)
+        try container.encode(embeddingsDimensionalityReducer.rawValue, forKey: .embeddingsDimensionalityReducer)
+        try container.encode(labelsPath, forKey: .labelsPath)
+        try container.encode(textsPath, forKey: .textsPath)
+        try container.encode(nEpochs, forKey: .nEpochs)
+        try container.encode(nFolds, forKey: .nFolds)
+        try container.encode(batchSize, forKey: .batchSize)
+        try container.encode(embeddingDimensionality, forKey: .embeddingDimensionality)
+        try container.encode(learningRate, forKey: .learningRate)
+        try container.encode(openke, forKey: .openke)
+        try container.encode(gpu, forKey: .gpu)
+        try container.encode(readEmbeddings, forKey: .readEmbeddings)
+        try container.encode(classifierLearningRate, forKey: .classifierLearningRate)
+        try container.encode(classifierNEpochs, forKey: .classifierNEpochs)
+        try container.encode(languageModelName ?? "none", forKey: .languageModelName)
+        try container.encode(stackedEmbeddingsWidth, forKey: .stackedEmbeddingsWidth)
+        try container.encode(stackedEmbeddingsHeight, forKey: .stackedEmbeddingsHeight)
+        try container.encode(convolutionFilterWidth, forKey: .convolutionFilterWidth)
+        try container.encode(convolutionFilterHeight, forKey: .convolutionFilterHeight)
+        try container.encode(nConvolutionFilters, forKey: .nConvolutionFilters)
+        try container.encode(hiddenLayerSize, forKey: .hiddenLayerSize)
+        try container.encode(task.rawValue, forKey: .task)
+        try container.encode(margin, forKey: .margin)
+        try container.encode(linearModelLoss.rawValue, forKey: .linearModelLoss)
+        try container.encode(optimizer.rawValue, forKey: .optimizer)
+    }
 
     private enum Model: String, ExpressibleByArgument {
         case transe

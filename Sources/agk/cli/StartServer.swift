@@ -4,7 +4,21 @@ import PerfectHTTPServer
 import Foundation
 import StORM
 import MongoDBStORM
-// import PerfectMongoDB
+import Foundation
+
+enum EncodingError: Error {
+    case cannotEncode(message: String)
+}
+
+extension Encodable {
+  func asDictionary() throws -> [String: Any] {
+    let data = try JSONEncoder().encode(self)
+    guard let dictionary = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any] else {
+      throw EncodingError.cannotEncode(message: "Cannot encode the given object") 
+    }
+    return dictionary
+  }
+}
 
 public extension Array where Element == (String, String) {
     subscript(index: String) -> String? {
@@ -23,10 +37,6 @@ private func encodeCredentials(login: String?, password: String?) -> String? {
     }
     return Optional.none
 }
-
-// var dbClient = try! MongoClient(
-//     uri: "mongodb+srv://cluster0.lsifi.mongodb.net"
-// )
 
 public let EXPERIMENTS_COLLECTION_NAME = "test-experiments"
 
@@ -56,18 +66,6 @@ struct StartServer: ParsableCommand {
     @Option(help: "Database password")
     private var dbPassword: String = ""
 
-    // func makeDocument() -> BSON {
-    //     let bson = BSON()
-        
-    //     defer {
-    //         bson.close()
-    //     }
-
-    //     bson.append(key: "foo", string: "bar")
-
-    //     return bson
-    // }
-
     func parseRequestParameter(request: HTTPRequest, paramName: String, flag: String) -> [String] {
         if let paramValue = request.param(name: paramName) {
             return [flag, paramValue]
@@ -79,27 +77,36 @@ struct StartServer: ParsableCommand {
     func handler(request: HTTPRequest, response: HTTPResponse) {
         response.setHeader(.contentType, value: "text/html")
         do {
-            // let collection = dbClient.getDatabase(name: "agk").getCollection(name: EXPERIMENTS_COLLECTION_NAME)
-            // print(collection)
-            // let fnd = collection?.find(query: BSON())
-            // let insertionResult = collection?.save(document: makeDocument())
-            // print(insertionResult.debugDescription)
-
-            let obj = Experiment()
-            obj.id = obj.newUUID()
-            obj.isCompleted = false
-
-            try obj.save()
+            let experiment = Experiment()
+            
+            experiment.id = experiment.newUUID()
+            experiment.isCompleted = false
+            experiment.startTimestamp = NSDate().timeIntervalSince1970
+            experiment.progress = 0.0
 
             let params = parseRequestParameter(request: request, paramName: "model", flag: "-m") + parseRequestParameter(request: request, paramName: "dataset", flag: "-d")
             var command = try CrossValidate.parse(params)
+            experiment.params = try command.asDictionary()
+            try experiment.save()
+
+            // let encoder = JSONEncoder()
+            // encoder.keyEncodingStrategy = .convertToSnakeCase
+            // encoder.outputFormatting = .prettyPrinted
+            // let paramses = try! command.asDictionary()
+            // print(paramses)
             let metrics = try command.run()
 
-            obj.metrics = metrics
+            if experiment.progress < 1 {
+                experiment.progress = 1
+            }
+            experiment.completionTimestamp = NSDate().timeIntervalSince1970
+            experiment.isCompleted = true
+            experiment.metrics = metrics
+            experiment.params = try command.asDictionary()
 
-            try obj.save()
+            try experiment.save()
             
-            response.appendBody(string: "<html><title>Completed!</title><body>(fnd)</body></html>") // result
+            response.appendBody(string: "<html><title>Completed!</title><body>(metrics)</body></html>") // result
         } catch {
             response.appendBody(string: "<html><title>Exception!</title><body>\(error)</body></html>")
         }

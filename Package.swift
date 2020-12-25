@@ -12,7 +12,6 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-argument-parser.git", .branch("main")),
         .package(url: "https://github.com/apple/swift-log.git", .branch("main")),
         .package(name: "PerfectHTTPServer", url: "https://github.com/zeionara/Perfect-HTTPServer.git", .branch("master")),
-        .package(name: "PerfectMongoDB", url: "https://github.com/zeionara/Perfect-MongoDB.git", .branch("master")),
         .package(name: "MongoDBStORM", url: "https://github.com/zeionara/MongoDB-StORM.git", .branch("master"))
     ],
     targets: [
@@ -28,7 +27,6 @@ let package = Package(
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "PerfectHTTPServer", package: "PerfectHTTPServer"),
-                .product(name: "PerfectMongoDB", package: "PerfectMongoDB"),
                 .product(name: "MongoDBStORM", package: "MongoDBStORM")
             ]
         ),
