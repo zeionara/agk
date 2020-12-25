@@ -577,7 +577,15 @@
                 "-l",
                 "purple-governor",
                 "--password",
-                "r4`DNP8)9:5j;p.b"
+                "r4`DNP8)9:5j;p.b",
+                "--db-host",
+                "",
+                "--db-login",
+                "",
+                "--db-password",
+                "",
+                "--db-name",
+                ""
             ],
             "cwd": "${workspaceFolder}",
             "sourceLanguages": [
