@@ -39,6 +39,11 @@ private func encodeCredentials(login: String?, password: String?) -> String? {
 }
 
 public let EXPERIMENTS_COLLECTION_NAME = "test-experiments"
+public let N_MAX_CONCURRENT_EXPERIMENTS = 2
+
+private var experimentConcurrencySemaphore = DispatchSemaphore(value: N_MAX_CONCURRENT_EXPERIMENTS)
+private var nActiveExperimentsLock = NSLock()
+private var nActiveExperiments = 0
 
 struct StartServer: ParsableCommand {
 
@@ -74,9 +79,11 @@ struct StartServer: ParsableCommand {
         }
     }
 
-    func handler(request: HTTPRequest, response: HTTPResponse) {
-        response.setHeader(.contentType, value: "text/html")
+    func runExperiment(request: HTTPRequest, response: HTTPResponse) {
         do {
+
+            // Initialize a new experiment
+
             let experiment = Experiment()
             
             experiment.id = experiment.newUUID()
@@ -85,31 +92,69 @@ struct StartServer: ParsableCommand {
             experiment.progress = 0.0
 
             let params = parseRequestParameter(request: request, paramName: "model", flag: "-m") + parseRequestParameter(request: request, paramName: "dataset", flag: "-d")
+            
             var command = try CrossValidate.parse(params)
             experiment.params = try command.asDictionary()
             try experiment.save()
 
-            // let encoder = JSONEncoder()
-            // encoder.keyEncodingStrategy = .convertToSnakeCase
-            // encoder.outputFormatting = .prettyPrinted
-            // let paramses = try! command.asDictionary()
-            // print(paramses)
-            let metrics = try command.run()
+            DispatchQueue.global(qos: .userInitiated).async { [self] in
 
-            if experiment.progress < 1 {
-                experiment.progress = 1
+                // Increment number of active experiments
+                
+                nActiveExperimentsLock.lock()
+                // let runningExperimentIndex = nActiveExperiments
+                nActiveExperiments += 1
+                nActiveExperimentsLock.unlock()
+
+                // Obtain a semaphore
+
+                experimentConcurrencySemaphore.wait()
+                
+                // for i in 0..<10 {
+                //     print("\(runningExperimentIndex): \(i)")
+                //     sleep(2)
+                // }
+
+                // Run the initialized experiment
+
+                let metrics = try! command.run()
+
+                if experiment.progress < 1 {
+                    experiment.progress = 1
+                }
+                experiment.completionTimestamp = NSDate().timeIntervalSince1970
+                experiment.isCompleted = true
+                experiment.metrics = metrics
+                experiment.params = try! command.asDictionary()
+
+                try! experiment.save()
+
+                // Release a semaphore
+
+                experimentConcurrencySemaphore.signal()
+
+                // Decrement number of running experiments
+                
+                nActiveExperimentsLock.lock()
+                nActiveExperiments -= 1
+                nActiveExperimentsLock.unlock()
+
             }
-            experiment.completionTimestamp = NSDate().timeIntervalSince1970
-            experiment.isCompleted = true
-            experiment.metrics = metrics
-            experiment.params = try command.asDictionary()
-
-            try experiment.save()
-            
-            response.appendBody(string: "<html><title>Completed!</title><body>(metrics)</body></html>") // result
+            response.setHeader(.contentType, value: "application/json")
+            // response.appendBody(string: try experiment.asDataDict(1).jsonEncodedString())
+            response.appendBody(string: String(data: try! JSONEncoder().encode(["experiment-id": experiment.id]), encoding: .utf8)!)
         } catch {
+            response.setHeader(.contentType, value: "text/html")
             response.appendBody(string: "<html><title>Exception!</title><body>\(error)</body></html>")
         }
+        response.completed()
+    }
+
+    func getLoadStatus(request: HTTPRequest, response: HTTPResponse) {
+        response.setHeader(.contentType, value: "application/json")
+        nActiveExperimentsLock.lock()
+        response.appendBody(string: String(data: try! JSONEncoder().encode(["value": Float(nActiveExperiments) / Float(N_MAX_CONCURRENT_EXPERIMENTS)]), encoding: .utf8)!)
+        nActiveExperimentsLock.unlock()
         response.completed()
     }
 
@@ -139,7 +184,8 @@ struct StartServer: ParsableCommand {
         MongoDBConnection.password = dbPassword
         
         var routes = Routes()
-        routes.add(method: .get, uri: "/", handler: handler)
+        routes.add(method: .get, uri: "/", handler: runExperiment)
+        routes.add(method: .get, uri: "/load-status", handler: getLoadStatus)
         
         try HTTPServer.launch(
             name: "localhost",
