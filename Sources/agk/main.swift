@@ -785,7 +785,20 @@ public struct ReportEntry {
     public var metrics: [String: Float]
 }
 
-struct RestructureReport: ParsableCommand {
+struct RestructureReport: ParsableCommand, Encodable {
+
+    enum CodingKeys: String, CodingKey {
+        case inputPath
+        case outputPath
+        case nDecimalPlaces
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(inputPath, forKey: .inputPath)
+        try container.encode(outputPath, forKey: .outputPath)
+        try container.encode(nDecimalPlaces, forKey: .nDecimalPlaces)
+    }
 
     @Argument(help: "Path to file containing input report")
     private var inputPath: String
