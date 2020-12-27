@@ -95,6 +95,11 @@ struct StartServer: ParsableCommand {
             
             var command = try CrossValidate.parse(params)
             experiment.params = try command.asDictionary()
+
+            response.setHeader(.contentType, value: "application/json")
+            response.appendBody(string: String(data: try! JSONEncoder().encode(["experiment-id": experiment.id]), encoding: .utf8)!)
+            response.completed()
+
             try experiment.save()
 
             DispatchQueue.global(qos: .userInitiated).async { [self] in
@@ -116,15 +121,16 @@ struct StartServer: ParsableCommand {
                 // }
 
                 // Run the initialized experiment
-
-                let metrics = try! command.run()
+                
+                var metrics = [String: Any]()
+                try! command.run(&metrics)
 
                 if experiment.progress < 1 {
                     experiment.progress = 1
                 }
                 experiment.completionTimestamp = NSDate().timeIntervalSince1970
                 experiment.isCompleted = true
-                experiment.metrics = metrics
+                experiment.metrics = metrics as! [String: Float]
                 experiment.params = try! command.asDictionary()
 
                 try! experiment.save()
@@ -140,9 +146,9 @@ struct StartServer: ParsableCommand {
                 nActiveExperimentsLock.unlock()
 
             }
-            response.setHeader(.contentType, value: "application/json")
+            // response.setHeader(.contentType, value: "application/json")
             // response.appendBody(string: try experiment.asDataDict(1).jsonEncodedString())
-            response.appendBody(string: String(data: try! JSONEncoder().encode(["experiment-id": experiment.id]), encoding: .utf8)!)
+            // response.appendBody(string: String(data: try! JSONEncoder().encode(["experiment-id": experiment.id]), encoding: .utf8)!)
         } catch {
             response.setHeader(.contentType, value: "text/html")
             response.appendBody(string: "<html><title>Exception!</title><body>\(error)</body></html>")
@@ -171,7 +177,7 @@ struct StartServer: ParsableCommand {
         }
     }
 
-    mutating func run() throws {
+    mutating func run(_ result: inout [String: Any]) throws {
         print("Starting an http server...")
         print("Connecting to the databased on \(dbHost)...")
 
