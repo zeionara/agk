@@ -47,7 +47,8 @@ struct StartServer: ParsableCommand {
             let params = parseRequestParameter(request: request, paramName: "model", flag: "-m") + parseRequestParameter(request: request, paramName: "dataset", flag: "-d")
             print(params)
             var command = try CrossValidate.parse(params)
-            let result = try command.run()
+            var result = [String: Any]()
+            try command.run(&result)
             response.appendBody(string: "<html><title>Completed!</title><body>\(result)</body></html>")
         } catch {
             response.appendBody(string: "<html><title>Exception!</title><body>\(error)</body></html>")
@@ -68,7 +69,7 @@ struct StartServer: ParsableCommand {
         }
     }
 
-    mutating func run() throws {
+    mutating func run(_ result: inout [String: Any]) throws {
         print("Starting an http server...")
         
         var routes = Routes()

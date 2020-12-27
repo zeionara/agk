@@ -9,7 +9,7 @@ let package = Package(
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
         .package(url: "https://github.com/zeionara/swift-models.git", .branch("language-models")),
-        .package(url: "https://github.com/apple/swift-argument-parser.git", .branch("main")),
+        .package(url: "https://github.com/zeionara/swift-argument-parser.git", .branch("main")),
         .package(url: "https://github.com/apple/swift-log.git", .branch("main")),
         // .package(url: "https://github.com/PerfectlySoft/Perfect-HTTPServer", from: "3.0.0"),
         .package(name: "PerfectHTTPServer", url: "https://github.com/zeionara/Perfect-HTTPServer.git", .branch("master"))
