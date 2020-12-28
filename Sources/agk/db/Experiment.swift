@@ -33,9 +33,15 @@ class Experiment: MongoDBStORM {
         isCompleted		= this.data["isCompleted"] as? Bool				??	false
 		startTimestamp	= this.data["startTimestamp"] as? Double		??	NSDate().timeIntervalSince1970
 		startTimestamp	= this.data["completionTimestamp"] as? Double	??	NSDate().timeIntervalSince1970
-		progress		= this.data["progress"] as? Float				??	0.0
-		metrics 		= this.data["metrics"] as? [String: Float]		?? [String: Float]()
-		params	 		= this.data["metrics"] as? [String: Any]		?? [String: Any]()
+		progress		= Float(this.data["progress"] as? Double				??	0.0)
+		metrics 		= (this.data["metrics"] as? [String: Any])?.map{(key, value) in
+			(key, Float(value as! Double))
+		}.reduce([:]) {
+            var dict: [String: Float] = $0!
+            dict[$1.0] = $1.1   
+            return dict
+		} ?? [String: Float]()
+		params	 		= this.data["params"] as? [String: Any]			?? [String: Any]()
 	}
 
 	// A simple iteration.

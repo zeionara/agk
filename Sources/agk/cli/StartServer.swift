@@ -102,6 +102,8 @@ struct StartServer: ParsableCommand {
 
             try experiment.save()
 
+            // print(experiment.asData())
+
             DispatchQueue.global(qos: .userInitiated).async { [self] in
 
                 // Increment number of active experiments
@@ -132,6 +134,8 @@ struct StartServer: ParsableCommand {
                 experiment.isCompleted = true
                 experiment.metrics = metrics as! [String: Float]
                 experiment.params = try! command.asDictionary()
+
+                // print(experiment.asData())
 
                 try! experiment.save()
 
