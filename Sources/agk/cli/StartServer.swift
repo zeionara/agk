@@ -91,7 +91,7 @@ struct StartServer: ParsableCommand {
             experiment.startTimestamp = NSDate().timeIntervalSince1970
             experiment.progress = 0.0
 
-            let params = parseRequestParameter(request: request, paramName: "model", flag: "-m") + parseRequestParameter(request: request, paramName: "dataset", flag: "-d")
+            let params = parseRequestParameter(request: request, paramName: "model", flag: "-m") + parseRequestParameter(request: request, paramName: "dataset", flag: "-d") + parseRequestParameter(request: request, paramName: "task", flag: "-t")
             
             var command = try CrossValidate.parse(params)
             experiment.params = try command.asDictionary()
