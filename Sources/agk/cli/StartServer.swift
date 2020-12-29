@@ -29,8 +29,6 @@ struct StartServer: ParsableCommand {
     mutating func run(_ result: inout [String: Any]) throws {
         let logger = Logger("root", loggingLevel)
 
-        print(N_MAX_CONCURRENT_EXPERIMENTS)
-
         logger.trace("Starting an http server...")
         logger.trace("Connecting to the databased on \(env["AGK_DB_HOST"]!)...")
 
