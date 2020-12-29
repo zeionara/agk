@@ -1,4 +1,5 @@
 import Logging
+import ArgumentParser
 
 public extension Logger{
     init(_ label: String, _ level: Logger.Level) {
@@ -6,3 +7,5 @@ public extension Logger{
         self.logLevel = level
     }
 }
+
+extension Logger.Level: ExpressibleByArgument {}

@@ -573,7 +573,9 @@
             "name": "Start rest api server",
             "program": "${workspaceFolder}/.build/debug/agk",
             "args": [
-                "start-server"
+                "start-server",
+                "-l",
+                "info"
             ],
             "cwd": "${workspaceFolder}",
             "sourceLanguages": [

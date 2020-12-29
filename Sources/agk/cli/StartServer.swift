@@ -53,26 +53,8 @@ struct StartServer: ParsableCommand {
     @Option(name: .shortAndLong, help: "Port for the server to listen to")
     private var port: Int = 1719
 
-    // @Option(name: .shortAndLong, help: "Login for accessing the service")
-    // private var login: String = ""
-
-    // @Option(help: "Password for accessing the service")
-    // private var password: String = ""
-
-    // @Option(help: "Database host")
-    // private var dbHost: String = ""
-
-    // @Option(help: "Database port")
-    // private var dbPort: Int = 27017
-
-    // @Option(help: "Database name")
-    // private var dbName: String = ""
-
-    // @Option(help: "Database username")
-    // private var dbLogin: String = ""
-
-    // @Option(help: "Database password")
-    // private var dbPassword: String = ""
+    @Option(name: .shortAndLong, help: "Default logging level")
+    private var loggingLevel: Logger.Level = .debug
 
     func parseRequestParameter(request: HTTPRequest, paramName: String, flag: String) -> [String] {
         if let paramValue = request.param(name: paramName) {
@@ -83,6 +65,8 @@ struct StartServer: ParsableCommand {
     }
 
     func runExperiment(request: HTTPRequest, response: HTTPResponse) {
+        let logger = Logger("experiment-runner", loggingLevel)
+        response.setHeader(.contentType, value: "application/json")
         do {
 
             // Initialize a new experiment
@@ -99,34 +83,30 @@ struct StartServer: ParsableCommand {
             var command = try CrossValidate.parse(params)
             experiment.params = try command.asDictionary()
 
-            response.setHeader(.contentType, value: "application/json")
-            response.appendBody(string: String(data: try! JSONEncoder().encode(["experiment-id": experiment.id]), encoding: .utf8)!)
+            response.appendBody(["experiment-id": experiment.id])
             response.completed()
+            logger.info("Created experiment \(experiment.id)")
 
             try experiment.save()
+            logger.info("Saved experiment \(experiment.id)")
 
-            // print(experiment.asData())
-
-            DispatchQueue.global(qos: .userInitiated).async { [self] in
+            DispatchQueue.global(qos: .userInitiated).async {
 
                 // Increment number of active experiments
                 
                 nActiveExperimentsLock.lock()
-                // let runningExperimentIndex = nActiveExperiments
                 nActiveExperiments += 1
                 nActiveExperimentsLock.unlock()
 
                 // Obtain a semaphore
 
                 experimentConcurrencySemaphore.wait()
-                
-                // for i in 0..<10 {
-                //     print("\(runningExperimentIndex): \(i)")
-                //     sleep(2)
-                // }
 
                 // Run the initialized experiment
                 
+                logger.info("Started experiment \(experiment.id)")
+                experiment.startTimestamp = NSDate().timeIntervalSince1970
+
                 var metrics = [String: Any]()
                 try! command.run(&metrics)
 
@@ -134,13 +114,13 @@ struct StartServer: ParsableCommand {
                     experiment.progress = 1
                 }
                 experiment.completionTimestamp = NSDate().timeIntervalSince1970
+                logger.info("Completed experiment \(experiment.id)")
                 experiment.isCompleted = true
                 experiment.metrics = metrics as! [String: Float]
                 experiment.params = try! command.asDictionary()
 
-                // print(experiment.asData())
-
                 try! experiment.save()
+                logger.info("Saved experiment \(experiment.id)")
 
                 // Release a semaphore
 
@@ -151,14 +131,10 @@ struct StartServer: ParsableCommand {
                 nActiveExperimentsLock.lock()
                 nActiveExperiments -= 1
                 nActiveExperimentsLock.unlock()
-
             }
-            // response.setHeader(.contentType, value: "application/json")
-            // response.appendBody(string: try experiment.asDataDict(1).jsonEncodedString())
-            // response.appendBody(string: String(data: try! JSONEncoder().encode(["experiment-id": experiment.id]), encoding: .utf8)!)
         } catch {
-            response.setHeader(.contentType, value: "text/html")
-            response.appendBody(string: "<html><title>Exception!</title><body>\(error)</body></html>")
+            response.appendBody(["error": error.localizedDescription])
+            logger.error("Cannot run an experiment: \(error.localizedDescription)")
         }
         response.completed()
     }
@@ -166,7 +142,7 @@ struct StartServer: ParsableCommand {
     func getLoadStatus(request: HTTPRequest, response: HTTPResponse) {
         response.setHeader(.contentType, value: "application/json")
         nActiveExperimentsLock.lock()
-        response.appendBody(string: String(data: try! JSONEncoder().encode(["value": Float(nActiveExperiments) / Float(N_MAX_CONCURRENT_EXPERIMENTS)]), encoding: .utf8)!)
+        response.appendBody(["value": Float(nActiveExperiments) / Float(N_MAX_CONCURRENT_EXPERIMENTS)])
         nActiveExperimentsLock.unlock()
         response.completed()
     }
@@ -185,7 +161,7 @@ struct StartServer: ParsableCommand {
     }
 
     mutating func run(_ result: inout [String: Any]) throws {
-        let logger = Logger("root", .debug)
+        let logger = Logger("root", loggingLevel)
 
         logger.trace("Starting an http server...")
         logger.trace("Connecting to the databased on \(env["AGK_DB_HOST"]!)...")
