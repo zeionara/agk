@@ -73,3 +73,14 @@ extension Array {
         return dict
     }
 }
+
+public extension Array where Element == (String, String) {
+    subscript(index: String) -> String? {
+        for item in self {
+            if item.0 == index {
+                return item.1
+            }
+        }
+        return Optional.none
+    } 
+}

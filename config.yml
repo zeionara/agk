@@ -1,0 +1,4 @@
+db:
+  collections:
+    experiments: test-experiments
+n-max-concurrent-experiments: 2

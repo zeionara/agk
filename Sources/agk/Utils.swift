@@ -1,13 +1,15 @@
 import Foundation
 
-public func readLines(path: String) throws -> [String] {
+public func read(path: String) throws -> String {
     let dir = URL(fileURLWithPath: #file.replacingOccurrences(of: "Sources/agk/Utils.swift", with: ""))
-    // print(dir.appendingPathComponent("data").appendingPathComponent(path))
-    let fileContents = try String(
+    return try String(
             contentsOf: dir.appendingPathComponent("data").appendingPathComponent(path),
             encoding: .utf8
     )
-    return fileContents.components(separatedBy: "\n")
+}
+
+public func readLines(path: String) throws -> [String] {
+    return try read(path: path).components(separatedBy: "\n")
 }
 
 public func writeLines(path: String, lines: [String]) throws {
