@@ -5,6 +5,9 @@ import Foundation
 import StORM
 import MongoDBStORM
 import Foundation
+import Logging
+
+let env = ProcessInfo.processInfo.environment
 
 enum EncodingError: Error {
     case cannotEncode(message: String)
@@ -50,26 +53,26 @@ struct StartServer: ParsableCommand {
     @Option(name: .shortAndLong, help: "Port for the server to listen to")
     private var port: Int = 1719
 
-    @Option(name: .shortAndLong, help: "Login for accessing the service")
-    private var login: String = ""
+    // @Option(name: .shortAndLong, help: "Login for accessing the service")
+    // private var login: String = ""
 
-    @Option(help: "Password for accessing the service")
-    private var password: String = ""
+    // @Option(help: "Password for accessing the service")
+    // private var password: String = ""
 
-    @Option(help: "Database host")
-    private var dbHost: String = ""
+    // @Option(help: "Database host")
+    // private var dbHost: String = ""
 
-    @Option(help: "Database port")
-    private var dbPort: Int = 27017
+    // @Option(help: "Database port")
+    // private var dbPort: Int = 27017
 
-    @Option(help: "Database name")
-    private var dbName: String = ""
+    // @Option(help: "Database name")
+    // private var dbName: String = ""
 
-    @Option(help: "Database username")
-    private var dbLogin: String = ""
+    // @Option(help: "Database username")
+    // private var dbLogin: String = ""
 
-    @Option(help: "Database password")
-    private var dbPassword: String = ""
+    // @Option(help: "Database password")
+    // private var dbPassword: String = ""
 
     func parseRequestParameter(request: HTTPRequest, paramName: String, flag: String) -> [String] {
         if let paramValue = request.param(name: paramName) {
@@ -182,20 +185,25 @@ struct StartServer: ParsableCommand {
     }
 
     mutating func run(_ result: inout [String: Any]) throws {
-        print("Starting an http server...")
-        print("Connecting to the databased on \(dbHost)...")
+        let logger = Logger("root", .debug)
 
-        MongoDBConnection.host = dbHost
-        MongoDBConnection.database = dbName
-        MongoDBConnection.port = dbPort
+        logger.trace("Starting an http server...")
+        logger.trace("Connecting to the databased on \(env["AGK_DB_HOST"]!)...")
+
+        MongoDBConnection.host = env["AGK_DB_HOST"]!
+        MongoDBConnection.database = env["AGK_DB_NAME"]!
+        MongoDBConnection.port = Int(env["AGK_DB_PORT"]!)!
 
         MongoDBConnection.authmode = .standard
-        MongoDBConnection.username = dbLogin
-        MongoDBConnection.password = dbPassword
+        MongoDBConnection.username = env["AGK_DB_LOGIN"]!
+        MongoDBConnection.password = env["AGK_DB_PASSWORD"]!
         
         var routes = Routes()
         routes.add(method: .get, uri: "/", handler: runExperiment)
         routes.add(method: .get, uri: "/load-status", handler: getLoadStatus)
+
+        let password: String = env["AGK_PASSWORD"]!
+        let login: String = env["AGK_LOGIN"]!
         
         try HTTPServer.launch(
             name: "localhost",

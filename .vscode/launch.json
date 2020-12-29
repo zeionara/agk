@@ -573,19 +573,7 @@
             "name": "Start rest api server",
             "program": "${workspaceFolder}/.build/debug/agk",
             "args": [
-                "start-server",
-                "-l",
-                "purple-governor",
-                "--password",
-                "r4`DNP8)9:5j;p.b",
-                "--db-host",
-                "",
-                "--db-login",
-                "",
-                "--db-password",
-                "",
-                "--db-name",
-                ""
+                "start-server"
             ],
             "cwd": "${workspaceFolder}",
             "sourceLanguages": [
