@@ -17,7 +17,7 @@ private func computeScore(head: ComplexNumber, tail: ComplexNumber, relationship
             real: (relationship.real * tail.real + relationship.imaginary * tail.imaginary) - head.real,
             imaginary: (relationship.real * tail.imaginary - relationship.imaginary * tail.real) - head.imaginary
     )
-    let score = Tensor<Float>(stacking: [complexScore.real, complexScore.imaginary]).reshaped(to: [relationship.real.shape[0], -1])
+    let score = Tensor<Float>(stacking: [complexScore.real.transposed(), complexScore.imaginary.transposed()]).transposed().reshaped(to: [relationship.real.shape[0], -1])
     return normalizeWithL2_(tensor: score).sum(alongAxes: 1).flattened()
 }
 
