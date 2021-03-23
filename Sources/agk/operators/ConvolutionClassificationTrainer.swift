@@ -26,6 +26,10 @@ public struct ConvolutionClassificationTrainer: Trainer {
                     logits: labels_.flattened().gathering(atIndices: labels.indices) + 0.001,
                     labels: labels.labels + 0.001
                 )
+                //  return softmaxCrossEntropy(
+                //     logits: labels_.flattened().gathering(atIndices: labels.indices).reshaped(to: [1, -1]),
+                //     probabilities: labels.labels.reshaped(to: [1, -1])
+                // )
             }
             optimizer.update(&model, along: grad)
             losses.append(loss.scalarized())

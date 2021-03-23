@@ -144,6 +144,7 @@ struct CrossValidate: ParsableCommand, Encodable {
         case gcn
         case vgae
         case conve
+        case qrescal
     }
 
     private enum GraphRepresentation: String, ExpressibleByArgument {
@@ -310,7 +311,8 @@ struct CrossValidate: ParsableCommand, Encodable {
             .rotate: .linkPrediction,
             .gcn: .classification,
             .vgae: .classification,
-            .conve: .classification
+            .conve: .classification,
+            .qrescal: .linkPrediction
         ]
 
         let defaultLosses: [Model: LinearModelLoss]  = [
@@ -325,7 +327,8 @@ struct CrossValidate: ParsableCommand, Encodable {
             .rotate: .adam,
             .gcn: .adam,
             .vgae: .adam,
-            .conve: .adam
+            .conve: .adam,
+            .qrescal: .sgd
         ]
 
         // let lossFunctions: [LinearModelLoss: (Tensor<Float>, Tensor<Float>, Float) -> Tensor<Float>]  = [
@@ -338,7 +341,7 @@ struct CrossValidate: ParsableCommand, Encodable {
         }
 
         if linearModelLoss == .defaultLoss {
-            linearModelLoss = defaultLosses[model]!
+            linearModelLoss = defaultLosses[model] ?? .sum
         }
 
         if optimizer == .defaultOptimizer {
@@ -390,8 +393,25 @@ struct CrossValidate: ParsableCommand, Encodable {
         let optimizerName = optimizer.rawValue
 
         // var result = [String: Float]()
-        
-        if (model == .conve) {
+        if (model == .qrescal) {
+            print("Running quantum model...")
+            if (task == .linkPrediction) {
+                result += try GenericCVTester<QRescal<String, Int32>, TripleFrame<Int32>, QuantumTrainer<String, Int32>>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(
+                    dataset: dataset, metrics: metrics, enableParallelism: false
+                ) { trainer, trainFrame in
+                    var model_ = QRescal(dimensionality: 64, dataset: dataset)
+                    trainer.train(model: &model_, frame: trainFrame)
+                    return model_
+                } computeMetric: { model, metric, trainLabels, testLabels, dataset -> Float in
+                    (metric as! Metric).compute(model: model, trainFrame: trainLabels, testFrame: testLabels, dataset: dataset)    
+                } getSamplesList: { dataset in
+                    dataset.normalizedFrame
+                }
+            } else {
+                throw TaskError.unsupportedTask(message: "Chosen task is not supported for the quantum model")
+            }
+        }
+        else if (model == .conve) {
             if openke {
                 let modelName = model.rawValue
                 throw ModelError.unsupportedModel(message: "Model \(modelName) is not implemented in the OpenKE library!")
