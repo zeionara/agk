@@ -17,7 +17,8 @@ public struct QuantumTrainer<SourceElement, NormalizedElement>: Trainer where So
         model: inout QRescal<SourceElement, NormalizedElement>, lr: Float = 0.03, frame: TripleFrame<Int32>,
         loss: @differentiable (Tensor<Float>, Tensor<Float>, Float) -> Tensor<Float> = computeSumLoss, margin: Float = 2.0
     ) {
-        func handleBatch(batch: Tensor<Int32>, targetLabels: Tensor<Float>) {
+        func handleBatch(batch: Tensor<Int32>, targetLabels: Tensor<Float>, i: Optional<Int> = .none) {
+            print("Handling \(i ?? 0) batch (\(batch.shape[0]) samples)")
             let inferredLabels = model(batch)
             for layer in 0...1 {
                 for qubit in 0..<model.relationshipEmbeddings[0][layer].count {
@@ -39,7 +40,8 @@ public struct QuantumTrainer<SourceElement, NormalizedElement>: Trainer where So
         for i in 1...nEpochs {
             print("Running \(i) epoch...")
 
-            for batch in frame.batched(size: batchSize) {
+            for (i, batch) in frame.batched(size: batchSize).enumerated() {
+                print("Handling \(i) batch (\(batch.tensor.shape[0]) samples)")
                 let negativeFrame = batch.sampleNegativeFrame(negativeFrame: frame.negative)
 
             
@@ -54,7 +56,9 @@ public struct QuantumTrainer<SourceElement, NormalizedElement>: Trainer where So
                 // let inferredLabels = model(triples: positiveSamples)
                 // let inferredLabels = model(triples: negativeSamples)
                 for layer in 0...1 {
+                    // print("Handling layer \(layer)")
                     for qubit in 0..<model.relationshipEmbeddings[0][layer].count {
+                        // print("Handling qubit \(qubit)")
                         let losses = model.computeLosses(
                             triples: batch.tensor, loss: Tensor<Float>(
                                 Array(
