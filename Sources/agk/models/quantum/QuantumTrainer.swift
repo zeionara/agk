@@ -1,4 +1,5 @@
 import TensorFlow
+import Foundation
 
 // public func computeSumLoss(_ positiveScores: Tensor<Float>, _ negativeScores: Tensor<Float>, _ margin: Float = 2.0) -> Tensor<Float> {
 //     max(0, margin + positiveScores.sum() - negativeScores.sum())
@@ -40,8 +41,11 @@ public struct QuantumTrainer<SourceElement, NormalizedElement>: Trainer where So
         for i in 1...nEpochs {
             print("Running \(i) epoch...")
 
-            for (i, batch) in frame.batched(size: batchSize).enumerated() {
-                print("Handling \(i) batch (\(batch.tensor.shape[0]) samples)")
+            let batches = frame.batched(size: batchSize)
+            let nBatches = batches.count
+            for (i, batch) in batches.enumerated() {
+                print("Handling \(i) / \(nBatches) batch (\(batch.tensor.shape[0]) samples)")
+                let handlingStartTimestamp = DispatchTime.now().uptimeNanoseconds
                 let negativeFrame = batch.sampleNegativeFrame(negativeFrame: frame.negative)
 
             
@@ -72,6 +76,7 @@ public struct QuantumTrainer<SourceElement, NormalizedElement>: Trainer where So
                         )
                     }
                 }
+                print("Handled \(i) / \(nBatches) batch in \(Double(DispatchTime.now().uptimeNanoseconds - handlingStartTimestamp) / Double(1_000_000_000)) seconds)")
             }
         }
 
