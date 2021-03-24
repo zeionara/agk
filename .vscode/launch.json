@@ -5,6 +5,24 @@
             "type": "lldb",
             "request": "launch",
             "preLaunchTask": "swift-build",
+            "name": "Cross-validate quantum rescal",
+            "program": "${workspaceFolder}/.build/debug/agk",
+            "args": [
+                "cross-validate",
+                "-m",
+                "qrescal",
+                "-d",
+                "deduplicated-dataset.txt"
+            ],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": [
+                "swift"
+            ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "swift-build",
             "name": "Cross-validate transe",
             "program": "${workspaceFolder}/.build/debug/agk",
             "args": [
@@ -186,7 +204,11 @@
                 "-m",
                 "rotate",
                 "-d",
-                "deduplicated-dataset.txt"
+                "truncated-dataset-normalized.txt",
+                "-n",
+                "1000",
+                "--learning-rate",
+                "0.003"
             ],
             "cwd": "${workspaceFolder}",
             "sourceLanguages": [
@@ -257,7 +279,9 @@
                 "-d",
                 "deduplicated-dataset.txt",
                 "--graph-representation",
-                "adjacencyMatrix"
+                "adjacencyPairsMatrix",
+                "-n",
+                "100"
             ],
             "cwd": "${workspaceFolder}",
             "sourceLanguages": [
@@ -297,7 +321,11 @@
                 "-d",
                 "deduplicated-dataset.txt",
                 "--graph-representation",
-                "adjacencyMatrix"
+                "adjacencyPairsMatrix",
+                "-n",
+                "100",
+                "--classifier-n-epochs",
+                "100"
             ],
             "cwd": "${workspaceFolder}",
             "sourceLanguages": [
