@@ -399,7 +399,7 @@ struct CrossValidate: ParsableCommand, Encodable {
                 result += try GenericCVTester<QRescal<String, Int32>, TripleFrame<Int32>, QuantumTrainer<String, Int32>>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(
                     dataset: dataset, metrics: metrics, enableParallelism: true
                 ) { trainer, trainFrame in
-                    var model_ = QRescal(dimensionality: 32, dataset: dataset)
+                    var model_ = QRescal(dimensionality: 16, dataset: dataset)
                     trainer.train(model: &model_, frame: trainFrame)
                     return model_
                 } computeMetric: { model, metric, trainLabels, testLabels, dataset -> Float in

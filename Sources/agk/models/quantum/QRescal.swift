@@ -576,7 +576,7 @@ class QRescal<SourceElement, NormalizedElement>: GenericModel where SourceElemen
              0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .gamma, variant: .negated, controlVariant: .normal).firstQubitPositiveneStats
         } else {
             alpha = computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .alpha, variant: .normal, controlVariant: .normal).firstQubitPositiveneStats
-                // 0.5 * computeDerikvative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .alpha, variant: .normal, controlVariant: .negated).firstQubitPositiveneStats
+                // + 0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .alpha, variant: .normal, controlVariant: .negated).firstQubitPositiveneStats
             beta = 1 * (
                 0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .beta, variant: .normal, controlVariant: .normal).firstQubitPositiveneStats +
                 0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .beta, variant: .negated, controlVariant: .normal).firstQubitPositiveneStats

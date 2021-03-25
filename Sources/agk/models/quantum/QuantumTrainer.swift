@@ -59,7 +59,7 @@ public struct QuantumTrainer<SourceElement, NormalizedElement>: Trainer where So
                 
                 // let inferredLabels = model(triples: positiveSamples)
                 // let inferredLabels = model(triples: negativeSamples)
-                for layer in 0...1 {
+                for layer in 0..<model.relationshipEmbeddings[0].count {
                     // print("Handling layer \(layer)")
                     for qubit in 0..<model.relationshipEmbeddings[0][layer].count {
                         // print("Handling qubit \(qubit)")
