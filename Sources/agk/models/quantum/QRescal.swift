@@ -24,6 +24,12 @@ enum GateVariant {
     case negated
 }
 
+enum OptimizedCircuit {
+    case subject
+    case object
+    case relationship
+}
+
 let IDENTITY = try! Matrix(
     [
         [.one, .zero],
@@ -60,6 +66,7 @@ let P0 = try! Matrix(
         [.zero, .zero]
     ]
 )
+
 
 public extension Matrix {
     static func kronekerProduct(lhs: Matrix, rhs: Matrix) -> Matrix { // -> [[Complex]]
@@ -268,6 +275,14 @@ func makeIdentity(_ nQubits: Int) -> Matrix {
     )
 }
 
+func makeHadamard(_ nQubits: Int) -> Matrix {
+    return Matrix.kronekerProduct(
+        matrices: (0..<nQubits).map{i in
+            HADAMARD
+        }
+    )
+}
+
 func getLayerMatrix(layers: [[ParameterizedGate]], layer: Int, offset: Optional<Int> = .none) -> Matrix {
     let nQubits = layers[layer].count
     var product = makeIdentity(nQubits)
@@ -360,17 +375,36 @@ func initRelationships(nRelationships: Int, nQubits: Int, nLayers: Int) -> [[[Pa
     return rels
 }
 
+func stackParameterizedGates(_ gates: [[ParameterizedGate]]) -> Matrix {
+    return Matrix.stackAsGates(
+        (0..<gates.count).map{i in
+            getLayerMatrix(layers: gates, layer: i, offset: i == 0 ? .none : -i)
+        }
+    )
+}
+
+func stackParameterizedGateDerivatives(_ gates: [[ParameterizedGate]], layer: Int, parameter: OptimizedParameter, variant: GateVariant, controlVariant: GateVariant, qubit: Int) -> Matrix {
+    return Matrix.stackAsGates(
+        (0..<gates.count).map{ i in
+            i == layer ? getGateDerivativeMatrix(
+                layers: gates, layer: layer, parameter: parameter, variant: variant, controlVariant: controlVariant, qubit: qubit, offset: layer == 0 ? .none : -layer
+            ) : getLayerMatrix(layers: gates, layer: i, offset: i == 0 ? .none : -i)
+        }
+    )
+}
+
 class QRescal<SourceElement, NormalizedElement>: GenericModel where SourceElement: Hashable, NormalizedElement: Hashable, NormalizedElement: Comparable{
     // public let graph: Graph
     // public let circuit: Circuit
     public let nQubits: Int
     public let dimensionality: Int
     public let dataset: KnowledgeGraphDataset<SourceElement, NormalizedElement>
+    public let hadamardTransformer: Matrix
     // public let gates: [Gate]
     // public let predicate: Matrix
     // public let parameterizedGates: [[ParameterizedGate]]
 
-    public var entityEmbeddings: Embedding<Double>
+    public var entityEmbeddings: [[[ParameterizedGate]]] // Embedding<Double>
     public var relationshipEmbeddings: [[[ParameterizedGate]]]
 
     public init(dimensionality: Int, dataset: KnowledgeGraphDataset<SourceElement, NormalizedElement>) {
@@ -385,6 +419,7 @@ class QRescal<SourceElement, NormalizedElement>: GenericModel where SourceElemen
         // var parameterizedGates: [[ParameterizedGate]] = []
         // var gates: [Gate] = []
         let nQubits = Int(log2(Double(dimensionality)))
+        let hadamardTransformer = makeHadamard(nQubits)
         // // First "layer" - apply transforming gates to the qubits representing subjects without conditioning
         // func addLayer(offset: Int) {
         //     var firstLayerGates: [ParameterizedGate] = [] 
@@ -426,7 +461,8 @@ class QRescal<SourceElement, NormalizedElement>: GenericModel where SourceElemen
         //     ]
         // )
 
-        self.entityEmbeddings = initQuantumEntityEmbeddings(dimensionality: dimensionality, nItems: dataset.frame.entities.count, device: .defaultTFEager)
+        self.entityEmbeddings = initRelationships(nRelationships: dataset.frame.entities.count, nQubits: nQubits, nLayers: 4)
+        // initQuantumEntityEmbeddings(dimensionality: dimensionality, nItems: dataset.frame.entities.count, device: .defaultTFEager)
         self.relationshipEmbeddings = initRelationships(nRelationships: dataset.frame.relationships.count, nQubits: nQubits, nLayers: 4)
         // self.gates = gates
         // self.circuit = MainCircuitFactory().makeCircuit(gates: gates)
@@ -434,6 +470,7 @@ class QRescal<SourceElement, NormalizedElement>: GenericModel where SourceElemen
         // self.parameterizedGates = parameterizedGates
         self.dimensionality = dimensionality
         self.dataset = dataset
+        self.hadamardTransformer = hadamardTransformer
     }
 
     func getSubjectMatrix(subject: Int) -> Matrix {
@@ -450,24 +487,45 @@ class QRescal<SourceElement, NormalizedElement>: GenericModel where SourceElemen
 
     func run(subjectEntity: Int, relation: Int, objectEntity: Int) -> CircuitStatevector {
         // print("obtaining embeddings...")
-        let subject = entityEmbeddings(Tensor<Int32>(Int32(subjectEntity))).unstacked().map{$0.scalar!}
-        let object = entityEmbeddings(Tensor<Int32>(Int32(objectEntity))).unstacked().map{$0.scalar!}
+        let subjectGates = entityEmbeddings[subjectEntity] // entityEmbeddings(Tensor<Int32>(Int32(subjectEntity))).unstacked().map{$0.scalar!}
+        let objectGates = entityEmbeddings[objectEntity] // entityEmbeddings(Tensor<Int32>(Int32(objectEntity))).unstacked().map{$0.scalar!}
         let parameterizedGates = relationshipEmbeddings[relation]
         // print("obtained embeddings")
         // print(parameterizedGates)
-        
-        let predicate = Matrix.stackAsGates(
-            [
-                getLayerMatrix(layers: parameterizedGates, layer: 0),
-                getLayerMatrix(layers: parameterizedGates, layer: 1, offset: -1),
-                getLayerMatrix(layers: parameterizedGates, layer: 2, offset: -2),
-                getLayerMatrix(layers: parameterizedGates, layer: 3, offset: -3)
-            ]
-        )
-        let U1 = Matrix.stackAsGates([prepareQubitStates(coefficients: subject), predicate])
+
+        let subject = stackParameterizedGates(subjectGates)
+        // let subject = Matrix.stackAsGates(
+        //     [
+        //         getLayerMatrix(layers: subjectGates, layer: 0),
+        //         getLayerMatrix(layers: subjectGates, layer: 1, offset: -1),
+        //         getLayerMatrix(layers: subjectGates, layer: 2, offset: -2),
+        //         getLayerMatrix(layers: subjectGates, layer: 3, offset: -3)
+        //     ]
+        // )
+
+        let object = stackParameterizedGates(objectGates)
+        // let object = Matrix.stackAsGates(
+        //     [
+        //         getLayerMatrix(layers: objectGates, layer: 0),
+        //         getLayerMatrix(layers: objectGates, layer: 1, offset: -1),
+        //         getLayerMatrix(layers: objectGates, layer: 2, offset: -2),
+        //         getLayerMatrix(layers: objectGates, layer: 3, offset: -3)
+        //     ]
+        // )
+
+        let predicate = stackParameterizedGates(parameterizedGates)
+        // let predicate = Matrix.stackAsGates(
+        //     [
+        //         getLayerMatrix(layers: parameterizedGates, layer: 0),
+        //         getLayerMatrix(layers: parameterizedGates, layer: 1, offset: -1),
+        //         getLayerMatrix(layers: parameterizedGates, layer: 2, offset: -2),
+        //         getLayerMatrix(layers: parameterizedGates, layer: 3, offset: -3)
+        //     ]
+        // )
+        let U1 = Matrix.stackAsGates([hadamardTransformer, subject, predicate])
         
         // print(subject)
-        let U2 = prepareQubitStates(coefficients: object)
+        let U2 = Matrix.stackAsGates([hadamardTransformer, object])
         let gates: [Gate] = [
             .hadamard(target: 0),
             .controlled(
@@ -505,10 +563,41 @@ class QRescal<SourceElement, NormalizedElement>: GenericModel where SourceElemen
         return Tensor<Float>(results)
     }
 
-    func computeDerivative(subjectEntity: Int, relation: Int, objectEntity: Int, layer: Int, qubit: Int, parameter: OptimizedParameter, variant: GateVariant = .normal, controlVariant: GateVariant = .normal) -> CircuitStatevector {
-        let subject = entityEmbeddings(Tensor<Int32>(Int32(subjectEntity))).unstacked().map{$0.scalar!}
-        let object = entityEmbeddings(Tensor<Int32>(Int32(objectEntity))).unstacked().map{$0.scalar!}
-        let parameterizedGates = relationshipEmbeddings[relation]
+    func computeDerivative(subjectEntity: Int, relation: Int, objectEntity: Int, layer: Int, qubit: Int, parameter: OptimizedParameter, variant: GateVariant = .normal, controlVariant: GateVariant = .normal,
+        optimizedCircuit: OptimizedCircuit
+    ) -> CircuitStatevector {
+        let subject_ = optimizedCircuit == .subject ? stackParameterizedGateDerivatives(
+            entityEmbeddings[subjectEntity],
+            layer: layer,
+            parameter: parameter,
+            variant: variant,
+            controlVariant: controlVariant,
+            qubit: qubit
+        ) : stackParameterizedGates(entityEmbeddings[subjectEntity])
+        let subject = Matrix.stackAsGates([hadamardTransformer, subject_])
+
+        let object_ = optimizedCircuit == .object ? stackParameterizedGateDerivatives(
+            entityEmbeddings[objectEntity],
+            layer: layer,
+            parameter: parameter,
+            variant: variant,
+            controlVariant: controlVariant,
+            qubit: qubit
+        ) : stackParameterizedGates(entityEmbeddings[objectEntity])
+        let object = Matrix.stackAsGates([hadamardTransformer, object_])
+        
+        let predicate = optimizedCircuit == .relationship ? stackParameterizedGateDerivatives(
+            relationshipEmbeddings[relation],
+            layer: layer,
+            parameter: parameter,
+            variant: variant,
+            controlVariant: controlVariant,
+            qubit: qubit
+        ) : stackParameterizedGates(relationshipEmbeddings[relation])
+
+        //entityEmbeddings(Tensor<Int32>(Int32(subjectEntity))).unstacked().map{$0.scalar!}
+        // let object = entityEmbeddings(Tensor<Int32>(Int32(objectEntity))).unstacked().map{$0.scalar!}
+        // let parameterizedGates = relationshipEmbeddings[relation]
         
         // let predicate = Matrix.stackAsGates(
         //     [
@@ -524,21 +613,21 @@ class QRescal<SourceElement, NormalizedElement>: GenericModel where SourceElemen
         //     layers: parameterizedGates, layer: layer, parameter: parameter, variant: variant, controlVariant: controlVariant, qubit: qubit, offset: layer == 0 ? .none : -layer
         // )
 
-        let predicate = Matrix.stackAsGates(
-            (0...3).map{ i in
-                i == layer ? getGateDerivativeMatrix(
-                    layers: parameterizedGates, layer: layer, parameter: parameter, variant: variant, controlVariant: controlVariant, qubit: qubit, offset: layer == 0 ? .none : -layer
-                ) : getLayerMatrix(layers: parameterizedGates, layer: i, offset: i == 0 ? .none : -i)
-            }
-        )
+        // let predicate = Matrix.stackAsGates(
+        //     (0...3).map{ i in
+        //         i == layer ? getGateDerivativeMatrix(
+        //             layers: parameterizedGates, layer: layer, parameter: parameter, variant: variant, controlVariant: controlVariant, qubit: qubit, offset: layer == 0 ? .none : -layer
+        //         ) : getLayerMatrix(layers: parameterizedGates, layer: i, offset: i == 0 ? .none : -i)
+        //     }
+        // )
 
         // print(predicate)
         // print(predicate.squared)
 
-        let U1 = Matrix.stackAsGates([prepareQubitStates(coefficients: subject), predicate])
+        let U1 = Matrix.stackAsGates([subject, predicate])
         // print(prepareQubitStates(coefficients: subject))
         // print(U1)
-        let U2 = prepareQubitStates(coefficients: object)
+        let U2 = object
         let gates: [Gate] = [
             .hadamard(target: 0),
             .controlled(
@@ -563,57 +652,70 @@ class QRescal<SourceElement, NormalizedElement>: GenericModel where SourceElemen
         return try! circuit.statevector().get()
     }
 
-    func computeDerivatives(subjectEntity: Int, relation: Int, objectEntity: Int, layer: Int, qubit: Int, multiplier: Float = 1.0) -> ParameterizedGateGradient {
+    func computeDerivatives(subjectEntity: Int, relation: Int, objectEntity: Int, layer: Int, qubit: Int, optimizedCircuit: OptimizedCircuit, multiplier: Float = 1.0,
+        enableCompleteLoss: Bool = false
+    ) -> ParameterizedGateGradient {
         var alpha = 0.0
         var beta = 0.0
         var gamma = 0.0
         let multiplierDouble = Double(multiplier)
         if layer == 0 {
-            alpha = computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .alpha, variant: .normal, controlVariant: .normal).firstQubitPositiveneStats
-            beta = 0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .beta, variant: .normal, controlVariant: .normal).firstQubitPositiveneStats +
-             0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .beta, variant: .negated, controlVariant: .normal).firstQubitPositiveneStats
-            gamma = 0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .gamma, variant: .normal, controlVariant: .normal).firstQubitPositiveneStats +
-             0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .gamma, variant: .negated, controlVariant: .normal).firstQubitPositiveneStats
+            alpha = computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .alpha, variant: .normal, controlVariant: .normal, optimizedCircuit: optimizedCircuit).firstQubitPositiveneStats
+            beta = 0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .beta, variant: .normal, controlVariant: .normal, optimizedCircuit: optimizedCircuit).firstQubitPositiveneStats +
+             0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .beta, variant: .negated, controlVariant: .normal, optimizedCircuit: optimizedCircuit).firstQubitPositiveneStats
+            gamma = 0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .gamma, variant: .normal, controlVariant: .normal, optimizedCircuit: optimizedCircuit).firstQubitPositiveneStats +
+             0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .gamma, variant: .negated, controlVariant: .normal, optimizedCircuit: optimizedCircuit).firstQubitPositiveneStats
         } else {
-            alpha = computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .alpha, variant: .normal, controlVariant: .normal).firstQubitPositiveneStats
-                // + 0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .alpha, variant: .normal, controlVariant: .negated).firstQubitPositiveneStats
-            beta = 1 * (
-                0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .beta, variant: .normal, controlVariant: .normal).firstQubitPositiveneStats +
-                0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .beta, variant: .negated, controlVariant: .normal).firstQubitPositiveneStats
+            alpha = (enableCompleteLoss ? 0.5 : 1.0) * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .alpha, variant: .normal, controlVariant: .normal, optimizedCircuit: optimizedCircuit).firstQubitPositiveneStats
+                + (enableCompleteLoss ? 0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .alpha, variant: .normal, controlVariant: .negated, optimizedCircuit: optimizedCircuit).firstQubitPositiveneStats : 0)
+            beta = (enableCompleteLoss ? 0.5 : 1.0) * (
+                0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .beta, variant: .normal, controlVariant: .normal, optimizedCircuit: optimizedCircuit).firstQubitPositiveneStats +
+                0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .beta, variant: .negated, controlVariant: .normal, optimizedCircuit: optimizedCircuit).firstQubitPositiveneStats
             )
-            // - 0.5 * (
-            //     0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .beta, variant: .normal, controlVariant: .negated).firstQubitPositiveneStats +
-            //     0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .beta, variant: .negated, controlVariant: .negated).firstQubitPositiveneStats
-            // )
-            gamma = 1 * (
-                0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .gamma, variant: .normal, controlVariant: .normal).firstQubitPositiveneStats +
-                0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .gamma, variant: .negated, controlVariant: .normal).firstQubitPositiveneStats
-            )// ) - 0.5 * (
-            //     0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .gamma, variant: .normal, controlVariant: .negated).firstQubitPositiveneStats +
-            //     0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .gamma, variant: .negated, controlVariant: .negated).firstQubitPositiveneStats
-            // )
+            beta -= ( enableCompleteLoss ? 0.5 * (
+                0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .beta, variant: .normal, controlVariant: .negated, optimizedCircuit: optimizedCircuit).firstQubitPositiveneStats +
+                0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .beta, variant: .negated, controlVariant: .negated, optimizedCircuit: optimizedCircuit).firstQubitPositiveneStats
+            ) : 0 )
+            gamma = (enableCompleteLoss ? 0.5 : 1.0) * (
+                0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .gamma, variant: .normal, controlVariant: .normal, optimizedCircuit: optimizedCircuit).firstQubitPositiveneStats +
+                0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .gamma, variant: .negated, controlVariant: .normal, optimizedCircuit: optimizedCircuit).firstQubitPositiveneStats
+            )
+            gamma -= (enableCompleteLoss ? 0.5 * (
+                0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .gamma, variant: .normal, controlVariant: .negated, optimizedCircuit: optimizedCircuit).firstQubitPositiveneStats +
+                0.5 * computeDerivative(subjectEntity: subjectEntity, relation: relation, objectEntity: objectEntity, layer: layer, qubit: qubit, parameter: .gamma, variant: .negated, controlVariant: .negated, optimizedCircuit: optimizedCircuit).firstQubitPositiveneStats
+            ) : 0)
         }
         return ParameterizedGateGradient(alpha: alpha * multiplierDouble, beta: beta * multiplierDouble, gamma: gamma * multiplierDouble)
     }
 
-    func computeLosses(triples: Tensor<Int32>, loss: Tensor<Float>, layer: Int, qubit: Int) -> [ParameterizedGateGradient] {
+    func computeLosses(triples: Tensor<Int32>, loss: Tensor<Float>, layer: Int, qubit: Int, optimizedCircuit: OptimizedCircuit, enableCompleteLoss: Bool = false) -> [ParameterizedGateGradient] {
         let lossUnstacked = loss.unstacked().map{$0.scalar!}
         return triples.unstacked().enumerated().map{ i, triple in
             let tripleComponents = triple.unstacked().map{$0.scalar!}
             let subject = tripleComponents[0]
             let predicate = tripleComponents[2]
             let object = tripleComponents[1]
-            return computeDerivatives(subjectEntity: Int(subject), relation: Int(predicate), objectEntity: Int(object), layer: layer, qubit: qubit, multiplier: lossUnstacked[i])
+            return computeDerivatives(subjectEntity: Int(subject), relation: Int(predicate), objectEntity: Int(object), layer: layer, qubit: qubit, optimizedCircuit: optimizedCircuit, multiplier: lossUnstacked[i], enableCompleteLoss: enableCompleteLoss)
         }
     }
 
-    func updateParams(triples: Tensor<Int32>, loss: [ParameterizedGateGradient], lr: Double, layer: Int, qubit: Int) {
+    func updateParams(triples: Tensor<Int32>, loss: [ParameterizedGateGradient], lr: Double, layer: Int, qubit: Int, optimizedCircuit: OptimizedCircuit) {
         triples.unstacked().enumerated().map{ i, triple in
             let tripleUnstacked = triple.unstacked().map{Int($0.scalar!)}
             
-            relationshipEmbeddings[tripleUnstacked[2]][layer][qubit].alpha -= lr * loss[i].alpha       
-            relationshipEmbeddings[tripleUnstacked[2]][layer][qubit].beta -= lr * loss[i].beta
-            relationshipEmbeddings[tripleUnstacked[2]][layer][qubit].gamma -= lr * loss[i].gamma
+            if optimizedCircuit == .relationship {
+                relationshipEmbeddings[tripleUnstacked[2]][layer][qubit].alpha -= lr * loss[i].alpha       
+                relationshipEmbeddings[tripleUnstacked[2]][layer][qubit].beta -= lr * loss[i].beta
+                relationshipEmbeddings[tripleUnstacked[2]][layer][qubit].gamma -= lr * loss[i].gamma
+            } else if optimizedCircuit == .subject {
+                entityEmbeddings[tripleUnstacked[0]][layer][qubit].alpha -= lr * loss[i].alpha       
+                entityEmbeddings[tripleUnstacked[0]][layer][qubit].beta -= lr * loss[i].beta
+                entityEmbeddings[tripleUnstacked[0]][layer][qubit].gamma -= lr * loss[i].gamma
+            } else if optimizedCircuit == .object {
+                entityEmbeddings[tripleUnstacked[1]][layer][qubit].alpha -= lr * loss[i].alpha       
+                entityEmbeddings[tripleUnstacked[1]][layer][qubit].beta -= lr * loss[i].beta
+                entityEmbeddings[tripleUnstacked[1]][layer][qubit].gamma -= lr * loss[i].gamma
+            }
         }
     }
 }

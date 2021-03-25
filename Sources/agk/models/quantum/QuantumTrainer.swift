@@ -16,7 +16,8 @@ public struct QuantumTrainer<SourceElement, NormalizedElement>: Trainer where So
 
     func train(
         model: inout QRescal<SourceElement, NormalizedElement>, lr: Float = 0.03, frame: TripleFrame<Int32>,
-        loss: @differentiable (Tensor<Float>, Tensor<Float>, Float) -> Tensor<Float> = computeSumLoss, margin: Float = 2.0
+        loss: @differentiable (Tensor<Float>, Tensor<Float>, Float) -> Tensor<Float> = computeSumLoss, margin: Float = 2.0,
+        enableCompleteLoss: Bool = false, enableAllLayersOptimization: Bool = false
     ) {
         func handleBatch(batch: Tensor<Int32>, targetLabels: Tensor<Float>, i: Optional<Int> = .none) {
             print("Handling \(i ?? 0) batch (\(batch.shape[0]) samples)")
@@ -24,10 +25,10 @@ public struct QuantumTrainer<SourceElement, NormalizedElement>: Trainer where So
             for layer in 0...1 {
                 for qubit in 0..<model.relationshipEmbeddings[0][layer].count {
                     let losses = model.computeLosses(
-                        triples: batch, loss: targetLabels - inferredLabels, layer: layer, qubit: qubit
+                        triples: batch, loss: targetLabels - inferredLabels, layer: layer, qubit: qubit, optimizedCircuit: .relationship
                     )
                     model.updateParams(
-                        triples: batch, loss: losses, lr: Double(lr), layer: layer, qubit: qubit
+                        triples: batch, loss: losses, lr: Double(lr), layer: layer, qubit: qubit, optimizedCircuit: .relationship
                     )
                 }
             }
@@ -59,20 +60,44 @@ public struct QuantumTrainer<SourceElement, NormalizedElement>: Trainer where So
                 
                 // let inferredLabels = model(triples: positiveSamples)
                 // let inferredLabels = model(triples: negativeSamples)
-                for layer in 0..<model.relationshipEmbeddings[0].count {
+                for layer in (enableAllLayersOptimization ? 0..<model.relationshipEmbeddings[0].count : 0..<2) {
                     // print("Handling layer \(layer)")
                     for qubit in 0..<model.relationshipEmbeddings[0][layer].count {
                         // print("Handling qubit \(qubit)")
-                        let losses = model.computeLosses(
+                        var losses = model.computeLosses(
                             triples: batch.tensor, loss: Tensor<Float>(
                                 Array(
                                     repeating: loss(positiveInferredLabels, negativeInferredLabels, margin),
                                     count: batch.tensor.shape[0]
                                 )
-                            ), layer: layer, qubit: qubit
+                            ), layer: layer, qubit: qubit, optimizedCircuit: .relationship, enableCompleteLoss: enableCompleteLoss
                         )
                         model.updateParams(
-                            triples: batch.tensor, loss: losses, lr: Double(lr), layer: layer, qubit: qubit
+                            triples: batch.tensor, loss: losses, lr: Double(lr), layer: layer, qubit: qubit, optimizedCircuit: .relationship
+                        )
+                        //
+                        losses = model.computeLosses(
+                            triples: batch.tensor, loss: Tensor<Float>(
+                                Array(
+                                    repeating: loss(positiveInferredLabels, negativeInferredLabels, margin),
+                                    count: batch.tensor.shape[0]
+                                )
+                            ), layer: layer, qubit: qubit, optimizedCircuit: .subject, enableCompleteLoss: enableCompleteLoss
+                        )
+                        model.updateParams(
+                            triples: batch.tensor, loss: losses, lr: Double(lr), layer: layer, qubit: qubit, optimizedCircuit: .subject
+                        )
+                        //
+                        losses = model.computeLosses(
+                            triples: batch.tensor, loss: Tensor<Float>(
+                                Array(
+                                    repeating: loss(positiveInferredLabels, negativeInferredLabels, margin),
+                                    count: batch.tensor.shape[0]
+                                )
+                            ), layer: layer, qubit: qubit, optimizedCircuit: .object, enableCompleteLoss: enableCompleteLoss
+                        )
+                        model.updateParams(
+                            triples: batch.tensor, loss: losses, lr: Double(lr), layer: layer, qubit: qubit, optimizedCircuit: .object
                         )
                     }
                 }

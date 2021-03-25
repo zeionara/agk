@@ -12,7 +12,9 @@
                 "-m",
                 "qrescal",
                 "-d",
-                "deduplicated-dataset.txt"
+                "deduplicated-dataset.txt",
+                "-e",
+                "16"
             ],
             "cwd": "${workspaceFolder}",
             "sourceLanguages": [

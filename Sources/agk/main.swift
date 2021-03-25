@@ -104,6 +104,8 @@ struct CrossValidate: ParsableCommand, Encodable {
         case margin // = "margin"
         case linearModelLoss // = "loss"
         case optimizer // = "optimizer"
+        case allLayers
+        case completeLoss
     }
 
     func encode(to encoder: Encoder) throws {
@@ -121,6 +123,8 @@ struct CrossValidate: ParsableCommand, Encodable {
         try container.encode(learningRate, forKey: .learningRate)
         try container.encode(openke, forKey: .openke)
         try container.encode(gpu, forKey: .gpu)
+        try container.encode(completeLoss, forKey: .completeLoss)
+        try container.encode(allLayers, forKey: .allLayers)
         try container.encode(readEmbeddings, forKey: .readEmbeddings)
         try container.encode(classifierLearningRate, forKey: .classifierLearningRate)
         try container.encode(classifierNEpochs, forKey: .classifierNEpochs)
@@ -214,6 +218,12 @@ struct CrossValidate: ParsableCommand, Encodable {
     @Flag(name: .shortAndLong, help: "Use openke implementation")
     var gpu = false
 
+    @Flag()
+    var completeLoss = false
+
+    @Flag()
+    var allLayers = false
+    
     @Flag(help: "Do not retrain embeddings for classifier")
     var readEmbeddings = false
 
@@ -394,13 +404,16 @@ struct CrossValidate: ParsableCommand, Encodable {
 
         // var result = [String: Float]()
         if (model == .qrescal) {
+            let _completeLoss = completeLoss
+            let _allLayers = allLayers
+            let _dimensionality = embeddingDimensionality
             print("Running quantum model...")
             if (task == .linkPrediction) {
                 result += try GenericCVTester<QRescal<String, Int32>, TripleFrame<Int32>, QuantumTrainer<String, Int32>>(nFolds: nFolds, nEpochs: nEpochs, batchSize: batchSize).test(
                     dataset: dataset, metrics: metrics, enableParallelism: true
                 ) { trainer, trainFrame in
-                    var model_ = QRescal(dimensionality: 16, dataset: dataset)
-                    trainer.train(model: &model_, frame: trainFrame)
+                    var model_ = QRescal(dimensionality: _dimensionality, dataset: dataset)
+                    trainer.train(model: &model_, frame: trainFrame, enableCompleteLoss: _completeLoss, enableAllLayersOptimization: _allLayers)
                     return model_
                 } computeMetric: { model, metric, trainLabels, testLabels, dataset -> Float in
                     (metric as! Metric).compute(model: model, trainFrame: trainLabels, testFrame: testLabels, dataset: dataset)    
